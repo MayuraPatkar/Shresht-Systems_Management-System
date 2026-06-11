@@ -457,7 +457,7 @@ router.post('/send-quotation', async (req: Request, res: Response) => {
     if (!phone || !quotationId) return res.status(400).json({ message: 'Phone and Quotation ID required.' });
 
     try {
-        const quotation = await QuotationModel.findOne({ quotation_id: quotationId }) as any;
+        const quotation = await QuotationModel.findOne({ quotation_no: quotationId }) as any;
         if (!quotation) {
             logger.warn(`Quotation not found: ${quotationId}`);
             return res.status(404).json({ message: `Quotation "${quotationId}" not found. Please check the quotation ID.` });

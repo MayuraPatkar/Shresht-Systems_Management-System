@@ -1623,7 +1623,7 @@
         if (typeof currentStep === 'undefined') {
             return false;
         }
-        return currentStep === 5;
+        return currentStep === 4;
     }
 
     function isHomeScreenActive() {
@@ -1643,7 +1643,7 @@
         }
 
         const nonItemBtn = document.getElementById('add-non-item-btn');
-        if (nonItemBtn && typeof currentStep !== 'undefined' && currentStep === 6) {
+        if (nonItemBtn && typeof currentStep !== 'undefined' && currentStep === 5) {
             nonItemBtn.click();
             return true;
         }

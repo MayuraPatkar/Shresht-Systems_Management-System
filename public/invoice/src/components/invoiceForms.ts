@@ -574,6 +574,44 @@ const validateCurrentStep = async function (): Promise<boolean> {
         }
     }
 
+    if (currentStep === 5) {
+        clearStepErrors(5);
+        const nonItemCards = document.querySelectorAll('#non-items-container .non-item-card');
+        
+        let isValid = true;
+        let firstInvalidInput: HTMLInputElement | null = null;
+
+        nonItemCards.forEach((card) => {
+            const inputs = card.querySelectorAll('input');
+            const desc = inputs[0] as HTMLInputElement | null;
+            const price = inputs[1] as HTMLInputElement | null;
+
+            if (desc) {
+                if (!desc.value.trim()) {
+                    showInlineError(desc, 'Required');
+                    if (isValid) firstInvalidInput = desc;
+                    isValid = false;
+                }
+            }
+
+            if (price) {
+                const priceVal = Number(price.value);
+                if (!price.value.trim() || isNaN(priceVal) || priceVal <= 0) {
+                    showInlineError(price, 'Required');
+                    if (isValid) firstInvalidInput = price;
+                    isValid = false;
+                }
+            }
+        });
+
+        if (!isValid) {
+            if (firstInvalidInput) {
+                (firstInvalidInput as HTMLInputElement).focus();
+            }
+            return false;
+        }
+    }
+
     return true;
 };
 
@@ -666,7 +704,7 @@ async function loadInvoiceFromQuotation(quotationId: string): Promise<void> {
                 <div class="item-field qty">
                     <input type="number" value="${item.quantity || 0}" placeholder="Qty" step="any" min="0.000001" required>
                 </div>
-                <div class="item-field rate">
+                <div class="item-field price">
                     <input type="number" value="${item.unit_price || 0}" placeholder="Unit Price" required>
                 </div>
                 <div class="item-field rate">
@@ -975,13 +1013,13 @@ const openInvoice = async function (id: string) {
         currentTermsAndConditions = invoice.termsAndConditions || "";
 
         const itemsTableBody = document.querySelector("#items-table tbody") as HTMLTableSectionElement;
-        itemsTableBody.innerHTML = "";
+        if (itemsTableBody) itemsTableBody.innerHTML = "";
         const itemsContainer = document.getElementById("items-container") as HTMLElement;
-        itemsContainer.innerHTML = "";
+        if (itemsContainer) itemsContainer.innerHTML = "";
         const nonItemsTableBody = document.querySelector("#non-items-table tbody") as HTMLTableSectionElement;
-        nonItemsTableBody.innerHTML = "";
+        if (nonItemsTableBody) nonItemsTableBody.innerHTML = "";
         const nonItemsContainer = document.getElementById("non-items-container") as HTMLElement;
-        nonItemsContainer.innerHTML = "";
+        if (nonItemsContainer) nonItemsContainer.innerHTML = "";
 
         let s = 1;
 
@@ -1007,7 +1045,7 @@ const openInvoice = async function (id: string) {
                     <div class="item-field qty">
                         <input type="number" value="${item.quantity || 0}" placeholder="Qty" step="any" min="0.000001" required>
                     </div>
-                    <div class="item-field rate">
+                    <div class="item-field price">
                         <input type="number" value="${item.unit_price || 0}" placeholder="Unit Price" required>
                     </div>
                     <div class="item-field rate">
@@ -1031,7 +1069,7 @@ const openInvoice = async function (id: string) {
                     <td><input type="number" value="${item.gst_rate || item.rate || 0}" required></td>
                     <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
                 `;
-                itemsTableBody.appendChild(row);
+                if (itemsTableBody) itemsTableBody.appendChild(row);
 
                 const cardInput = card.querySelector('.item-field.description input') as HTMLInputElement | null;
                 const cardSuggestions = card.querySelector('.suggestions') as HTMLElement | null;
@@ -1112,7 +1150,7 @@ const openInvoice = async function (id: string) {
                     <td><input type="number" value="${item.rate || 0}" required></td>
                     <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
                 `;
-                nonItemsTableBody.appendChild(row);
+                if (nonItemsTableBody) nonItemsTableBody.appendChild(row);
 
                 const cardInputs = card.querySelectorAll('input');
                 const rowInputs = row.querySelectorAll('input');
@@ -1154,7 +1192,7 @@ const openInvoice = async function (id: string) {
                     <div class="item-field qty">
                         <input type="number" value="${item.quantity || 0}" placeholder="Qty" step="any" min="0.000001" required>
                     </div>
-                    <div class="item-field rate">
+                    <div class="item-field price">
                         <input type="number" value="${item.unit_price || 0}" placeholder="Unit Price" required>
                     </div>
                     <div class="item-field rate">
@@ -1178,7 +1216,7 @@ const openInvoice = async function (id: string) {
                     <td><input type="number" value="${item.gst_rate || item.rate || 0}" required></td>
                     <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
                 `;
-                itemsTableBody.appendChild(row);
+                if (itemsTableBody) itemsTableBody.appendChild(row);
 
                 const cardInput = card.querySelector('.item-field.description input') as HTMLInputElement | null;
                 const cardSuggestions = card.querySelector('.suggestions') as HTMLElement | null;
@@ -1259,7 +1297,7 @@ const openInvoice = async function (id: string) {
                     <td><input type="number" value="${item.rate || 0}" required></td>
                     <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
                 `;
-                nonItemsTableBody.appendChild(row);
+                if (nonItemsTableBody) nonItemsTableBody.appendChild(row);
 
                 const cardInputs = card.querySelectorAll('input');
                 const rowInputs = row.querySelectorAll('input');

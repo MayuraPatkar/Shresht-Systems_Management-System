@@ -1750,23 +1750,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // If a view id is present, attempt to call the appropriate view function for the module
     if (viewId) {
       const path = window.location.pathname.toLowerCase();
-      try {
-        if (path.includes('/quotation') && typeof window.viewQuotation === 'function') {
-          window.viewQuotation(viewId, 1);
-        } else if (path.includes('/invoice') && typeof window.viewInvoice === 'function') {
-          // Get user role from sessionStorage or default to 'user'
-          const userRole = sessionStorage.getItem('userRole') || 'user';
-          window.viewInvoice(viewId, userRole);
-        } else if (path.includes('/service') && typeof window.viewService === 'function') {
-          window.viewService(viewId);
-        } else {
-          // Fallback: try to find a global view function with a common name
-          const fallbackFnNames = [`view${viewId}`, `view${path.split('/').pop()}`];
-          // Nothing more to do here; module scripts usually expose their own view functions
+      if (!path.includes('/form')) {
+        try {
+          if (path.includes('/quotation') && typeof window.viewQuotation === 'function') {
+            window.viewQuotation(viewId, 1);
+          } else if (path.includes('/invoice') && typeof window.viewInvoice === 'function') {
+            // Get user role from sessionStorage or default to 'user'
+            const userRole = sessionStorage.getItem('userRole') || 'user';
+            window.viewInvoice(viewId, userRole);
+          } else if (path.includes('/service') && typeof window.viewService === 'function') {
+            window.viewService(viewId);
+          } else {
+            // Fallback: try to find a global view function with a common name
+            const fallbackFnNames = [`view${viewId}`, `view${path.split('/').pop()}`];
+            // Nothing more to do here; module scripts usually expose their own view functions
+          }
+        } catch (err) {
+          console.error('Error calling view function:', err);
+          // Ignore — module may not expose view function at this time
         }
-      } catch (err) {
-        console.error('Error calling view function:', err);
-        // Ignore — module may not expose view function at this time
       }
     }
   } catch (e) {

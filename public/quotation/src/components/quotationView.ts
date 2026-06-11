@@ -846,48 +846,19 @@ async function renderQuotationView(quotation, viewType) {
         });
     }
 
-    // Show and wire up the Convert to Invoice button
-    const convertToInvoiceSection = document.getElementById('convert-to-invoice-section');
-    if (convertToInvoiceSection) {
-        convertToInvoiceSection.classList.remove('hidden');
-    }
-
     const isAlreadyConverted = quotation.quotation_status === 'Converted' || !!quotation.converted_invoice_id;
-
-    // Update the section visually if already converted
-    const convertIconWrap = document.getElementById('convert-icon-wrap');
-    const convertTitle = document.getElementById('convert-title');
-    const convertDesc = document.getElementById('convert-desc');
-    if (isAlreadyConverted && convertToInvoiceSection) {
-        convertToInvoiceSection.classList.remove('bg-blue-50', 'border-blue-200');
-        convertToInvoiceSection.classList.add('bg-green-50', 'border-green-300');
-        if (convertIconWrap) {
-            convertIconWrap.classList.remove('bg-blue-600');
-            convertIconWrap.classList.add('bg-green-600');
-            convertIconWrap.innerHTML = '<i class="fas fa-check-circle text-white text-xl"></i>';
-        }
-        if (convertTitle) {
-            convertTitle.textContent = 'Already Converted to Invoice';
-            convertTitle.classList.remove('text-blue-900');
-            convertTitle.classList.add('text-green-900');
-        }
-        if (convertDesc) {
-            convertDesc.textContent = 'This quotation has already been converted to an invoice.';
-            convertDesc.classList.remove('text-blue-700');
-            convertDesc.classList.add('text-green-700');
-        }
-    }
 
     const convertToInvoiceBtn = document.getElementById('convertToInvoiceBtn');
     if (convertToInvoiceBtn) {
+        convertToInvoiceBtn.style.display = 'inline-flex';
         const newConvertBtn = convertToInvoiceBtn.cloneNode(true) as HTMLButtonElement;
         convertToInvoiceBtn.parentNode?.replaceChild(newConvertBtn, convertToInvoiceBtn);
 
         if (isAlreadyConverted) {
             // Flag the button as already converted
             newConvertBtn.disabled = true;
-            newConvertBtn.className = 'bg-green-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-semibold transition-all shadow-md opacity-80 cursor-not-allowed whitespace-nowrap';
-            newConvertBtn.innerHTML = '<i class="fas fa-check-circle"></i> Already Converted';
+            newConvertBtn.className = 'inline-flex items-center justify-center gap-2 rounded-lg border border-green-300 bg-green-50 px-4 py-2 text-sm font-semibold text-green-700 opacity-80 cursor-not-allowed';
+            newConvertBtn.innerHTML = '<i class="fas fa-check-circle"></i> Converted';
             newConvertBtn.addEventListener('click', () => {
                 if ((window as any).electronAPI?.showAlert1) {
                     (window as any).electronAPI.showAlert1('This quotation has already been converted to an invoice.');
@@ -897,7 +868,7 @@ async function renderQuotationView(quotation, viewType) {
             });
         } else if (quotation.quotation_status !== 'Approved') {
             newConvertBtn.disabled = true;
-            newConvertBtn.className = 'bg-gray-400 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-semibold transition-all shadow-md opacity-80 cursor-not-allowed whitespace-nowrap';
+            newConvertBtn.className = 'inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-sm font-semibold text-gray-400 opacity-80 cursor-not-allowed';
             newConvertBtn.innerHTML = '<i class="fas fa-ban"></i> Cannot Convert';
             newConvertBtn.title = 'Only approved quotations can be converted to invoices.';
             newConvertBtn.addEventListener('click', () => {
@@ -1009,6 +980,92 @@ async function renderQuotationView(quotation, viewType) {
             const quotationId = quotation.quotation_id || quotation.quotation_no;
             sessionStorage.setItem('currentTab-status', 'clone');
             cloneQuotation(quotationId);
+        });
+    }
+
+    const sendWhatsAppBtn = document.getElementById('sendWhatsAppBtn') as HTMLButtonElement;
+    if (sendWhatsAppBtn) {
+        const newSendWhatsAppBtn = sendWhatsAppBtn.cloneNode(true) as HTMLButtonElement;
+        sendWhatsAppBtn.parentNode?.replaceChild(newSendWhatsAppBtn, sendWhatsAppBtn);
+        newSendWhatsAppBtn.addEventListener('click', () => {
+            const quotationId = quotation.quotation_id || quotation.quotation_no;
+            const defaultPhone = quotation.customer_phone || '';
+            
+            showWhatsAppPromptModal(defaultPhone, async (phone: string) => {
+                const cleanPhone = phone.replace(/\D/g, '');
+                if (cleanPhone.length < 10 || cleanPhone.length > 15) {
+                    if ((window as any).electronAPI?.showAlert1) {
+                        (window as any).electronAPI.showAlert1('Please enter a valid phone number (10 to 15 digits).');
+                    } else {
+                        alert('Please enter a valid phone number (10 to 15 digits).');
+                    }
+                    return;
+                }
+                
+                let formattedPhone = cleanPhone;
+                if (!formattedPhone.startsWith('91') && formattedPhone.length === 10) {
+                    formattedPhone = '91' + formattedPhone;
+                }
+                
+                newSendWhatsAppBtn.disabled = true;
+                newSendWhatsAppBtn.classList.add('opacity-70', 'cursor-not-allowed');
+                const originalHTML = newSendWhatsAppBtn.innerHTML;
+                newSendWhatsAppBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                
+                try {
+                    const res = await fetch('/comms/send-quotation', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            phone: formattedPhone,
+                            quotationId: quotationId
+                        })
+                    });
+                    
+                    const result = await res.json();
+                    if (!res.ok) {
+                        throw new Error(result.message || result.error || 'Failed to send WhatsApp message');
+                    }
+                    
+                    // Only update status if it is currently 'Draft'
+                    if (quotation.quotation_status === 'Draft') {
+                        const statusRes = await fetch(`/quotation/${encodeURIComponent(quotationId)}/status`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ status: 'Sent' })
+                        });
+                        
+                        if (!statusRes.ok) {
+                            const statusResult = await statusRes.json();
+                            throw new Error(statusResult.message || 'Failed to update quotation status to Sent');
+                        }
+                    }
+                    
+                    if (typeof showToast === 'function') {
+                        showToast('Quotation PDF sent via WhatsApp successfully!');
+                    }
+                    
+                    // Restore button state before refreshing the view so the cloned element starts in normal state
+                    newSendWhatsAppBtn.disabled = false;
+                    newSendWhatsAppBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+                    newSendWhatsAppBtn.innerHTML = originalHTML;
+                    
+                    await (window as any).viewQuotation(quotationId, currentViewType);
+                    
+                } catch (err: any) {
+                    console.error('WhatsApp send error:', err);
+                    const errMsg = err.message || 'Error occurred while sending';
+                    if ((window as any).electronAPI?.showAlert1) {
+                        (window as any).electronAPI.showAlert1(errMsg);
+                    } else {
+                        alert(errMsg);
+                    }
+                } finally {
+                    newSendWhatsAppBtn.disabled = false;
+                    newSendWhatsAppBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+                    newSendWhatsAppBtn.innerHTML = originalHTML;
+                }
+            });
         });
     }
 
@@ -1211,3 +1268,86 @@ async function viewQuotation(quotationId, viewType) {
 
 // Expose viewQuotation globally for use in other scripts
 window.viewQuotation = viewQuotation;
+
+function showWhatsAppPromptModal(defaultPhone: string, callback: (phone: string) => void) {
+    const modalHTML = `
+        <div id="whatsapp-prompt-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-[4px] z-[999] flex items-center justify-center transition-all duration-200">
+            <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden border border-slate-100 flex flex-col">
+                <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i class="fab fa-whatsapp text-emerald-500 text-xl"></i>
+                        <h3 class="text-lg font-bold text-slate-800">Send via WhatsApp</h3>
+                    </div>
+                    <button id="close-whatsapp-modal" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-200 cursor-pointer">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label for="whatsapp-prompt-phone" class="block text-sm font-medium text-slate-700 mb-2">
+                            Enter Client's WhatsApp Number
+                        </label>
+                        <input type="tel" id="whatsapp-prompt-phone" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium transition-all" 
+                            placeholder="e.g., 9876543210 or 919876543210" value="${defaultPhone}">
+                        <p class="text-xs text-slate-400 mt-2">Specify the number with country code if outside India.</p>
+                    </div>
+                </div>
+                <div class="p-6 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
+                    <button id="cancel-whatsapp-modal" class="px-5 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 font-semibold text-sm transition-all cursor-pointer">
+                        Cancel
+                    </button>
+                    <button id="submit-whatsapp-modal" class="px-5 py-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 font-semibold text-sm transition-all cursor-pointer shadow-sm shadow-emerald-500/10 flex items-center gap-2">
+                        <i class="fas fa-paper-plane text-xs"></i> Send
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const existingModal = document.getElementById('whatsapp-prompt-modal');
+    if (existingModal) existingModal.remove();
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    const modal = document.getElementById('whatsapp-prompt-modal')!;
+    const closeBtn = document.getElementById('close-whatsapp-modal')!;
+    const cancelBtn = document.getElementById('cancel-whatsapp-modal')!;
+    const submitBtn = document.getElementById('submit-whatsapp-modal')!;
+    const phoneInput = document.getElementById('whatsapp-prompt-phone') as HTMLInputElement;
+
+    const closeModal = () => modal.remove();
+
+    closeBtn.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
+
+    phoneInput.addEventListener('input', (e) => {
+        const target = e.target as HTMLInputElement;
+        target.value = target.value.replace(/[^\d+]/g, '');
+    });
+
+    const submit = () => {
+        const phone = phoneInput.value.trim();
+        if (phone) {
+            callback(phone);
+            closeModal();
+        } else {
+            phoneInput.classList.add('border-red-500');
+            phoneInput.focus();
+        }
+    };
+
+    submitBtn.addEventListener('click', submit);
+    phoneInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            submit();
+        } else if (e.key === 'Escape') {
+            closeModal();
+        }
+    });
+
+    setTimeout(() => phoneInput.focus(), 100);
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+}

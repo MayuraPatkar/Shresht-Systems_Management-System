@@ -64,8 +64,27 @@ class CustomerForms {
                     V.pincode(true, 'Please enter a valid 6-digit pincode')
                 ]);
                 this.validator.registerField('gstin', [
-                    V.gstin(false, 'Please enter a valid 15-digit GSTIN')
+                    {
+                        validate: (val: string) => {
+                            const typeSelect = form.querySelector('[name="customer_type"]') as HTMLSelectElement;
+                            const customerType = typeSelect ? typeSelect.value : 'Individual';
+                            const isB2B = customerType === 'Commercial' || customerType === 'Government';
+                            const validatorRule = V.gstin(isB2B, isB2B ? 'GSTIN is required for B2B customers' : 'Please enter a valid 15-digit GSTIN');
+                            return validatorRule.validate(val);
+                        }
+                    }
                 ]);
+            }
+
+            // Bind type change listener for dynamic validation updating
+            const typeSelect = form.querySelector('[name="customer_type"]') as HTMLSelectElement;
+            if (typeSelect) {
+                typeSelect.addEventListener('change', () => {
+                    this.updateGstinLabel();
+                    if (this.validator) {
+                        this.validator.validateField('gstin');
+                    }
+                });
             }
 
             // Bind Numeric Input restrictions
@@ -112,6 +131,23 @@ class CustomerForms {
         }
     }
 
+    private updateGstinLabel() {
+        const form = document.getElementById(this.formId) as HTMLFormElement;
+        if (!form) return;
+        const typeSelect = form.querySelector('[name="customer_type"]') as HTMLSelectElement;
+        const gstinInput = document.getElementById('gstin-input') as HTMLInputElement;
+        const gstinLabel = gstinInput?.previousElementSibling as HTMLLabelElement;
+        if (typeSelect && gstinLabel) {
+            const customerType = typeSelect.value;
+            const isB2B = customerType === 'Commercial' || customerType === 'Government';
+            if (isB2B) {
+                gstinLabel.innerHTML = 'GST Number <span class="text-red-500">*</span>';
+            } else {
+                gstinLabel.innerHTML = 'GST Number';
+            }
+        }
+    }
+
     private getDisplayName(customer: any): string {
         const firstName = customer?.customer?.first_name || '';
         const lastName = customer?.customer?.last_name || '';
@@ -128,6 +164,7 @@ class CustomerForms {
             title.textContent = 'Add New Customer';
             idInput.value = '';
             form.reset();
+            this.updateGstinLabel();
             if (this.validator) this.validator.clearAllErrors();
             modal.classList.remove('hidden');
             const firstNameInput = form.querySelector('[name="customer.first_name"]') as HTMLInputElement;
@@ -166,6 +203,8 @@ class CustomerForms {
         elements['billing_address.city'].value = customer.billing_address?.city || '';
         elements['billing_address.state'].value = customer.billing_address?.state || 'Karnataka';
         elements['billing_address.pincode'].value = customer.billing_address?.pincode || '';
+
+        this.updateGstinLabel();
 
         if (this.validator) this.validator.clearAllErrors();
         modal.classList.remove('hidden');

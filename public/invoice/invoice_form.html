@@ -213,7 +213,7 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-grow overflow-hidden flex flex-col p-8 h-[calc(100vh-6rem)]">
+        <main class="flex-grow overflow-hidden flex flex-col h-[calc(100vh-6rem)]">
 
             <!-- Loading Spinner -->
             <div id="form-loading" class="fade-in">
@@ -222,7 +222,7 @@
             </div>
 
             <!-- New Invoice Form -->
-            <div id="new" class="flex-grow overflow-y-auto min-h-0" style="display: none;">
+            <div id="new" class="flex-grow overflow-y-auto p-4 min-h-0" style="display: none;">
                 <form id="invoice-form" class="max-w-5xl mx-auto">
                     <!-- Hidden inputs for quotation reference and record ID -->
                     <input type="hidden" id="quotation-id">
@@ -528,76 +528,102 @@
                         </div>
                     </div>
 
-                    <!-- Step 4: Items & Billing -->
+                    <!-- Step 4: Item List -->
                     <div class="steps" id="step-4">
                         <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
-                            <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
-                                <div class="flex items-center gap-3">
-                                    <i class="fas fa-list-ul text-blue-600 text-2xl"></i>
-                                    <h2 class="text-2xl font-semibold text-gray-800">Items & Charges</h2>
-                                </div>
-                                <button type="button" id="add-item"
-                                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium cursor-pointer">
-                                    <i class="fas fa-plus"></i>
-                                    Add Item
-                                </button>
+                            <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                                <i class="fas fa-list-ul text-blue-600 text-2xl"></i>
+                                <h2 class="text-2xl font-semibold text-gray-800">Item List</h2>
                             </div>
                             
+                            <!-- Column Headers -->
+                            <div class="items-header">
+                                <div class="header-number">#</div>
+                                <div class="header-field description">Description</div>
+                                <div class="header-field hsn">HSN/SAC</div>
+                                <div class="header-field qty">Quantity</div>
+                                <div class="header-field price">Unit Price</div>
+                                <div class="header-field rate">Tax %</div>
+                                <div class="header-action"></div>
+                            </div>
+
                             <!-- Items Section -->
                             <div id="items-container" class="space-y-4 mb-8">
                                 <!-- Dynamic item entries go here -->
                             </div>
 
-                            <!-- Non-Items / Extra Charges Section -->
-                            <div class="border-t border-gray-200 pt-6">
-                                <div class="flex items-center justify-between mb-4">
-                                    <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                                        <i class="fas fa-plus-circle text-indigo-600"></i>
-                                        Other Charges / Deductions
-                                    </h3>
-                                    <button type="button" id="add-non-item"
-                                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium cursor-pointer">
-                                        <i class="fas fa-plus"></i>Add Charge
-                                    </button>
-                                </div>
-                                <div id="non-items-container" class="space-y-3">
-                                    <!-- Dynamic other charge lines go here -->
-                                </div>
-                            </div>
+                            <!-- Hidden table for backward compatibility -->
+                            <table id="items-table" style="display: none;">
+                                <thead>
+                                    <tr>
+                                        <th>S. No</th>
+                                        <th>Description</th>
+                                        <th>HSN/SAC</th>
+                                        <th>Qty</th>
+                                        <th>Unit Price</th>
+                                        <th>Rate</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Items will be synced here for data collection -->
+                                </tbody>
+                            </table>
 
-                            <!-- Totals Calculation visualization card -->
-                            <div class="mt-8 bg-slate-50 border border-slate-200 rounded-xl p-6 flex flex-col md:flex-row justify-between gap-6">
-                                <div class="flex-1 flex flex-col justify-between">
-                                    <p class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-2">Invoice Summary</p>
-                                    <div class="space-y-1.5 text-sm text-slate-600 font-medium">
-                                        <div class="flex justify-between max-w-xs">
-                                            <span>Subtotal:</span>
-                                            <span id="calculated-subtotal">₹ 0.00</span>
-                                        </div>
-                                        <div class="flex justify-between max-w-xs">
-                                            <span>CGST:</span>
-                                            <span id="calculated-cgst">₹ 0.00</span>
-                                        </div>
-                                        <div class="flex justify-between max-w-xs">
-                                            <span>SGST:</span>
-                                            <span id="calculated-sgst">₹ 0.00</span>
-                                        </div>
-                                        <div class="flex justify-between max-w-xs">
-                                            <span>IGST:</span>
-                                            <span id="calculated-igst">₹ 0.00</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="md:w-72 bg-white rounded-lg border border-slate-200 p-4 shadow-sm flex flex-col justify-center">
-                                    <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Grand Total</span>
-                                    <span class="text-2xl font-extrabold text-blue-600 tracking-tight" id="calculated-grand-total">₹ 0.00</span>
-                                </div>
-                            </div>
+                            <button type="button" id="add-item-btn"
+                                class="mt-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium shadow-md hover:shadow-lg transition-all cursor-pointer">
+                                <i class="fas fa-plus"></i>
+                                Add Item
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Step 5: Document Preview -->
+                    <!-- Step 5: Other Charges -->
                     <div class="steps" id="step-5">
+                        <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
+                            <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                                <i class="fas fa-plus-circle text-indigo-600 text-2xl"></i>
+                                <h2 class="text-2xl font-semibold text-gray-800">Other Charges / Deductions</h2>
+                            </div>
+
+                            <!-- Column Headers -->
+                            <div class="non-items-header">
+                                <div class="header-number">#</div>
+                                <div class="header-field description">Description</div>
+                                <div class="header-field price">Price</div>
+                                <div class="header-field rate">Tax %</div>
+                                <div class="header-action"></div>
+                            </div>
+
+                            <div id="non-items-container" class="space-y-3">
+                                <!-- Dynamic other charge lines go here -->
+                            </div>
+
+                            <!-- Hidden table for backward compatibility -->
+                            <table id="non-items-table" style="display: none;">
+                                <thead>
+                                    <tr>
+                                        <th>S. No</th>
+                                        <th>Description</th>
+                                        <th>Price</th>
+                                        <th>Rate</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Non-items will be synced here for data collection -->
+                                </tbody>
+                            </table>
+
+                            <button type="button" id="add-non-item-btn"
+                                class="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium shadow-md hover:shadow-lg transition-all cursor-pointer">
+                                <i class="fas fa-plus"></i>Add Charge
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 6: Document Preview -->
+                    <div class="steps" id="step-6">
                         <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
                             <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
                                 <i class="fas fa-eye text-purple-600 text-2xl"></i>
@@ -759,7 +785,7 @@
                 }
                 if (e.ctrlKey && e.key.toLowerCase() === 'a') {
                     e.preventDefault();
-                    document.getElementById('add-item')?.click();
+                    document.getElementById('add-item-btn')?.click();
                 }
             });
 
