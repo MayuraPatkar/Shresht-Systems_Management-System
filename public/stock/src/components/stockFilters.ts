@@ -16,7 +16,7 @@ function populateCategoryFilters(data: StockItem[]): void {
         printCat.innerHTML = '<option value="all">All Categories</option>' + Array.from(cats).map(c => `<option value="${c}">${c}</option>`).join('');
     }
     if (categoryDropdown) {
-        categoryDropdown.innerHTML = '<a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 bg-gray-100 font-semibold" data-type-filter="all">All Categories</a>' + Array.from(cats).map(c => `<a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-type-filter="${c}">${c}</a>`).join('');
+        categoryDropdown.innerHTML = '<a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md bg-gray-100 font-semibold" data-type-filter="all">All Categories</a>' + Array.from(cats).map(c => `<a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-type-filter="${c}">${c}</a>`).join('');
     }
 }
 
@@ -47,10 +47,57 @@ function setupDropdown(buttonId: string, dropdownId: string): void {
     }
 }
 
-// Setup all dropdowns
-setupDropdown('typeFilterBtn', 'typeFilterDropdown');
-setupDropdown('categoryFilterBtn', 'categoryFilterDropdown');
-setupDropdown('filterBtn', 'filterDropdown');
+// ─── Unified Filter Popover ──────────────────────────────────────────────────
+
+(function setupUnifiedFilterPopover() {
+    const toggleBtn = document.getElementById('stockFilterToggleBtn');
+    const popover   = document.getElementById('stockFilterPopover');
+    const clearBtn  = document.getElementById('stockFilterClearBtn');
+
+    if (!toggleBtn || !popover) return;
+
+    toggleBtn.addEventListener('click', (e: Event) => {
+        e.stopPropagation();
+        const rect = toggleBtn.getBoundingClientRect();
+        if (popover.classList.contains('hidden')) {
+            // Position below the button, right-aligned
+            const top  = rect.bottom + 8;
+            const right = window.innerWidth - rect.right;
+            (popover as HTMLElement).style.top   = `${top}px`;
+            (popover as HTMLElement).style.right = `${right}px`;
+            (popover as HTMLElement).style.left  = 'auto';
+            popover.classList.remove('hidden');
+        } else {
+            popover.classList.add('hidden');
+        }
+    });
+
+    // Close on outside click
+    document.addEventListener('click', (e: Event) => {
+        if (!popover.contains(e.target as Node) && e.target !== toggleBtn) {
+            popover.classList.add('hidden');
+        }
+    });
+
+    // Keep popover open when clicking inside
+    popover.addEventListener('click', (e: Event) => e.stopPropagation());
+
+    // Clear All button
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            ['typeFilterDropdown', 'categoryFilterDropdown', 'filterDropdown'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
+            });
+            applyFilters();
+        });
+    }
+})();
 
 // ─── Filter Logic ────────────────────────────────────────────────────────────
 
@@ -112,13 +159,18 @@ function applyFilters(): void {
 }
 
 function updateFilterButtonLabels(type: string, category: string, status: string): void {
-    const typeBtnSpan = document.querySelector('#typeFilterBtn span');
-    const categoryBtnSpan = document.querySelector('#categoryFilterBtn span');
-    const statusBtnSpan = document.querySelector('#filterBtn span');
+    const toggleBtn = document.getElementById('stockFilterToggleBtn');
+    const isActive  = type !== 'all' || category !== 'all' || status !== 'all';
 
-    if (typeBtnSpan) typeBtnSpan.textContent = type === 'all' ? 'Type' : `Type: ${type}`;
-    if (categoryBtnSpan) categoryBtnSpan.textContent = category === 'all' ? 'Category' : `Category: ${category}`;
-    if (statusBtnSpan) statusBtnSpan.textContent = status === 'all' ? 'Filter' : `Status: ${status}`;
+    if (toggleBtn) {
+        if (isActive) {
+            toggleBtn.classList.remove('bg-slate-50', 'text-slate-600', 'border-slate-200');
+            toggleBtn.classList.add('bg-blue-50', 'text-blue-600', 'border-blue-300');
+        } else {
+            toggleBtn.classList.remove('bg-blue-50', 'text-blue-600', 'border-blue-300');
+            toggleBtn.classList.add('bg-slate-50', 'text-slate-600', 'border-slate-200');
+        }
+    }
 }
 
 function updateBulkButtonLabels(search: string, type: string, category: string, status: string): void {
@@ -212,14 +264,21 @@ function setupSorting(): void {
 
             currentSort = { field, direction };
 
-            // Update header icons
+            // Reset all headers
             sortableHeaders.forEach(h => {
+                h.classList.remove('sort-active');
                 const icon = h.querySelector('i');
-                if (icon) icon.className = 'fas fa-sort ml-1';
+                if (icon) {
+                    icon.className = 'fas fa-sort ml-1 opacity-60';
+                }
             });
 
+            // Highlight active header
+            header.classList.add('sort-active');
             const currentIcon = header.querySelector('i');
-            if (currentIcon) currentIcon.className = `fas fa-sort-${direction === 'asc' ? 'up' : 'down'} ml-1`;
+            if (currentIcon) {
+                currentIcon.className = `fas fa-sort-${direction === 'asc' ? 'up' : 'down'} ml-1`;
+            }
 
             // Sort and re-render
             const sortedData = sortData(currentStockData, field, direction);
