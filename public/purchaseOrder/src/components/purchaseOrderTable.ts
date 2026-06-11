@@ -249,9 +249,7 @@
             // Click row to view
             if (!isTrash) {
                 tr.addEventListener('click', () => {
-                    if ((window as any).viewPurchaseOrder) {
-                        (window as any).viewPurchaseOrder(poId);
-                    }
+                    window.location.href = `/purchaseorder/details?id=${poId}`;
                 });
             }
 
@@ -345,9 +343,7 @@
 
             if (!isTrash) {
                 div.addEventListener('click', () => {
-                    if ((window as any).viewPurchaseOrder) {
-                        (window as any).viewPurchaseOrder(poId);
-                    }
+                    window.location.href = `/purchaseorder/details?id=${poId}`;
                 });
             }
 

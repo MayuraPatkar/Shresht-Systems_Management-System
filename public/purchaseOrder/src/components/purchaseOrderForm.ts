@@ -1565,8 +1565,47 @@
 
     // Replace default next button handler
     const initializeForm = () => {
+        const idInput = document.getElementById("id") as HTMLInputElement;
+        if (!idInput) return; // Exit if not on the form page
+
+        // Handle URL parameters for form edit
+        const urlParams = new URLSearchParams(window.location.search);
+        const id = urlParams.get('id');
+        if (id) {
+            sessionStorage.setItem('currentTab-status', 'update');
+            openPurchaseOrder(id);
+        } else {
+            sessionStorage.setItem('currentTab-status', 'new');
+            const newSection = document.getElementById("new");
+            if (newSection) newSection.style.display = "block";
+            
+            // Set default purchase date to today
+            const purchaseDateInput = document.getElementById("purchase-date") as HTMLInputElement;
+            if (purchaseDateInput) {
+                const today = new Date().toISOString().split('T')[0];
+                purchaseDateInput.value = today;
+            }
+            
+            // Focus on first input
+            setTimeout(() => {
+                const searchInput = document.getElementById("supplier-search-input") as HTMLInputElement;
+                if (searchInput) searchInput.focus();
+            }, 100);
+        }
+
         // Run fetch operations
         fetchCompanyAndCategorySuggestions();
+
+        // Setup Header Buttons
+        const homeBtn = document.getElementById("home-btn");
+        if (homeBtn) {
+            homeBtn.addEventListener("click", () => {
+                window.location.href = '/purchaseorder';
+            });
+        }
+
+        // Initialize table empty state if no rows exist
+        const tbody = document.getElementById("purchase-order-items-body");
         fetchStockNames();
         setupSupplierAutocomplete();
         renderSupplierProfileCard();
@@ -1679,8 +1718,9 @@
                     }
                     if (wasNewPurchaseOrder) {
                         sessionStorage.removeItem('currentTab-status');
-                        window.location.href = '/purchaseOrder/purchaseOrder.html';
                     }
+                    const savedId = purchaseOrderData.purchase_order_no;
+                    window.location.href = `/purchaseorder/details?id=${savedId}`;
                 }
             });
         }

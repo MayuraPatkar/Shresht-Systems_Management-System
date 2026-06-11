@@ -314,6 +314,13 @@
 
     // Print handlers
     const initializeView = () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const id = urlParams.get('id');
+        const hasView = document.getElementById('project-details-view');
+        if (id && hasView) {
+            viewPurchaseOrder(id);
+        }
+
         const printBtn = document.getElementById('print-project');
         if (printBtn) {
             printBtn.addEventListener('click', () => {
@@ -357,8 +364,22 @@
     let isEditingInline = false;
     function setEditingInline(val: boolean) {
         isEditingInline = val;
-        if (typeof (window as any).updateHeaderVisibility === 'function') {
-            (window as any).updateHeaderVisibility();
+        
+        const editBtn = document.getElementById("view-edit-btn");
+        const saveBtn = document.getElementById("view-save-btn");
+        const cancelBtn = document.getElementById("view-cancel-btn");
+        const homeBtn = document.getElementById("home-btn");
+
+        if (val) {
+            if (editBtn) editBtn.style.display = 'none';
+            if (saveBtn) { saveBtn.style.display = 'flex'; saveBtn.classList.remove('hidden'); }
+            if (cancelBtn) { cancelBtn.style.display = 'flex'; cancelBtn.classList.remove('hidden'); }
+            if (homeBtn) homeBtn.style.display = 'none';
+        } else {
+            if (editBtn) { editBtn.style.display = 'flex'; editBtn.classList.remove('hidden'); }
+            if (saveBtn) { saveBtn.style.display = 'none'; saveBtn.classList.add('hidden'); }
+            if (cancelBtn) { cancelBtn.style.display = 'none'; cancelBtn.classList.add('hidden'); }
+            if (homeBtn) { homeBtn.style.display = 'flex'; homeBtn.classList.remove('hidden'); }
         }
     }
     Object.defineProperty(window, 'isEditingInline', {
@@ -905,9 +926,25 @@
     }
 
     function setupListeners() {
-        const editBtn = document.getElementById("view-edit-btn");
+        const homeBtn = document.getElementById("home-btn");
+        if (homeBtn) {
+            homeBtn.addEventListener("click", () => {
+                window.location.href = '/purchaseorder';
+            });
+        }
+
+        const refreshBtn = document.getElementById("refresh-btn");
+        if (refreshBtn) {
+            refreshBtn.addEventListener("click", () => {
+                window.location.reload();
+            });
+        }
+
+        const editBtn = document.getElementById("view-edit-btn") as HTMLButtonElement;
         if (editBtn) {
-            editBtn.addEventListener("click", () => {
+            const newEditBtn = editBtn.cloneNode(true) as HTMLButtonElement;
+            editBtn.parentNode?.replaceChild(newEditBtn, editBtn);
+            newEditBtn.addEventListener("click", () => {
                 if (currentPurchaseOrder) {
                     setEditingInline(true);
                     renderPurchaseOrderDetails(currentPurchaseOrder);

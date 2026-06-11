@@ -4,6 +4,10 @@
     (window as any).statusFilter = '';
 
     const initializeMain = () => {
+        // Only run main list logic if we are on the list view
+        const recordsTbody = document.getElementById('purchase-order-tbody');
+        if (!recordsTbody) return;
+
         // Initialize filters
         if ((window as any).initPurchaseOrderFilters) {
             (window as any).initPurchaseOrderFilters();
@@ -393,65 +397,7 @@
 
     function showNewPurchaseForm() {
         sessionStorage.removeItem('currentTab-status');
-        if (typeof (window as any).markPurchaseOrderFormClean === 'function') {
-            (window as any).markPurchaseOrderFormClean();
-        }
-
-        // Reset showDeletedItems and statusFilter when opening new form
-        (window as any).showDeletedItems = false;
-        (window as any).statusFilter = '';
-        updateTrashButton();
-        updateArchivedButtonVisuals();
-        if (typeof (window as any).updateHeaderVisibility === 'function') {
-            (window as any).updateHeaderVisibility();
-        }
-
-        // Hide Search bar and Filter button
-        const searchFilterContainer = document.getElementById('search-filter-container');
-        if (searchFilterContainer) searchFilterContainer.style.display = 'none';
-
-        // Hide View Preview button
-        const viewPreview = document.getElementById('view-preview');
-        if (viewPreview) viewPreview.style.display = 'none';
-
-        if ((window as any).showNewDocumentForm) {
-            (window as any).showNewDocumentForm({
-                homeId: 'home',
-                formId: 'new',
-                newButtonId: 'new-purchase',
-                viewId: 'view'
-            });
-        } else {
-            const home = document.getElementById('home');
-            const newSection = document.getElementById('new');
-            const viewSection = document.getElementById('view');
-            
-            if (home) home.style.display = 'none';
-            if (newSection) newSection.style.display = 'block';
-            if (viewSection) viewSection.style.display = 'none';
-        }
-
-        // Set default date to today
-        const dateInput = document.getElementById('purchase-date') as HTMLInputElement;
-        if (dateInput) {
-            dateInput.value = (window as any).getTodayForInput ? 
-                (window as any).getTodayForInput() : 
-                new Date().toISOString().split('T')[0];
-        }
-
-        // Pre-fill initial row with defaults if necessary
-        const tableBody = document.querySelector("#items-table tbody");
-        if (tableBody && tableBody.children.length === 0 && (window as any).addPurchaseOrderItem) {
-            (window as any).addPurchaseOrderItem();
-        }
-
-        // Focus on the first field after the form is visible
-        setTimeout(() => {
-            const firstInput = document.getElementById('purchase-date') as HTMLInputElement;
-            if (firstInput) {
-                firstInput.focus();
-            }
-        }, 100);
+        window.location.href = '/purchaseorder/form';
     }
 
     async function handleSearch(query: string) {

@@ -170,6 +170,10 @@ router.get("/recent-purchase-orders", async (req: Request, res: Response) => {
     }
 });
 
+// Explicit passthrough for frontend sub-routes
+router.get("/form", (req, res, next) => next('router'));
+router.get("/details", (req, res, next) => next('router'));
+
 // Route to get a purchase order by ID
 router.get("/:purchaseOrderId", async (req: Request, res: Response) => {
     try {
