@@ -9,26 +9,8 @@ declare var commsUtils: any;
 document.addEventListener('DOMContentLoaded', () => {
     // Expose fetchUnpaidProjects to window so components can call it
     (window as any).fetchUnpaidProjects = async () => {
-        try {
-            const data = await commsApi.fetchUnpaidCount();
-            const totalElement = document.getElementById('total-unpaid');
-
-            if (totalElement) {
-                totalElement.textContent = (data.count || 0).toString();
-
-                const autoButton = document.getElementById('send-automated-reminders') as HTMLButtonElement;
-                if (autoButton) {
-                    if (data.count > 0) {
-                        autoButton.classList.remove('cursor-not-allowed', 'opacity-70');
-                        autoButton.disabled = false;
-                    } else {
-                        autoButton.classList.add('cursor-not-allowed', 'opacity-70');
-                        autoButton.disabled = true;
-                    }
-                }
-            }
-        } catch (err) {
-            commsUtils.showNotification('Failed to fetch unpaid projects.', 'error');
+        if (typeof commsForms !== 'undefined' && typeof commsForms.loadReminderStats === 'function') {
+            await commsForms.loadReminderStats();
         }
     };
 
@@ -36,9 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof commsForms !== 'undefined') {
         commsForms.init();
     }
-
-    // Initial fetch
-    (window as any).fetchUnpaidProjects();
 
     // Global keyboard shortcuts
     document.addEventListener('keydown', function (e) {
@@ -51,6 +30,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Refresh unpaid count every 30 seconds
-    setInterval((window as any).fetchUnpaidProjects, 30000);
+    // Refresh unpaid count stats every 30 seconds
+    setInterval(() => {
+        if (typeof (window as any).fetchUnpaidProjects === 'function') {
+            (window as any).fetchUnpaidProjects();
+        }
+    }, 30000);
 });

@@ -5,6 +5,50 @@
 declare var commsUtils: any;
 
 class CommsApi {
+    async searchCustomers(query: string): Promise<any[]> {
+        try {
+            const res = await fetch(`/api/customers?search=${encodeURIComponent(query)}`);
+            if (!res.ok) throw new Error('Failed to search customers');
+            return await res.json();
+        } catch (error) {
+            console.error('Error searching customers:', error);
+            throw error;
+        }
+    }
+
+    async getCustomerDetails(id: string): Promise<any> {
+        try {
+            const res = await fetch(`/api/customers/${id}/full-details`);
+            if (!res.ok) throw new Error('Failed to fetch customer details');
+            return await res.json();
+        } catch (error) {
+            console.error('Error fetching customer details:', error);
+            throw error;
+        }
+    }
+
+    async fetchAllInvoices(): Promise<any[]> {
+        try {
+            const res = await fetch('/invoice/all');
+            if (!res.ok) throw new Error('Failed to fetch invoices');
+            return await res.json();
+        } catch (error) {
+            console.error('Error fetching invoices:', error);
+            throw error;
+        }
+    }
+
+    async fetchRecentQuotations(): Promise<any> {
+        try {
+            const res = await fetch('/quotation/recent-quotations');
+            if (!res.ok) throw new Error('Failed to fetch recent quotations');
+            return await res.json();
+        } catch (error) {
+            console.error('Error fetching recent quotations:', error);
+            throw error;
+        }
+    }
+
     async fetchUnpaidCount(): Promise<UnpaidCountResponse> {
         try {
             const res = await fetch('/invoice/unpaid-count');
