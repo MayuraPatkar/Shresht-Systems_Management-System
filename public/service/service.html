@@ -49,12 +49,6 @@
             overflow-x: hidden;
         }
 
-        main {
-            height: 100vh;
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-
         *::-webkit-scrollbar { width: 8px; height: 8px; }
         *::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
         *::-webkit-scrollbar-thumb { background: #2563eb; border-radius: 4px; }
@@ -446,7 +440,7 @@
                 </div>
 
                 <!-- Mobile view layout -->
-                <div id="service-cards-mobile" class="block md:hidden space-y-3 p-4 bg-slate-50">
+                <div id="service-cards-mobile" class="block md:hidden space-y-3 p-4 bg-slate-50 overflow-y-auto flex-1 min-h-0">
                     <!-- Populated dynamically by script -->
                 </div>
             </section>

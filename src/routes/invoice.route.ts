@@ -1012,6 +1012,36 @@ router.put("/:invoiceId/restore", async (req: Request, res: Response) => {
     }
 });
 
+// Route to update invoice status
+router.patch("/:invoiceId/status", async (req: Request, res: Response) => {
+    try {
+        const { invoiceId } = req.params;
+        const { status } = req.body;
+        
+        if (!Object.values(InvoiceStatus).includes(status as InvoiceStatus)) {
+            return res.status(400).json({ message: 'Invalid invoice status.' });
+        }
+        
+        const invoice = await InvoiceModel.findOneAndUpdate(
+            { invoice_id: invoiceId, 'deletion.is_deleted': false },
+            { $set: { status: status } },
+            { new: true }
+        );
+        
+        if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
+        
+        if (typeof invoice.updatePaymentStatus === 'function') {
+            invoice.updatePaymentStatus();
+            await invoice.save();
+        }
+        
+        res.json({ message: 'Invoice status updated successfully', invoice });
+    } catch (error: unknown) {
+        logger.error('Error updating invoice status:', error);
+        res.status(500).json({ message: 'Internal server error', error: (error as Error).message });
+    }
+});
+
 // Route to restore soft-deleted invoice from trash
 router.post("/restoreItem", async (req: Request, res: Response) => {
     const { itemId } = req.body;

@@ -32,6 +32,7 @@
     (window as any).statusFilter = '';
     (window as any).showDeletedItems = false;
     let currentFilteredEWayBills: EWayBill[] = [];
+    let paginationManager: any = null;
     let currentFilters = {
         dateFilter: 'all',
         sortBy: 'date-desc',
@@ -1299,6 +1300,17 @@
 
     // Render way bills in the list
     function renderWayBills(wayBills: EWayBill[]) {
+        if (!paginationManager) {
+            paginationManager = new (window as any).TablePaginationManager(
+                "ewaybill-tbody",
+                (paginatedData: EWayBill[]) => renderPage(paginatedData),
+                25
+            );
+        }
+        paginationManager.setData(wayBills);
+    }
+
+    function renderPage(wayBills: EWayBill[]) {
         const isTrash = !!(window as any).showDeletedItems;
         const isArchivedView = !isTrash && (window as any).statusFilter === 'archived';
 

@@ -196,14 +196,14 @@
     </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 h-full overflow-y-auto p-8">
+        <main class="flex-grow overflow-hidden flex flex-col p-8 h-[calc(100vh-6rem)]">
 
         <!-- Home View - Way Bills List -->
         <!-- Home Section -->
-        <div id="home">
+        <div id="home" class="flex-1 flex flex-col min-h-0">
             <!-- Filter Tabs & E-Way Bill List -->
-            <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden fade-in">
-                <div class="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 bg-slate-50/50">
+            <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden fade-in flex-1 flex flex-col min-h-0">
+                <div class="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 bg-slate-50/50 flex-shrink-0">
                     <div class="flex items-center gap-1">
                         <!-- Status Tabs -->
                         <div class="flex border-b border-slate-200" id="status-tabs-container">
@@ -238,7 +238,7 @@
                 </div>
 
                 <!-- Active Filters Info Bar -->
-                <div id="active-filters-info-bar" class="px-6 py-2.5 bg-slate-50 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 hidden text-xs transition-all duration-200">
+                <div id="active-filters-info-bar" class="px-6 py-2.5 bg-slate-50 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 hidden text-xs transition-all duration-200 flex-shrink-0">
                     <div class="flex flex-wrap items-center gap-1.5" id="active-filters-badges">
                         <span class="font-bold text-slate-500 mr-1 flex items-center gap-1">
                             <i class="fas fa-filter text-[10px]"></i> Active Filters:
@@ -249,9 +249,9 @@
                     </button>
                 </div>
 
-                <div class="hidden md:block overflow-x-auto">
+                <div class="hidden md:block overflow-x-auto overflow-y-auto flex-1 min-h-0">
                     <table class="w-full text-sm border-collapse">
-                        <thead class="bg-slate-50 border-b border-slate-200">
+                        <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
                             <tr id="table-header-row" class="text-slate-700 border-b border-slate-200">
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Date</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">E-Way Bill No</th>
@@ -274,7 +274,7 @@
                 </div>
 
                 <!-- Mobile stacked layout (displayed only on mobile) -->
-                <div id="ewaybill-cards-mobile" class="block md:hidden space-y-3 p-4 bg-slate-50">
+                <div id="ewaybill-cards-mobile" class="block md:hidden space-y-3 p-4 bg-slate-50 overflow-y-auto flex-1 min-h-0">
                     <!-- Cards will be populated dynamically by JavaScript -->
                 </div>
             </section>

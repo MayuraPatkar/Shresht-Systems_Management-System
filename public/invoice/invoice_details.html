@@ -158,6 +158,13 @@
                     <i class="fas fa-copy"></i>
                     Clone
                 </button>
+                <button type="button" id="sendWhatsAppBtn"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-300 bg-white text-sm font-semibold text-emerald-700 transition-all hover:border-emerald-500 hover:bg-emerald-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-emerald-200 cursor-pointer w-36 h-10"
+                    style="display: none;"
+                    title="Send via WhatsApp">
+                    <i class="fab fa-whatsapp"></i>
+                    Send via WhatsApp
+                </button>
                 <button id="home-btn"
                     class="bg-gray-600 text-white w-36 h-10 rounded-lg hover:bg-gray-700 flex items-center justify-center gap-2 font-medium whitespace-nowrap cursor-pointer"
                     title="Back to Invoices (Esc)">
@@ -764,8 +771,10 @@
                 // Show header action buttons (handled by viewInvoice, but make sure they are visible here)
                 const editBtn = document.getElementById('editInvoiceBtnView');
                 const duplicateBtn = document.getElementById('duplicateInvoiceBtnView');
+                const sendWhatsAppBtn = document.getElementById('sendWhatsAppBtn');
                 if (editBtn) editBtn.style.display = 'flex';
                 if (duplicateBtn) duplicateBtn.style.display = 'flex';
+                if (sendWhatsAppBtn) sendWhatsAppBtn.style.display = 'flex';
 
             } catch (err) {
                 console.error('Failed to load invoice details:', err);

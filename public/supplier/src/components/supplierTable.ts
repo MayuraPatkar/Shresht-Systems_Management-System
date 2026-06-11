@@ -6,6 +6,7 @@
 class SupplierTable {
     private containerId: string;
     private emptyId: string;
+    private paginationManager: any = null;
 
     constructor(containerId: string, emptyId: string) {
         this.containerId = containerId;
@@ -13,6 +14,19 @@ class SupplierTable {
     }
 
     render(suppliers: any[]) {
+        this.updateStats(suppliers);
+
+        if (!this.paginationManager) {
+            this.paginationManager = new (window as any).TablePaginationManager(
+                this.containerId,
+                (paginatedData: any[]) => this.renderPage(paginatedData),
+                25
+            );
+        }
+        this.paginationManager.setData(suppliers);
+    }
+
+    renderPage(suppliers: any[]) {
         const container = document.getElementById(this.containerId);
         const emptyState = document.getElementById(this.emptyId);
         const mobileContainer = document.getElementById('supplier-cards-mobile');
@@ -49,7 +63,7 @@ class SupplierTable {
                             <i class="fas fa-archive"></i>
                         </div>
                         <p class="text-2xl font-bold text-gray-800">No Archived Suppliers</p>
-                        <p class="mt-2 text-gray-600">Suppliers you archive will show up here</p>
+                        <p class="mt-2 text-gray-650">Suppliers you archive will show up here</p>
                     </div>
                 `;
             } else {
@@ -59,7 +73,7 @@ class SupplierTable {
                             <i class="fas fa-truck"></i>
                         </div>
                         <p class="text-2xl font-bold text-gray-800">No Suppliers Found</p>
-                        <p class="mt-2 text-gray-600">Try adjusting your search or filters</p>
+                        <p class="mt-2 text-gray-650">Try adjusting your search or filters</p>
                     </div>
                 `;
             }
@@ -93,7 +107,6 @@ class SupplierTable {
                 `;
             }
 
-            this.updateStats([]);
             return;
         }
 
@@ -137,8 +150,6 @@ class SupplierTable {
                 </div>`;
             }).join('');
         }
-
-        this.updateStats(suppliers);
     }
 
     private updateTableHeader(isTrash: boolean) {
