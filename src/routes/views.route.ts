@@ -24,6 +24,8 @@ const pages: Array<{ route: string; file: string }> = [
     { route: '/purchaseorder/details', file: 'purchaseOrder/purchaseOrder_details.html' },
     { route: '/purchaseorder/form', file: 'purchaseOrder/purchaseOrder_form.html' },
     { route: '/purchase', file: 'purchase/purchase.html' },
+    { route: '/purchase/details', file: 'purchase/purchase_details.html' },
+    { route: '/purchase/form', file: 'purchase/purchase_form.html' },
     { route: '/service', file: 'service/service.html' },
     { route: '/service/details', file: 'service/service_details.html' },
     { route: '/payment', file: 'payment/payment.html' },

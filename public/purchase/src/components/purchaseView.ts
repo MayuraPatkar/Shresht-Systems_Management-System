@@ -101,7 +101,7 @@
         const editFields = document.querySelectorAll(".edit-field");
         const viewFields = document.querySelectorAll(".view-field");
         const actionHeaders = document.querySelectorAll(".action-header");
-        const dangerZoneSection = document.getElementById("danger-zone-section");
+        const dangerZoneSection = document.getElementById("danger-zone") || document.getElementById("danger-zone-section");
         
         if (isEditingInline) {
             editFields.forEach(el => el.classList.remove("hidden"));
@@ -642,6 +642,9 @@
     }
 
     function setupListeners() {
+        const projectDetailsView = document.getElementById("project-details-view");
+        if (!projectDetailsView) return;
+
         const editBtn = document.getElementById("view-edit-btn");
         if (editBtn) {
             editBtn.addEventListener("click", () => {
@@ -771,10 +774,26 @@
         }
     }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', setupListeners);
-    } else {
+    function initializeView() {
+        const projectDetailsView = document.getElementById("project-details-view");
+        if (!projectDetailsView) return;
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const id = urlParams.get('id');
+        if (id) {
+            viewPurchase(id);
+        }
+    }
+
+    const runInitializers = () => {
         setupListeners();
+        initializeView();
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', runInitializers);
+    } else {
+        runInitializers();
     }
 
     (window as any).viewPurchase = viewPurchase;

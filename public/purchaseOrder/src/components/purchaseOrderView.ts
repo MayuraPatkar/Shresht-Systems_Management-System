@@ -460,7 +460,7 @@
         const editFields = document.querySelectorAll(".edit-field");
         const viewFields = document.querySelectorAll(".view-field");
         const actionHeaders = document.querySelectorAll(".action-header");
-        const dangerZoneSection = document.getElementById("danger-zone-section");
+        const dangerZoneSection = document.getElementById("danger-zone") || document.getElementById("danger-zone-section");
         
         if (isEditingInline) {
             editFields.forEach(el => el.classList.remove("hidden"));
@@ -585,7 +585,7 @@
         generatePurchaseOrderViewPreview(purchaseOrder);
 
         // Danger Zone Section Logic
-        const dangerZoneSectionEl = document.getElementById('danger-zone-section');
+        const dangerZoneSectionEl = document.getElementById("danger-zone") || document.getElementById('danger-zone-section');
         if (dangerZoneSectionEl && !isEditingInline) {
             const userRole = sessionStorage.getItem('userRole') || 'user';
             if (userRole === 'admin' || userRole === 'manager') {

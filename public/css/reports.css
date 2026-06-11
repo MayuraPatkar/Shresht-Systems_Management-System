@@ -19,7 +19,7 @@ body {
 
 /* Ensure sidebar matches other pages */
 .sidebar {
-    width: 280px;
+    width: 240px;
     height: 100%;
     overflow-y: auto;
     overflow-x: hidden;

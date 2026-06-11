@@ -20,7 +20,7 @@
         }
 
         .sidebar {
-            width: 280px;
+            width: 240px;
             height: 100%;
             overflow-y: auto;
         }
@@ -115,6 +115,83 @@
             height: 60vh;
             gap: 12px;
         }
+
+        /* Highlight animation for selected section */
+        @keyframes sectionHighlight {
+            0% {
+                box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.4);
+                outline: 2px solid #2563eb;
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+                outline: 2px solid transparent;
+            }
+        }
+
+        .scroll-highlight-flash {
+            animation: sectionHighlight 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+
+        /* Responsive styling: hide on mobile screens */
+        @media (max-width: 767px) {
+            #right-nav-sidebar {
+                display: none !important;
+            }
+        }
+
+        /* Active styling per section for premium ERP visual feedback */
+        .nav-item[href="#overview"].active {
+            color: #2563eb !important;
+            background-color: #eff6ff !important;
+            border-color: #bfdbfe !important;
+        }
+        .nav-item[href="#status-tracker"].active {
+            color: #2563eb !important;
+            background-color: #eff6ff !important;
+            border-color: #bfdbfe !important;
+        }
+        .nav-item[href="#project-details"].active {
+            color: #16a34a !important; /* green-600 */
+            background-color: #f0fdf4 !important; /* green-50 */
+            border-color: #bbf7d0 !important; /* green-200 */
+        }
+        .nav-item[href="#recipient-details"].active {
+            color: #9333ea !important; /* purple-600 */
+            background-color: #faf5ff !important; /* purple-50 */
+            border-color: #e9d5ff !important; /* purple-200 */
+        }
+        .nav-item[href="#item-details"].active {
+            color: #16a34a !important; /* green-600 */
+            background-color: #f0fdf4 !important;
+            border-color: #bbf7d0 !important;
+        }
+        .nav-item[href="#other-charges"].active {
+            color: #4f46e5 !important; /* indigo-600 */
+            background-color: #eef2ff !important; /* indigo-50 */
+            border-color: #c7d2fe !important; /* indigo-200 */
+        }
+        .nav-item[href="#invoice-summary"].active {
+            color: #2563eb !important;
+            background-color: #eff6ff !important;
+            border-color: #bfdbfe !important;
+        }
+        .nav-item[href="#document-preview"].active {
+            color: #9333ea !important;
+            background-color: #faf5ff !important;
+            border-color: #e9d5ff !important;
+        }
+        .nav-item[href="#danger-zone"].active {
+            color: #dc2626 !important; /* red-600 */
+            background-color: #fef2f2 !important; /* red-50 */
+            border-color: #fecaca !important; /* red-200 */
+        }
+
+        /* Keyboard outline accessibility */
+        .nav-item:focus-visible,
+        #floating-nav-scroll-top:focus-visible {
+            outline: 2px solid #2563eb !important;
+            outline-offset: 2px !important;
+        }
     </style>
 </head>
 
@@ -159,7 +236,7 @@
                     Clone
                 </button>
                 <button type="button" id="sendWhatsAppBtn"
-                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-300 bg-white text-sm font-semibold text-emerald-700 transition-all hover:border-emerald-500 hover:bg-emerald-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-emerald-200 cursor-pointer w-36 h-10"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-300 bg-white text-sm font-semibold text-emerald-700 transition-all hover:border-emerald-500 hover:bg-emerald-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-emerald-200 cursor-pointer px-4 h-10 whitespace-nowrap"
                     style="display: none;"
                     title="Send via WhatsApp">
                     <i class="fab fa-whatsapp"></i>
@@ -293,12 +370,17 @@
             <!-- View Invoice -->
             <div id="view" class="flex-1 overflow-y-auto min-h-0 select-none" style="display: none;">
                 <div id="project-details-view" class="w-full max-w-6xl mx-auto p-4 space-y-6">
+                    <!-- Overview Anchor -->
+                    <div id="overview" class="nav-section"></div>
+
                     <!-- Status Tracker Card -->
-                    <div id="invoice-status-tracker" class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in hidden">
+                    <div id="status-tracker" class="nav-section">
+                        <div id="invoice-status-tracker" class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in hidden">
+                        </div>
                     </div>
 
                     <!-- Project Details Card -->
-                    <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+                    <section id="project-details" class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in nav-section">
                         <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
                             <i class="fas fa-project-diagram text-green-600 text-xl"></i>
                             <h2 class="text-xl font-semibold text-gray-800">Project Details</h2>
@@ -352,7 +434,7 @@
                     </section>
 
                     <!-- Buyer & Consignee Details Card -->
-                    <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+                    <section id="recipient-details" class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in nav-section">
                         <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
                             <i class="fas fa-users text-purple-600 text-xl"></i>
                             <h2 class="text-xl font-semibold text-gray-800">Recipient & Consignee Details</h2>
@@ -404,7 +486,7 @@
                     </section>
 
                     <!-- Item List Card -->
-                    <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+                    <section id="item-details" class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in nav-section">
                         <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
                             <i class="fas fa-list-ul text-green-600 text-xl"></i>
                             <h2 class="text-xl font-semibold text-gray-800">Item Details</h2>
@@ -438,7 +520,7 @@
                     </section>
      
                     <!-- Non-Items Card -->
-                    <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+                    <section id="other-charges" class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in nav-section">
                         <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
                             <i class="fas fa-plus-circle text-indigo-600 text-xl"></i>
                             <h2 class="text-xl font-semibold text-gray-800">Other Charges</h2>
@@ -468,7 +550,7 @@
                     </section>
      
                     <!-- Invoice Summary Card -->
-                    <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+                    <section id="invoice-summary" class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in nav-section">
                         <div class="flex items-center gap-3 mb-5 pb-3 border-b border-gray-200">
                             <i class="fas fa-file-invoice-dollar text-blue-600 text-xl"></i>
                             <h2 class="text-xl font-semibold text-gray-800">Invoice Summary</h2>
@@ -490,7 +572,7 @@
                     </section>
 
                     <!-- Preview & Actions Card -->
-                    <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+                    <section id="document-preview" class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in nav-section">
                         <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
                             <div class="flex items-center gap-3">
                                 <i class="fas fa-eye text-purple-600 text-xl"></i>
@@ -525,7 +607,7 @@
                     </section>
 
                     <!-- Danger Zone Section -->
-                    <section id="danger-zone-section" class="bg-red-50 rounded-lg p-6 border-2 border-red-200 fade-in hidden">
+                    <section id="danger-zone" class="bg-red-50 rounded-lg p-6 border-2 border-red-200 fade-in hidden nav-section">
                         <div class="flex items-center gap-3 mb-4 pb-3 border-b border-red-200">
                             <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
                             <h2 class="text-xl font-semibold text-red-800">Danger Zone</h2>
@@ -582,6 +664,46 @@
             </div>
 
         </main>
+        
+        <!-- Right Navigation Sidebar (Integrated) -->
+        <aside class="w-12 h-full bg-white border-l border-gray-200 flex flex-col items-center py-6 flex-shrink-0 select-none z-20" id="right-nav-sidebar">
+            <div class="flex-1"></div>
+            <!-- Section List (Icon-Only) -->
+            <nav class="flex flex-col gap-2" aria-label="Section navigation list">
+                <a href="#overview" class="nav-item w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all border border-transparent" title="Overview">
+                    <i class="fas fa-info-circle text-base"></i>
+                </a>
+                <a href="#status-tracker" class="nav-item w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all border border-transparent" title="Status Tracker">
+                    <i class="fas fa-route text-base"></i>
+                </a>
+                <a href="#project-details" class="nav-item w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-green-600 hover:bg-green-50 transition-all border border-transparent" title="Project Details">
+                    <i class="fas fa-project-diagram text-base"></i>
+                </a>
+                <a href="#recipient-details" class="nav-item w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-purple-600 hover:bg-purple-50 transition-all border border-transparent" title="Recipient Details">
+                    <i class="fas fa-user-tag text-base"></i>
+                </a>
+                <a href="#item-details" class="nav-item w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-green-600 hover:bg-green-50 transition-all border border-transparent" title="Item Details">
+                    <i class="fas fa-list-ul text-base"></i>
+                </a>
+                <a href="#other-charges" class="nav-item w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all border border-transparent" title="Other Charges">
+                    <i class="fas fa-plus-circle text-base"></i>
+                </a>
+                <a href="#invoice-summary" class="nav-item w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all border border-transparent" title="Invoice Summary">
+                    <i class="fas fa-file-invoice-dollar text-base"></i>
+                </a>
+                <a href="#document-preview" class="nav-item w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-purple-600 hover:bg-purple-50 transition-all border border-transparent" title="Document Preview">
+                    <i class="fas fa-eye text-base"></i>
+                </a>
+                <a href="#danger-zone" class="nav-item w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all border border-transparent" title="Danger Zone">
+                    <i class="fas fa-exclamation-triangle text-base"></i>
+                </a>
+            </nav>
+            <div class="flex-1"></div>
+            <!-- Scroll To Top Button -->
+            <button id="floating-nav-scroll-top" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all cursor-pointer" title="Scroll to Top">
+                <i class="fas fa-arrow-up text-sm"></i>
+            </button>
+        </aside>
     </div>
 
     <!-- Keyboard Shortcuts Modal -->
@@ -650,6 +772,7 @@
     <script src="../../dist/public/invoice/src/types/invoice.types.js"></script>
     <script src="../../dist/public/invoice/src/services/invoiceApi.js"></script>
     <script src="../../dist/public/invoice/src/components/invoiceView.js"></script>
+    <script src="../../dist/public/invoice/src/components/rightSideNav.js"></script>
 
     <!-- Standalone Bootstrap Script -->
     <script>

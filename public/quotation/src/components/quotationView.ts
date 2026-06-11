@@ -789,7 +789,7 @@ async function renderQuotationView(quotation, viewType) {
         }
     };
 
-    const dangerZoneSection = document.getElementById('danger-zone-section');
+    const dangerZoneSection = document.getElementById('danger-zone');
     if (dangerZoneSection) {
         dangerZoneSection.classList.remove('hidden');
     }

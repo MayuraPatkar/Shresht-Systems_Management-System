@@ -922,7 +922,7 @@ async function renderInvoiceView(invoice: Invoice, userRole: string, viewType: s
     }
 
     // Danger Zone Section Logic
-    const dangerZoneSection = document.getElementById('danger-zone-section');
+    const dangerZoneSection = document.getElementById('danger-zone') || document.getElementById('danger-zone-section');
     if (dangerZoneSection) {
         if (userRole === 'admin' || userRole === 'manager') {
             dangerZoneSection.classList.remove('hidden');

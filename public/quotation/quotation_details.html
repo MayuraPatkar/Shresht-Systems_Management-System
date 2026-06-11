@@ -21,7 +21,7 @@
         }
 
         .sidebar {
-            width: 280px;
+            width: 240px;
             height: 100%;
             overflow-y: auto;
         }
@@ -115,6 +115,99 @@
             justify-content: center;
             height: 60vh;
             gap: 12px;
+        }
+
+        /* Floating Navigation Panel Styles */
+        .nav-section {
+            scroll-margin-top: 110px; /* offset for fixed header */
+            transition: outline 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        /* Highlight animation for selected section */
+        @keyframes sectionHighlight {
+            0% {
+                box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.4);
+                outline: 2px solid #2563eb;
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+                outline: 2px solid transparent;
+            }
+        }
+
+        .scroll-highlight-flash {
+            animation: sectionHighlight 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+
+        /* Responsive styling: hide on mobile screens */
+        @media (max-w: 767px) {
+            #right-nav-sidebar {
+                display: none !important;
+            }
+        }
+
+        /* Active styling per section for premium ERP visual feedback */
+        .nav-item[href="#overview"].active {
+            color: #2563eb !important;
+            background-color: #eff6ff !important;
+            border-color: #bfdbfe !important;
+        }
+        .nav-item[href="#status-tracker"].active {
+            color: #2563eb !important;
+            background-color: #eff6ff !important;
+            border-color: #bfdbfe !important;
+        }
+        .nav-item[href="#project-details"].active {
+            color: #16a34a !important; /* green-600 */
+            background-color: #f0fdf4 !important; /* green-50 */
+            border-color: #bbf7d0 !important; /* green-200 */
+        }
+        .nav-item[href="#recipient-details"].active {
+            color: #9333ea !important; /* purple-600 */
+            background-color: #faf5ff !important; /* purple-50 */
+            border-color: #e9d5ff !important; /* purple-200 */
+        }
+        .nav-item[href="#contact-details"].active {
+            color: #db2777 !important; /* pink-600 */
+            background-color: #fdf2f8 !important; /* pink-50 */
+            border-color: #fbcfe8 !important; /* pink-200 */
+        }
+        .nav-item[href="#item-details"].active {
+            color: #16a34a !important; /* green-600 */
+            background-color: #f0fdf4 !important;
+            border-color: #bbf7d0 !important;
+        }
+        .nav-item[href="#other-charges"].active {
+            color: #4f46e5 !important; /* indigo-600 */
+            background-color: #eef2ff !important; /* indigo-50 */
+            border-color: #c7d2fe !important; /* indigo-200 */
+        }
+        .nav-item[href="#specifications"].active {
+            color: #2563eb !important;
+            background-color: #eff6ff !important;
+            border-color: #bfdbfe !important;
+        }
+        .nav-item[href="#quotation-summary"].active {
+            color: #2563eb !important;
+            background-color: #eff6ff !important;
+            border-color: #bfdbfe !important;
+        }
+        .nav-item[href="#document-preview"].active {
+            color: #9333ea !important;
+            background-color: #faf5ff !important;
+            border-color: #e9d5ff !important;
+        }
+        .nav-item[href="#danger-zone"].active {
+            color: #dc2626 !important; /* red-600 */
+            background-color: #fef2f2 !important; /* red-50 */
+            border-color: #fecaca !important; /* red-200 */
+        }
+
+        /* Keyboard outline accessibility */
+        .nav-item:focus-visible,
+        #floating-nav-scroll-top:focus-visible {
+            outline: 2px solid #2563eb !important;
+            outline-offset: 2px !important;
         }
     </style>
 </head>
@@ -294,12 +387,17 @@
 
             <div id="view" class="select-none" style="display:none;">
                 <div id="project-details-view" class="max-w-6xl mx-auto space-y-6">
+                    <!-- Overview Anchor -->
+                    <div id="overview" class="nav-section"></div>
+
                     <!-- Status Tracker Card -->
-                    <div id="quotation-status-tracker" class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in hidden">
+                    <div id="status-tracker" class="nav-section">
+                        <div id="quotation-status-tracker" class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in hidden">
+                        </div>
                     </div>
 
                     <!-- Project Details Card -->
-                    <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+                    <section id="project-details" class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in nav-section">
                         <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
                             <div class="flex items-center gap-3">
                                 <i class="fas fa-project-diagram text-green-600 text-xl"></i>
@@ -343,7 +441,7 @@
                     </section>
 
                     <!-- Recipient Details Card -->
-                    <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+                    <section id="recipient-details" class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in nav-section">
                         <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
                             <i class="fas fa-user-tag text-purple-600 text-xl"></i>
                             <h2 class="text-xl font-semibold text-gray-800">Recipient Details</h2>
@@ -358,13 +456,16 @@
                                 <span class="text-gray-900 font-semibold whitespace-pre-line"
                                     id="view-buyer-address">-</span>
                             </div>
-                            <div class="bg-gray-50 p-4 rounded-lg">
-                                <span class="block text-sm font-medium text-gray-600 mb-1">Phone</span>
-                                <span class="text-gray-900 font-semibold" id="view-buyer-phone">-</span>
-                            </div>
-                            <div class="bg-gray-50 p-4 rounded-lg">
-                                <span class="block text-sm font-medium text-gray-600 mb-1">Email</span>
-                                <span class="text-gray-900 font-semibold" id="view-buyer-email">-</span>
+                            <!-- Contact Details Sub-section -->
+                            <div id="contact-details" class="contents nav-section">
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <span class="block text-sm font-medium text-gray-600 mb-1">Phone</span>
+                                    <span class="text-gray-900 font-semibold" id="view-buyer-phone">-</span>
+                                </div>
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <span class="block text-sm font-medium text-gray-600 mb-1">Email</span>
+                                    <span class="text-gray-900 font-semibold" id="view-buyer-email">-</span>
+                                </div>
                             </div>
                             <div class="bg-gray-50 p-4 rounded-lg">
                                 <span class="block text-sm font-medium text-gray-600 mb-1">GSTIN</span>
@@ -374,7 +475,7 @@
                     </section>
 
                     <!-- Item List Card -->
-                    <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+                    <section id="item-details" class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in nav-section">
                         <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
                             <i class="fas fa-list-ul text-green-600 text-xl"></i>
                             <h2 class="text-xl font-semibold text-gray-800">Item Details</h2>
@@ -402,7 +503,7 @@
                     </section>
 
                     <!-- Other Charges Card -->
-                    <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+                    <section id="other-charges" class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in nav-section">
                         <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
                             <i class="fas fa-plus-circle text-indigo-600 text-xl"></i>
                             <h2 class="text-xl font-semibold text-gray-800">Other Charges</h2>
@@ -434,7 +535,7 @@
                     </section>
 
                     <!-- Specifications Card -->
-                    <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+                    <section id="specifications" class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in nav-section">
                         <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
                             <i class="fas fa-clipboard-list text-blue-600 text-xl"></i>
                             <h2 class="text-xl font-semibold text-gray-800">Specifications</h2>
@@ -456,7 +557,7 @@
                     </section>
 
                     <!-- Quotation Summary Card -->
-                    <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+                    <section id="quotation-summary" class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in nav-section">
                         <div class="flex items-center gap-3 mb-5 pb-3 border-b border-gray-200">
                             <i class="fas fa-file-invoice-dollar text-blue-600 text-xl"></i>
                             <h2 class="text-xl font-semibold text-gray-800">Quotation Summary</h2>
@@ -493,7 +594,7 @@
                     </section>
 
                     <!-- Document Preview Card -->
-                    <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
+                    <section id="document-preview" class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in nav-section">
                         <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
                             <div class="flex items-center gap-3">
                                 <i class="fas fa-eye text-purple-600 text-xl"></i>
@@ -540,7 +641,7 @@
 
 
                     <!-- Danger Zone Section -->
-                    <section id="danger-zone-section" class="bg-red-50 rounded-lg p-6 border-2 border-red-200 fade-in hidden">
+                    <section id="danger-zone" class="bg-red-50 rounded-lg p-6 border-2 border-red-200 fade-in hidden nav-section">
                         <div class="flex items-center gap-3 mb-4 pb-3 border-b border-red-200">
                             <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
                             <h2 class="text-xl font-semibold text-red-800">Danger Zone</h2>
@@ -597,6 +698,52 @@
             </div>
 
         </main>
+        
+        <!-- Right Navigation Sidebar (Integrated) -->
+        <aside class="w-12 h-full bg-white border-l border-gray-200 flex flex-col items-center py-6 flex-shrink-0 select-none z-20" id="right-nav-sidebar">
+            <div class="flex-1"></div>
+            <!-- Section List (Icon-Only) -->
+            <nav class="flex flex-col gap-2" aria-label="Section navigation list">
+                <a href="#overview" class="nav-item w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all border border-transparent" title="Overview">
+                    <i class="fas fa-info-circle text-base"></i>
+                </a>
+                <a href="#status-tracker" class="nav-item w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all border border-transparent" title="Status Tracker">
+                    <i class="fas fa-route text-base"></i>
+                </a>
+                <a href="#project-details" class="nav-item w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-green-600 hover:bg-green-50 transition-all border border-transparent" title="Project Details">
+                    <i class="fas fa-project-diagram text-base"></i>
+                </a>
+                <a href="#recipient-details" class="nav-item w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-purple-600 hover:bg-purple-50 transition-all border border-transparent" title="Recipient Details">
+                    <i class="fas fa-user-tag text-base"></i>
+                </a>
+                <a href="#contact-details" class="nav-item w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-pink-600 hover:bg-pink-50 transition-all border border-transparent" title="Contact Details">
+                    <i class="fas fa-address-book text-base"></i>
+                </a>
+                <a href="#item-details" class="nav-item w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-green-600 hover:bg-green-50 transition-all border border-transparent" title="Item Details">
+                    <i class="fas fa-list-ul text-base"></i>
+                </a>
+                <a href="#other-charges" class="nav-item w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all border border-transparent" title="Other Charges">
+                    <i class="fas fa-plus-circle text-base"></i>
+                </a>
+                <a href="#specifications" class="nav-item w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all border border-transparent" title="Specifications">
+                    <i class="fas fa-clipboard-list text-base"></i>
+                </a>
+                <a href="#quotation-summary" class="nav-item w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all border border-transparent" title="Quotation Summary">
+                    <i class="fas fa-file-invoice-dollar text-base"></i>
+                </a>
+                <a href="#document-preview" class="nav-item w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-purple-600 hover:bg-purple-50 transition-all border border-transparent" title="Document Preview">
+                    <i class="fas fa-eye text-base"></i>
+                </a>
+                <a href="#danger-zone" class="nav-item w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all border border-transparent" title="Danger Zone">
+                    <i class="fas fa-exclamation-triangle text-base"></i>
+                </a>
+            </nav>
+            <div class="flex-1"></div>
+            <!-- Scroll To Top Button -->
+            <button id="floating-nav-scroll-top" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all cursor-pointer" title="Scroll to Top">
+                <i class="fas fa-arrow-up text-sm"></i>
+            </button>
+        </aside>
     </div>
 
     <!-- Scripts -->
@@ -734,7 +881,7 @@
             }
         });
     </script>
-
+    <script src="../../dist/public/quotation/src/components/rightSideNav.js"></script>
 </body>
 
 </html>

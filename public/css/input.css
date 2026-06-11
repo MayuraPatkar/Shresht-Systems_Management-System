@@ -132,4 +132,16 @@
     color: #334155;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   }
+
+  /* Compact styling for narrower left sidebar */
+  #sidebar-nav a {
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem !important;
+    gap: 0.75rem !important;
+  }
+
+  #sidebar-nav a i {
+    width: 1.5rem !important;
+    font-size: 1.125rem !important;
+  }
 }

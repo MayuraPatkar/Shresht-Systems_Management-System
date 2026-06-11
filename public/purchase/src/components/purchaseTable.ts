@@ -265,9 +265,7 @@
             // Click row to view
             if (!isTrash) {
                 tr.addEventListener('click', () => {
-                    if ((window as any).viewPurchase) {
-                        (window as any).viewPurchase(purchaseId);
-                    }
+                    window.location.href = `/purchase/details?id=${purchaseId}`;
                 });
             }
 
@@ -372,9 +370,7 @@
 
             if (!isTrash) {
                 div.addEventListener('click', () => {
-                    if ((window as any).viewPurchase) {
-                        (window as any).viewPurchase(purchaseId);
-                    }
+                    window.location.href = `/purchase/details?id=${purchaseId}`;
                 });
             }
 

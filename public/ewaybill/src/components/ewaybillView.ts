@@ -472,7 +472,7 @@
             await generateViewPreviewHTML(waybill);
 
             // Danger Zone logic for view page
-            const dangerZoneSection = document.getElementById('danger-zone-section');
+            const dangerZoneSection = document.getElementById('danger-zone') || document.getElementById('danger-zone-section');
             if (dangerZoneSection) {
                 const userRole = sessionStorage.getItem('userRole') || 'user';
                 if (userRole === 'admin' || userRole === 'manager') {

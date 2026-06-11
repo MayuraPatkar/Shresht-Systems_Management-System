@@ -4,6 +4,10 @@
     (window as any).statusFilter = '';
 
     const initializeMain = () => {
+        // Only run main list logic if we are on the list view
+        const purchaseTbody = document.getElementById('purchase-tbody');
+        if (!purchaseTbody) return;
+
         // Initialize filters
         if ((window as any).initPurchaseFilters) {
             (window as any).initPurchaseFilters();
@@ -20,7 +24,10 @@
         // New Purchase button
         const newBtn = document.getElementById('new-purchase');
         if (newBtn) {
-            newBtn.addEventListener('click', showNewPurchaseForm);
+            newBtn.addEventListener('click', () => {
+                sessionStorage.removeItem('currentTab-status');
+                window.location.href = '/purchase/form';
+            });
         }
 
         // Search functionality
@@ -287,10 +294,14 @@
         // Handle URL parameters for cross-module navigation
         const urlParams = new URLSearchParams(window.location.search);
         const viewId = urlParams.get('view');
-        if (viewId && (window as any).viewPurchase) {
-            (window as any).viewPurchase(viewId);
-            // Clean up URL without reloading
-            window.history.replaceState({}, document.title, window.location.pathname);
+        if (viewId) {
+            window.location.href = `/purchase/details?id=${viewId}`;
+            return;
+        }
+        const isNew = urlParams.get('new');
+        if (isNew === '1' || isNew === 'true') {
+            window.location.href = '/purchase/form';
+            return;
         }
     };
 

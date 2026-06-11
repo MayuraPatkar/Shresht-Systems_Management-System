@@ -1980,11 +1980,58 @@ if (newSection) newSection.style.display = "block";
     };
 
     const initializeForm = () => {
+        const form = document.getElementById('purchase') as HTMLFormElement | null;
+        if (!form) return;
+
+        // This is a dedicated form page — always show the #new section
+        // (CSS hides it by default for the old single-page layout)
+        const newSection = document.getElementById('new');
+        if (newSection) newSection.style.display = 'block';
+
         fetchCompanyAndCategorySuggestions();
         fetchStockNames();
         setupSupplierAutocomplete();
         renderSupplierProfileCard();
         clearAllErrors();
+
+        // Handle URL parameters for form edit/clone
+        const urlParams = new URLSearchParams(window.location.search);
+        const id = urlParams.get('id');
+        const action = urlParams.get('action');
+
+        if (id) {
+            if (action === 'clone') {
+                sessionStorage.setItem('currentTab-status', 'clone');
+            } else {
+                sessionStorage.setItem('currentTab-status', 'update');
+            }
+            openPurchase(id);
+        } else {
+            sessionStorage.setItem('currentTab-status', 'new');
+            form.reset();
+            const supplierIdInput = document.getElementById('supplier-id') as HTMLInputElement | null;
+            if (supplierIdInput) supplierIdInput.value = '';
+            const supplierSearchInput = document.getElementById('supplier-search-input') as HTMLInputElement | null;
+            if (supplierSearchInput) supplierSearchInput.value = '';
+
+            const dateInput = document.getElementById('purchase-date') as HTMLInputElement;
+            if (dateInput) {
+                dateInput.value = (window as any).getTodayForInput ? 
+                    (window as any).getTodayForInput() : 
+                    new Date().toISOString().split('T')[0];
+            }
+
+            if ((window as any).addPurchaseItem) {
+                (window as any).addPurchaseItem();
+            }
+
+            setTimeout(() => {
+                const firstInput = document.getElementById('purchase-invoice-id') as HTMLInputElement;
+                if (firstInput) {
+                    firstInput.focus();
+                }
+            }, 100);
+        }
 
         // Setup phone integer validation
         const supplierPhone = document.getElementById('supplier-phone') as HTMLInputElement;
