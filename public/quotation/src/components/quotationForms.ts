@@ -339,39 +339,42 @@ declare function showSuggestions(input: HTMLInputElement, suggestions: HTMLEleme
 declare function updateSpecificationsTable(): void;
 declare function handleKeyboardNavigation(event: KeyboardEvent, input: HTMLInputElement, suggestions: HTMLElement): void;
 
-document.getElementById("view-preview").addEventListener("click", async () => {
-    // Navigate step-by-step to trigger validation at each step
-    const navigateToPreview = async () => {
-        // If already on preview step, just generate preview
-        if (currentStep === totalSteps) {
-            await generatePreview();
-            return;
-        }
+const viewPreviewBtn = document.getElementById("view-preview");
+if (viewPreviewBtn) {
+    viewPreviewBtn.addEventListener("click", async () => {
+        // Navigate step-by-step to trigger validation at each step
+        const navigateToPreview = async () => {
+            // If already on preview step, just generate preview
+            if (currentStep === totalSteps) {
+                await generatePreview();
+                return;
+            }
 
-        const nextBtn = document.getElementById('next-btn');
-        if (!nextBtn) return;
+            const nextBtn = document.getElementById('next-btn');
+            if (!nextBtn) return;
 
-        const stepBefore = currentStep;
-        nextBtn.click();
+            const stepBefore = currentStep;
+            nextBtn.click();
 
-        // Wait for validation and step change
-        await new Promise(resolve => setTimeout(resolve, 100));
+            // Wait for validation and step change
+            await new Promise(resolve => setTimeout(resolve, 100));
 
-        // If step didn't change, validation failed - stop
-        if (currentStep === stepBefore) return;
+            // If step didn't change, validation failed - stop
+            if (currentStep === stepBefore) return;
 
-        // If reached preview, generate it
-        if (currentStep === totalSteps) {
-            await generatePreview();
-            return;
-        }
+            // If reached preview, generate it
+            if (currentStep === totalSteps) {
+                await generatePreview();
+                return;
+            }
 
-        // Continue to next step
+            // Continue to next step
+            await navigateToPreview();
+        };
+
         await navigateToPreview();
-    };
-
-    await navigateToPreview();
-});
+    });
+}
 
 // Open a quotation for editing
 async function openQuotation(idToOpen) {
@@ -410,10 +413,6 @@ async function openQuotation(idToOpen) {
         total_amount_tax: rawQuotation.totals?.grand_total || rawQuotation.total_amount_tax
     };
 
-    document.getElementById('home').style.display = 'none';
-    document.getElementById('new').style.display = 'block';
-    const viewSection = document.getElementById('view');
-    if (viewSection) viewSection.style.display = 'none';
     document.getElementById('new-quotation').style.display = 'none';
     const refreshBtnEdit = document.getElementById('refresh-btn');
     if (refreshBtnEdit) refreshBtnEdit.style.display = 'none';
@@ -756,10 +755,6 @@ async function cloneQuotation(sourceQuotationId) {
         };
 
         // Show the form (similar to showNewQuotationForm)
-        document.getElementById('home').style.display = 'none';
-        document.getElementById('new').style.display = 'block';
-        const viewSection = document.getElementById('view');
-        if (viewSection) viewSection.style.display = 'none';
         document.getElementById('new-quotation').style.display = 'none';
         const refreshBtnClone = document.getElementById('refresh-btn');
         if (refreshBtnClone) refreshBtnClone.style.display = 'none';
@@ -1948,24 +1943,27 @@ async function sendToServer(data, shouldPrint) {
 }
 
 // Event listener for the "Save" button
-document.getElementById("save-btn").addEventListener("click", async () => {
-    const wasNewQuotation = sessionStorage.getItem('currentTab-status') !== 'update';
-    const quotationData = collectFormData();
-    const ok = await sendToServer(quotationData, false);
-    if (ok) {
-        if (typeof (window as any).markQuotationFormClean === 'function') {
-            (window as any).markQuotationFormClean();
+const saveBtn = document.getElementById("save-btn");
+if (saveBtn) {
+    saveBtn.addEventListener("click", async () => {
+        const wasNewQuotation = sessionStorage.getItem('currentTab-status') !== 'update';
+        const quotationData = collectFormData();
+        const ok = await sendToServer(quotationData, false);
+        if (ok) {
+            if (typeof (window as any).markQuotationFormClean === 'function') {
+                (window as any).markQuotationFormClean();
+            }
+            window.electronAPI.showAlert1("Quotation saved successfully!");
+            // Redirect to Home after saving a new quotation/clone, or to details page if editing
+            sessionStorage.removeItem('currentTab-status');
+            if (wasNewQuotation) {
+                window.location.href = '/quotation';
+            } else {
+                window.location.href = `/quotation/details?id=${encodeURIComponent(quotationData.quotation_id)}`;
+            }
         }
-        window.electronAPI.showAlert1("Quotation saved successfully!");
-        // Redirect to Home after saving a new quotation/clone, or to details page if editing
-        sessionStorage.removeItem('currentTab-status');
-        if (wasNewQuotation) {
-            window.location.href = '/quotation';
-        } else {
-            window.location.href = `/quotation/details?id=${encodeURIComponent(quotationData.quotation_id)}`;
-        }
-    }
-});
+    });
+}
 
 // Helper: convert various date values into YYYY-MM-DD for <input type="date">
 function toInputDate(value) {

@@ -584,8 +584,111 @@
         }
     }
 
-    // Expose openWayBill globally for home list edit button
+    // Clone a waybill - copies details and items but generates/resets E-Way Bill Number and dates
+    async function cloneWayBill(wayBillId: string) {
+        const ewaybillApi = (window as any).ewaybillApi;
+        const electronAPI = (window as any).electronAPI;
+
+        try {
+            const wayBill = await ewaybillApi.getEWayBillDetails(wayBillId);
+
+            // Clean the ewaybill MongoDB ID dataset so we create a new record
+            const formEl = document.getElementById('waybill-form');
+            if (formEl) {
+                delete formEl.dataset.ewaybillId;
+            }
+
+            // Store invoice ID from populated object or direct value
+            if (wayBill.invoice_id) {
+                if (typeof wayBill.invoice_id === 'object' && wayBill.invoice_id._id) {
+                    if (formEl) formEl.dataset.invoiceId = wayBill.invoice_id._id;
+                    const invoiceIdInput = document.getElementById('invoice-id') as HTMLInputElement | null;
+                    if (invoiceIdInput) invoiceIdInput.value = wayBill.invoice_id.invoice_id || '';
+                } else {
+                    if (formEl) formEl.dataset.invoiceId = wayBill.invoice_id as string;
+                }
+            }
+
+            // Clear E-way bill number as it needs to be unique and entered manually
+            const ewaybillNoInput = document.getElementById('ewaybill-no') as HTMLInputElement | null;
+            if (ewaybillNoInput) ewaybillNoInput.value = '';
+
+            const ewaybillStatusSelect = document.getElementById('ewaybill-status') as HTMLSelectElement | null;
+            if (ewaybillStatusSelect) ewaybillStatusSelect.value = 'Draft';
+
+            const wbDateEl = document.getElementById('waybill-date') as HTMLInputElement | null;
+            if (wbDateEl) {
+                const today = new Date();
+                wbDateEl.value = typeof (window as any).getTodayForInput === 'function' ? (window as any).getTodayForInput() : today.toISOString().split('T')[0];
+            }
+
+            const fromAddressEl = document.getElementById('from-address') as HTMLTextAreaElement | null;
+            if (fromAddressEl) {
+                if (typeof wayBill.from_address === 'string') {
+                    fromAddressEl.value = wayBill.from_address;
+                } else if (wayBill.from_address) {
+                    fromAddressEl.value = [wayBill.from_address.line1, wayBill.from_address.line2, wayBill.from_address.city, wayBill.from_address.state && wayBill.from_address.pincode ? `${wayBill.from_address.state} - ${wayBill.from_address.pincode}` : wayBill.from_address.state || wayBill.from_address.pincode].filter(Boolean).join(', ');
+                } else {
+                    fromAddressEl.value = '';
+                }
+            }
+
+            const toAddressEl = document.getElementById('to-address') as HTMLTextAreaElement | null;
+            if (toAddressEl) {
+                if (typeof wayBill.to_address === 'string') {
+                    toAddressEl.value = wayBill.to_address;
+                } else if (wayBill.to_address) {
+                    toAddressEl.value = [wayBill.to_address.line1, wayBill.to_address.line2, wayBill.to_address.city, wayBill.to_address.state && wayBill.to_address.pincode ? `${wayBill.to_address.state} - ${wayBill.to_address.pincode}` : wayBill.to_address.state || wayBill.to_address.pincode].filter(Boolean).join(', ');
+                } else {
+                    toAddressEl.value = '';
+                }
+            }
+
+            // Transport details
+            const transport = wayBill.transport || {};
+            const transportModeSelect = document.getElementById('transport-mode') as HTMLSelectElement | null;
+            if (transportModeSelect) transportModeSelect.value = transport.mode || 'Road';
+
+            const vehicleNumberInput = document.getElementById('vehicle-number') as HTMLInputElement | null;
+            if (vehicleNumberInput) vehicleNumberInput.value = transport.vehicle_number || '';
+
+            const transporterIdInput = document.getElementById('transporter-id') as HTMLInputElement | null;
+            if (transporterIdInput) transporterIdInput.value = transport.transporter_id || '';
+
+            const transporterNameInput = document.getElementById('transporter-name') as HTMLInputElement | null;
+            if (transporterNameInput) transporterNameInput.value = transport.transporter_name || '';
+
+            const distanceKmInput = document.getElementById('distance-km') as HTMLInputElement | null;
+            if (distanceKmInput) distanceKmInput.value = transport.distance_km ? String(transport.distance_km) : '';
+
+            // Populate items
+            const itemsTableBody = document.querySelector("#items-table tbody") as HTMLTableSectionElement | null;
+            if (itemsTableBody) itemsTableBody.innerHTML = "";
+            const itemsContainer = document.getElementById("items-container");
+            if (itemsContainer) itemsContainer.innerHTML = "";
+            let sno = 1;
+
+            (wayBill.items || []).forEach((item: EWayBillItem) => {
+                addItemFromData(item, sno);
+                sno++;
+            });
+
+            if (typeof (window as any).markWayBillFormClean === 'function') {
+                (window as any).markWayBillFormClean();
+            }
+        } catch (error) {
+            console.error('Error cloning e-way bill:', error);
+            if (typeof electronAPI !== 'undefined' && electronAPI.showAlert1) {
+                electronAPI.showAlert1('Failed to clone e-way bill.');
+            } else {
+                alert('Failed to clone e-way bill.');
+            }
+        }
+    }
+
+    // Expose functions globally
     (window as any).openWayBill = openWayBill;
+    (window as any).cloneWayBill = cloneWayBill;
 
     // Setup add item button listener after DOM loads
     document.addEventListener('DOMContentLoaded', function () {
@@ -901,7 +1004,7 @@
     }
 
     // Function to collect form data and send to server
-    async function sendToServer(data: EWayBillFormPayload): Promise<boolean> {
+    async function sendToServer(data: EWayBillFormPayload): Promise<any> {
         const ewaybillApi = (window as any).ewaybillApi;
         return await ewaybillApi.saveEWayBill(data);
     }
@@ -924,9 +1027,12 @@
                 } else {
                     alert("E-Way Bill saved successfully!");
                 }
+                sessionStorage.removeItem('currentTab-status');
                 if (wasNewWayBill) {
-                    sessionStorage.removeItem('currentTab-status');
                     window.location.href = '/ewaybill';
+                } else {
+                    const savedId = ok._id || (ok.eWayBill && ok.eWayBill._id) || wayBillData._id;
+                    window.location.href = `/ewaybill/details?id=${encodeURIComponent(savedId)}`;
                 }
             }
         });

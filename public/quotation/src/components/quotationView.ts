@@ -1141,6 +1141,11 @@ function updateQuotationStatusTracker(quotation: any) {
 }
 
 async function viewQuotation(quotationId, viewType) {
+    if (!document.getElementById('view-project-name')) {
+        window.location.href = `/quotation/details?id=${encodeURIComponent(quotationId)}`;
+        return;
+    }
+
     try {
         const response = await fetch(`/quotation/${quotationId}`);
         if (!response.ok) {
@@ -1187,9 +1192,6 @@ async function viewQuotation(quotationId, viewType) {
 
         // Hide other sections, show view section
         document.getElementById('view-preview').style.display = 'none';
-        document.getElementById('home').style.display = 'none';
-        document.getElementById('new').style.display = 'none';
-        document.getElementById('view').style.display = 'block';
 
         // Hide trash button while in view mode
         const trashBtnEl = document.getElementById('showDeletedBtn');

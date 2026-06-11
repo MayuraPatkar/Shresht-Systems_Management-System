@@ -90,10 +90,12 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-        loadRecentInvoices();
+        const homeSection = document.getElementById('home');
+        if (homeSection) {
+            loadRecentInvoices();
+        }
 
         // Dynamically toggle Header elements visibility based on active section
-        const homeSection = document.getElementById('home');
         const newSection = document.getElementById('new');
         const viewSection = document.getElementById('view');
         const homeBtn = document.getElementById('home-btn');
@@ -220,7 +222,10 @@
             });
         }
 
-        document.getElementById('new-invoice')?.addEventListener('click', showNewInvoiceForm);
+        document.getElementById('new-invoice')?.addEventListener('click', () => {
+            sessionStorage.setItem('currentTab-status', 'new');
+            window.location.href = '/invoice/form';
+        });
         document.getElementById('home-btn')?.addEventListener('click', () => {
             // Guard navigation if form has unsaved changes
             const guardNavigation = (window as any).guardInvoiceNavigation;

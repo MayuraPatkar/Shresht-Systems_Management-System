@@ -1266,6 +1266,10 @@ function updateInvoiceStatusTracker(invoice: Invoice) {
 }
 
 async function viewInvoice(invoiceId: string, userRole?: string | null) {
+    if (!document.getElementById('view-project-name')) {
+        window.location.href = `/invoice/details?id=${encodeURIComponent(invoiceId)}`;
+        return;
+    }
     try {
         let role = userRole;
         if (!role) {

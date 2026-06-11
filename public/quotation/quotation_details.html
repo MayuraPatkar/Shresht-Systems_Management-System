@@ -145,19 +145,18 @@
                     style="display: none;"
                     title="Duplicate (Ctrl+D)">
                     <i class="fas fa-copy"></i>
-                    Duplicate
-                </button>
-                <button type="button" id="refreshQuotationBtnView"
-                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition-all hover:border-gray-500 hover:bg-gray-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-gray-200 cursor-pointer shadow-sm"
-                    title="Refresh Details (Ctrl+R)">
-                    <i class="fas fa-sync-alt"></i>
-                    Refresh
+                    Clone
                 </button>
                 <button id="home-btn"
                     class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium"
                     title="Back to Quotations (Esc)">
-                    <i class="fas fa-arrow-left"></i>
-                    Back
+                    <i class="fas fa-home"></i>
+                    Home
+                </button>
+                <button id="refresh-btn"
+                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 p-2.5 rounded-lg flex items-center justify-center gap-2 font-semibold w-10 h-10 transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    title="Refresh List (Ctrl+R)">
+                    <i class="fas fa-sync-alt"></i>
                 </button>
                 <button id="shortcuts-btn"
                     class="bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 p-2.5 rounded-lg flex items-center justify-center gap-2 font-semibold w-10 h-10 transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
@@ -276,8 +275,6 @@
 
             <!-- View Quotation (hidden initially, shown after load) -->
             <!-- These are dummy sections required by viewQuotation() to detect routing context -->
-            <div id="home" style="display:none;"></div>
-            <div id="new" style="display:none;"></div>
             <div id="view-preview" style="display:none;"></div>
             <div id="showDeletedBtn" style="display:none;"></div>
 

@@ -667,6 +667,10 @@ router.get('/unpaid-count', async (req: Request, res: Response) => {
     }
 });
 
+// Let the view router handle /invoice/details and /invoice/form — must be BEFORE /:invoice_id wildcard
+router.get('/details', (_req: Request, _res: Response, next: Function) => next('router'));
+router.get('/form', (_req: Request, _res: Response, next: Function) => next('router'));
+
 // Route to get a specific invoice by ID
 router.get("/:invoice_id", async (req: Request, res: Response) => {
     try {

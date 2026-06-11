@@ -203,6 +203,10 @@ router.get("/recent-ewaybills", async (req: Request, res: Response) => {
     }
 });
 
+// Let the view router handle /ewaybill/details and /ewaybill/form — must be BEFORE /:eWayBillId wildcard
+router.get('/details', (_req: Request, _res: Response, next: Function) => next('router'));
+router.get('/form', (_req: Request, _res: Response, next: Function) => next('router'));
+
 // Route to get an e-way bill by ID
 router.get("/:eWayBillId", async (req: Request, res: Response) => {
     try {

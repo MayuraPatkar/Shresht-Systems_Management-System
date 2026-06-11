@@ -81,10 +81,18 @@
     let shortcutsModalRef: HTMLElement | null = null;
     const isMac = navigator.userAgent.toLowerCase().includes('mac');
 
-    // Header buttons
     document.addEventListener("DOMContentLoaded", () => {
-        loadRecentWayBills();
-        document.getElementById('new-waybill-btn')?.addEventListener('click', showNewWayBillFormHandler);
+        if (document.getElementById('home')) {
+            loadRecentWayBills();
+        }
+        document.getElementById('new-waybill-btn')?.addEventListener('click', () => {
+            sessionStorage.setItem('currentTab-status', 'new');
+            if (!document.getElementById('new')) {
+                window.location.href = '/ewaybill/form';
+            } else {
+                showNewWayBillFormHandler();
+            }
+        });
         
         const wbSearchInput = document.getElementById('search-input') as HTMLInputElement | null;
         if (wbSearchInput) {
@@ -1632,6 +1640,7 @@
             }
         });
     }
+    (window as any).showNewWayBillForm = showNewWayBillFormHandler;
 
     // Handle search functionality
     async function handleSearch() {

@@ -351,6 +351,10 @@
     });
 
     async function viewWayBill(wayBillId: string): Promise<void> {
+        if (!document.getElementById('view-ewaybill-no')) {
+            window.location.href = `/ewaybill/details?id=${encodeURIComponent(wayBillId)}`;
+            return;
+        }
         try {
             const waybill = await (window as any).ewaybillApi.getEWayBillDetails(wayBillId);
             let sno = 0;

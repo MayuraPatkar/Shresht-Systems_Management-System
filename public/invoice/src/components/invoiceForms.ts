@@ -376,6 +376,9 @@
                     if (wasNewInvoice) {
                         sessionStorage.removeItem('currentTab-status');
                         window.location.href = '/invoice';
+                    } else {
+                        sessionStorage.removeItem('currentTab-status');
+                        window.location.href = `/invoice/details?id=${encodeURIComponent(invoiceId)}`;
                     }
                 }
             } catch (error) {
