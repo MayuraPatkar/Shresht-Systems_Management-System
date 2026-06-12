@@ -2,6 +2,7 @@
 
 export { AdminModel, IAdmin } from "./Admin.model";
 export { CounterModel, ICounter } from "./Counter.model";
+export { VoucherModel, IVoucher } from "./Voucher.model";
 export { CustomerModel, ICustomer } from "./Customer.model";
 export { EWayBillModel, IEWayBill } from "./EWayBill.model";
 export { InvoiceModel, IInvoice, InvoiceStatus } from "./Invoice.model";
@@ -33,6 +34,7 @@ import { SettingsModel } from "./Settings.model";
 import { ItemModel } from "./Stock.model";
 import { StockMovementModel } from "./StockMovement.model";
 import { SupplierModel } from "./Supplier.model";
+import { VoucherModel } from "./Voucher.model";
 
 // Re-export under the names the JS routes expect
 export const Admin = AdminModel;
@@ -48,3 +50,4 @@ export const service = ServiceModel;
 export const Settings = SettingsModel;
 export const Report = ReportModel;
 export const Suppliers = SupplierModel;
+export const Voucher = VoucherModel;

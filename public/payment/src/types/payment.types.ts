@@ -33,6 +33,7 @@ interface IPaymentRecord {
     is_already_refunded?: boolean;
     refund_payment_id?: string;
     remarks?: string;
+    voucher_no?: string;
     status: string;
     createdBy?: string;
     deletion: {

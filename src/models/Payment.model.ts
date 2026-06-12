@@ -47,6 +47,7 @@ export interface IPayment extends Document {
     status?: "Completed" | "Pending" | "Refunded" | "Partially Refunded" | "Cancelled" | "Failed";
 
     remarks?: string;
+    voucher_no?: string;
 
     deletion: ISoftDelete;
 
@@ -192,6 +193,11 @@ const paymentSchema = new Schema<IPayment>(
         deletion: {
             type: softDeleteSchema,
             default: () => ({ is_deleted: false }),
+        },
+        voucher_no: {
+            type: String,
+            trim: true,
+            index: true,
         },
     },
     {

@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { PaymentModel, CustomerModel, SupplierModel, InvoiceModel, PurchaseModel, PurchaseOrderModel, ServiceModel } from '../models';
+import { PaymentModel, CustomerModel, SupplierModel, InvoiceModel, PurchaseModel, PurchaseOrderModel, ServiceModel, VoucherModel, AdminModel, CounterModel } from '../models';
 import { Types } from 'mongoose';
 import logger from '../utils/logger';
 import { syncReferencePayments } from '../utils/paymentSync';
@@ -766,7 +766,228 @@ router.get('/get-reference-details/:type/:id', async (req: Request, res: Respons
             res.status(404).json({ success: false, message: 'Reference not found' });
         }
     } catch (error: unknown) {
-        logger.error('Error fetching reference details:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+/**
+ * GET /payment/voucher/next-number
+ * Get the next voucher number preview
+ */
+router.get('/voucher/next-number', async (req: Request, res: Response) => {
+    try {
+        const year = new Date().getFullYear();
+        const counterId = `voucher-${year}`;
+        const docDay = await CounterModel.findOne({ _id: counterId }).lean();
+        const seq = docDay && typeof docDay.seq === 'number' ? docDay.seq + 1 : 1;
+        const voucherNumber = `PV-${year}-${String(seq).padStart(4, '0')}`;
+        res.status(200).json({ success: true, voucherNumber });
+    } catch (error: unknown) {
+        logger.error('Error previewing voucher number:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+/**
+ * GET /payment/voucher/list
+ * Get list of vouchers with optional filters
+ */
+router.get('/voucher/list', async (req: Request, res: Response) => {
+    try {
+        const { startDate, endDate, voucherNumber, paymentMethod, partyType, partyName, amountMin, amountMax, paidTowards } = req.query;
+        const filter: any = { is_deleted: { $ne: true } };
+
+        if (startDate || endDate) {
+            filter.date = {};
+            if (startDate) filter.date.$gte = new Date(startDate as string);
+            if (endDate) {
+                const end = new Date(endDate as string);
+                end.setHours(23, 59, 59, 999);
+                filter.date.$lte = end;
+            }
+        }
+        if (voucherNumber) {
+            filter.voucherNumber = { $regex: voucherNumber as string, $options: 'i' };
+        }
+        if (paymentMethod) {
+            filter.paymentMethod = paymentMethod as string;
+        }
+        if (partyType) {
+            filter.partyType = partyType as string;
+        }
+        if (partyName) {
+            filter.partyName = { $regex: partyName as string, $options: 'i' };
+        }
+        if (amountMin !== undefined && amountMin !== '') {
+            filter.amount = filter.amount || {};
+            filter.amount.$gte = Number(amountMin);
+        }
+        if (amountMax !== undefined && amountMax !== '') {
+            filter.amount = filter.amount || {};
+            filter.amount.$lte = Number(amountMax);
+        }
+        if (paidTowards) {
+            filter.paidTowards = { $regex: paidTowards as string, $options: 'i' };
+        }
+
+        const vouchers = await VoucherModel.find(filter).sort({ date: -1, createdAt: -1 }).lean();
+        res.status(200).json({ success: true, vouchers });
+    } catch (error: unknown) {
+        logger.error('Error listing vouchers:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+/**
+ * GET /payment/voucher/by-no/:no
+ * Get voucher by its voucherNumber
+ */
+router.get('/voucher/by-no/:no', async (req: Request, res: Response) => {
+    try {
+        const voucher = await VoucherModel.findOne({
+            voucherNumber: req.params.no,
+            is_deleted: { $ne: true }
+        }).lean();
+
+        if (!voucher) {
+            return res.status(404).json({ success: false, message: 'Voucher not found' });
+        }
+
+        const admin = await AdminModel.findOne().lean() as any;
+        const companyInfo = {
+            name: admin?.company_name || 'Shresht Systems',
+            address: admin?.address ? [admin.address.line1, admin.address.line2, admin.address.city, admin.address.state, admin.address.pincode].filter(Boolean).join(', ') : '',
+            phone: admin?.phone?.ph1 || '',
+            email: admin?.email || '',
+            gstin: admin?.gstin || '',
+            website: admin?.website || ''
+        };
+
+        res.status(200).json({ success: true, voucher, company: companyInfo });
+    } catch (error: unknown) {
+        logger.error('Error fetching voucher by number:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+/**
+ * GET /payment/voucher/:id
+ * Get voucher by MongoDB ID
+ */
+router.get('/voucher/:id', async (req: Request, res: Response) => {
+    try {
+        const voucher = await VoucherModel.findById(req.params.id).lean();
+        if (!voucher || (voucher as any).is_deleted) {
+            return res.status(404).json({ success: false, message: 'Voucher not found' });
+        }
+
+        const admin = await AdminModel.findOne().lean() as any;
+        const companyInfo = {
+            name: admin?.company_name || 'Shresht Systems',
+            address: admin?.address ? [admin.address.line1, admin.address.line2, admin.address.city, admin.address.state, admin.address.pincode].filter(Boolean).join(', ') : '',
+            phone: admin?.phone?.ph1 || '',
+            email: admin?.email || '',
+            gstin: admin?.gstin || '',
+            website: admin?.website || ''
+        };
+
+        res.status(200).json({ success: true, voucher, company: companyInfo });
+    } catch (error: unknown) {
+        logger.error('Error fetching voucher by ID:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+/**
+ * POST /payment/voucher/create
+ * Create a new voucher, and create a corresponding Payment transaction
+ */
+router.post('/voucher/create', async (req: Request, res: Response) => {
+    try {
+        const {
+            date,
+            partyName,
+            partyType,
+            amount,
+            amountInWords,
+            paymentMethod,
+            chequeNumber,
+            bankName,
+            chequeDate,
+            referenceNumber,
+            paidTowards,
+            createdBy
+        } = req.body;
+
+        if (!partyName || !partyType || !amount || !paymentMethod || !paidTowards) {
+            return res.status(400).json({ success: false, message: 'Missing required voucher fields' });
+        }
+
+        // 1. Generate unique auto-incrementing Voucher Number
+        const dateObj = date ? new Date(date) : new Date();
+        const voucherYear = dateObj.getFullYear();
+        const counterId = `voucher-${voucherYear}`;
+        const counterDoc = await CounterModel.findOneAndUpdate(
+            { _id: counterId },
+            { $inc: { seq: 1 } },
+            { new: true, upsert: true }
+        );
+        const seqNum = counterDoc.seq;
+        const voucherNumber = `PV-${voucherYear}-${String(seqNum).padStart(4, '0')}`;
+
+        // 2. Resolve party link for Payment transaction
+        let partyLink: any = undefined;
+        if (partyType === 'Customer' || partyType === 'Supplier') {
+            partyLink = await resolvePartyLink(partyType, partyName);
+        }
+
+        // 3. Construct transaction details for Payment
+        let transactionDetails = '';
+        if (paymentMethod === 'Cheque') {
+            transactionDetails = `Cheque No: ${chequeNumber || ''}, Bank: ${bankName || ''}${chequeDate ? ', Date: ' + new Date(chequeDate).toLocaleDateString('en-IN') : ''}`;
+        } else if (paymentMethod === 'Bank Transfer') {
+            transactionDetails = `Bank: ${bankName || ''}, Ref: ${referenceNumber || ''}`;
+        } else if (paymentMethod === 'UPI') {
+            transactionDetails = `UPI Ref: ${referenceNumber || ''}`;
+        }
+
+        // 4. Create and save corresponding Payment transaction in ledger
+        const payment = new PaymentModel({
+            payment_date: dateObj,
+            amount: Number(amount),
+            direction: 'OUT', // Vouchers are cash OUT payments
+            party: partyLink,
+            mode: paymentMethod,
+            transaction_details: transactionDetails || undefined,
+            is_advance: false,
+            remarks: paidTowards,
+            status: 'Completed',
+            voucher_no: voucherNumber
+        } as any);
+        await payment.save();
+
+        // 5. Create and save the Voucher linked to the Payment transaction
+        const voucher = new VoucherModel({
+            voucherNumber,
+            date: dateObj,
+            partyName,
+            partyType,
+            amount: Number(amount),
+            amountInWords,
+            paymentMethod,
+            chequeNumber: paymentMethod === 'Cheque' ? chequeNumber : undefined,
+            bankName: (paymentMethod === 'Cheque' || paymentMethod === 'Bank Transfer') ? bankName : undefined,
+            chequeDate: paymentMethod === 'Cheque' ? chequeDate : undefined,
+            referenceNumber: (paymentMethod === 'Bank Transfer' || paymentMethod === 'UPI') ? referenceNumber : undefined,
+            paidTowards,
+            createdBy,
+            transactionId: payment._id
+        });
+        await voucher.save();
+
+        res.status(201).json({ success: true, voucher, paymentId: payment._id });
+    } catch (error: unknown) {
+        logger.error('Error creating voucher:', error);
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
 });

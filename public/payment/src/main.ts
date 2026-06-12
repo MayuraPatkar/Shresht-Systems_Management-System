@@ -39,6 +39,7 @@ interface IPaymentRecord {
     is_already_refunded?: boolean;
     refund_payment_id?: string;
     remarks?: string;
+    voucher_no?: string;
     status: string; // Added status field
     createdBy?: string; // Added for audit tracking
     deletion: {
@@ -1092,6 +1093,13 @@ interface Window {
                     ${escapeHtml((p as any).party_name || p.party_display_id || p.party_id || '-')}
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">${refLink}</td>
+                <td class="px-4 py-3 whitespace-nowrap text-xs">
+                    ${(p as any).voucher_no ? `
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 cursor-pointer hover:bg-blue-100" onclick="event.stopPropagation(); (window as any).viewVoucherByNo('${escapeHtml((p as any).voucher_no)}')">
+                            ${escapeHtml((p as any).voucher_no)}
+                        </span>
+                    ` : '-'}
+                </td>
                 <td class="px-4 py-3 whitespace-nowrap text-xs">
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold border ${modeClass === 'badge-cash' ? 'bg-amber-50 text-amber-700 border-amber-200' : modeClass === 'badge-upi' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : modeClass === 'badge-bank' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-purple-50 text-purple-700 border-purple-200'}">
                         ${escapeHtml(p.mode)}
@@ -2556,14 +2564,689 @@ interface Window {
                     fetchPartyDetailsById(partyType, partyId);
                 }
 
-                if (refType === 'Invoice' || refType === 'Purchase') {
-                    const searchContainer = document.getElementById('party-search-container');
-                    if (searchContainer) {
-                        searchContainer.style.display = 'none';
-                    }
-                }
             }, 100);
         }
+    });
+
+    // ── Voucher Management Logic ─────────────────────────
+    const $voucherBtn = document.getElementById('voucher-btn');
+    const $voucherModal = document.getElementById('voucher-modal');
+    const $closeVoucherModalBtn = document.getElementById('close-voucher-modal-btn');
+    const $voucherModalOverlay = document.getElementById('voucher-modal-overlay');
+
+    const $vTabHistory = document.getElementById('voucher-tab-history');
+    const $vTabCreate = document.getElementById('voucher-tab-create');
+    const $vContentHistory = document.getElementById('voucher-content-history');
+    const $vContentCreate = document.getElementById('voucher-content-create');
+
+    // Filters
+    const $fVNumber = document.getElementById('filter-v-number') as HTMLInputElement;
+    const $fVName = document.getElementById('filter-v-name') as HTMLInputElement;
+    const $fVType = document.getElementById('filter-v-type') as HTMLSelectElement;
+    const $fVMethod = document.getElementById('filter-v-method') as HTMLSelectElement;
+    const $fVStartDate = document.getElementById('filter-v-start-date') as HTMLInputElement;
+    const $fVEndDate = document.getElementById('filter-v-end-date') as HTMLInputElement;
+    const $fVMinAmount = document.getElementById('filter-v-min-amount') as HTMLInputElement;
+    const $fVMaxAmount = document.getElementById('filter-v-max-amount') as HTMLInputElement;
+    const $vBtnResetFilters = document.getElementById('v-btn-reset-filters');
+    const $vListCount = document.getElementById('voucher-list-count');
+    const $vListTbody = document.getElementById('voucher-list-tbody');
+
+    // Form
+    const $vForm = document.getElementById('voucher-create-form') as HTMLFormElement;
+    const $vFormNumber = document.getElementById('v-form-number') as HTMLInputElement;
+    const $vFormDate = document.getElementById('v-form-date') as HTMLInputElement;
+    const $vFormPartyType = document.getElementById('v-form-party-type') as HTMLSelectElement;
+    const $vFormPartyName = document.getElementById('v-form-party-name') as HTMLInputElement;
+    const $vFormPartySuggestions = document.getElementById('v-form-party-suggestions') as HTMLUListElement;
+    const $vFormAmount = document.getElementById('v-form-amount') as HTMLInputElement;
+    const $vFormAmountWords = document.getElementById('v-form-amount-words') as HTMLTextAreaElement;
+    const $vFormMethod = document.getElementById('v-form-method') as HTMLSelectElement;
+    const $vFormPurpose = document.getElementById('v-form-purpose') as HTMLTextAreaElement;
+    const $vFormBtnReset = document.getElementById('v-form-btn-reset') as HTMLButtonElement;
+
+    // Form conditional fields
+    const $vFormChequeFields = document.getElementById('v-form-cheque-fields');
+    const $vFormChequeNo = document.getElementById('v-form-cheque-no') as HTMLInputElement;
+    const $vFormChequeDate = document.getElementById('v-form-cheque-date') as HTMLInputElement;
+    const $vFormChequeBank = document.getElementById('v-form-cheque-bank') as HTMLInputElement;
+    const $vFormBankFields = document.getElementById('v-form-bank-fields');
+    const $vFormBankName = document.getElementById('v-form-bank-name') as HTMLInputElement;
+    const $vFormBankRef = document.getElementById('v-form-bank-ref') as HTMLInputElement;
+    const $vFormUpiFields = document.getElementById('v-form-upi-fields');
+    const $vFormUpiRef = document.getElementById('v-form-upi-ref') as HTMLInputElement;
+
+    // Preview
+    const $vPreviewCompanyName = document.getElementById('preview-v-company-name');
+    const $vPreviewCompanyAddress = document.getElementById('preview-v-company-address');
+    const $vPreviewCompanyContact = document.getElementById('preview-v-company-contact');
+    const $vPreviewNo = document.getElementById('preview-v-no');
+    const $vPreviewDate = document.getElementById('preview-v-date');
+    const $vPreviewPayee = document.getElementById('preview-v-payee');
+    const $vPreviewMethod = document.getElementById('preview-v-method');
+    const $vPreviewTowards = document.getElementById('preview-v-towards');
+    const $vPreviewWords = document.getElementById('preview-v-words');
+    const $vPreviewAmount = document.getElementById('preview-v-amount');
+    const $vPreviewActions = document.getElementById('voucher-preview-actions');
+    const $vPreviewBtnPrint = document.getElementById('preview-btn-print');
+    const $vPreviewBtnPdf = document.getElementById('preview-btn-pdf');
+
+    let currentVoucherCompany: any = null;
+    let selectedVoucher: any = null;
+    let voucherSuggestionsList: any[] = [];
+    let voucherSuggestionsIndex = -1;
+    let voucherPartyDebounce: any = null;
+
+    // Open/Close Modal
+    $voucherBtn?.addEventListener('click', () => {
+        $voucherModal?.classList.remove('hidden');
+        switchVoucherTab('history');
+        loadVouchersList();
+        loadCompanyInfoForForm();
+    });
+
+    const closeVoucherModal = () => {
+        $voucherModal?.classList.add('hidden');
+    };
+    $closeVoucherModalBtn?.addEventListener('click', closeVoucherModal);
+    $voucherModalOverlay?.addEventListener('click', closeVoucherModal);
+
+    // Tab switcher
+    const switchVoucherTab = (tab: 'history' | 'create') => {
+        if (tab === 'history') {
+            $vTabHistory?.classList.add('bg-white', 'text-slate-700', 'shadow-sm');
+            $vTabHistory?.classList.remove('text-slate-600', 'hover:text-slate-800');
+            $vTabCreate?.classList.remove('bg-white', 'text-slate-700', 'shadow-sm');
+            $vTabCreate?.classList.add('text-slate-600', 'hover:text-slate-800');
+            $vContentHistory?.classList.remove('hidden');
+            $vContentCreate?.classList.add('hidden');
+            loadVouchersList();
+        } else {
+            $vTabCreate?.classList.add('bg-white', 'text-slate-700', 'shadow-sm');
+            $vTabCreate?.classList.remove('text-slate-600', 'hover:text-slate-800');
+            $vTabHistory?.classList.remove('bg-white', 'text-slate-700', 'shadow-sm');
+            $vTabHistory?.classList.add('text-slate-600', 'hover:text-slate-800');
+            $vContentCreate?.classList.remove('hidden');
+            $vContentHistory?.classList.add('hidden');
+            resetVoucherForm();
+            loadNextVoucherNumber();
+        }
+    };
+
+    $vTabHistory?.addEventListener('click', () => switchVoucherTab('history'));
+    $vTabCreate?.addEventListener('click', () => switchVoucherTab('create'));
+
+    // Dynamic fields display
+    $vFormMethod?.addEventListener('change', () => {
+        const val = $vFormMethod.value;
+        $vFormChequeFields?.classList.add('hidden');
+        $vFormBankFields?.classList.add('hidden');
+        $vFormUpiFields?.classList.add('hidden');
+
+        $vFormChequeNo.removeAttribute('required');
+        $vFormChequeDate.removeAttribute('required');
+        $vFormChequeBank.removeAttribute('required');
+        $vFormBankName.removeAttribute('required');
+        $vFormBankRef.removeAttribute('required');
+        $vFormUpiRef.removeAttribute('required');
+
+        if (val === 'Cheque') {
+            $vFormChequeFields?.classList.remove('hidden');
+            $vFormChequeNo.setAttribute('required', 'true');
+            $vFormChequeDate.setAttribute('required', 'true');
+            $vFormChequeBank.setAttribute('required', 'true');
+        } else if (val === 'Bank Transfer') {
+            $vFormBankFields?.classList.remove('hidden');
+            $vFormBankName.setAttribute('required', 'true');
+            $vFormBankRef.setAttribute('required', 'true');
+        } else if (val === 'UPI') {
+            $vFormUpiFields?.classList.remove('hidden');
+            $vFormUpiRef.setAttribute('required', 'true');
+        }
+        updateVoucherLivePreview();
+    });
+
+    // Realtime preview triggers
+    const liveInputs = [$vFormDate, $vFormPartyType, $vFormPartyName, $vFormAmount, $vFormPurpose, $vFormChequeNo, $vFormChequeDate, $vFormChequeBank, $vFormBankName, $vFormBankRef, $vFormUpiRef];
+    liveInputs.forEach(input => {
+        input?.addEventListener('input', updateVoucherLivePreview);
+        input?.addEventListener('change', updateVoucherLivePreview);
+    });
+
+    // Payee suggestions autocomplete
+    async function searchVoucherParties(type: 'Customer' | 'Supplier', query: string): Promise<any[]> {
+        try {
+            let url: string;
+            if (type === 'Customer') {
+                url = `/api/customers?search=${encodeURIComponent(query)}`;
+                const res = await fetch(url);
+                if (!res.ok) return [];
+                const customers = await res.json();
+                return (Array.isArray(customers) ? customers : []).map((c: any) => {
+                    const contact = c.customer || {};
+                    const fullName = [contact.first_name, contact.last_name].filter(Boolean).join(' ');
+                    return {
+                        id: c._id,
+                        name: contact.name || fullName || 'Unnamed Customer',
+                        phone: contact.phone || '',
+                        email: contact.email || '',
+                        gstin: c.gstin || ''
+                    };
+                });
+            } else {
+                url = `/api/suppliers?search=${encodeURIComponent(query)}`;
+                const res = await fetch(url);
+                if (!res.ok) return [];
+                const suppliers = await res.json();
+                return (Array.isArray(suppliers) ? suppliers : []).map((s: any) => ({
+                    id: s._id,
+                    name: s.supplier_name || 'Unnamed Supplier',
+                    phone: s.phone || '',
+                    email: s.email || '',
+                    gstin: s.gstin || ''
+                }));
+            }
+        } catch (e) {
+            console.error('Failed to search voucher parties', e);
+            return [];
+        }
+    }
+
+    $vFormPartyName?.addEventListener('input', () => {
+        const query = $vFormPartyName.value.trim();
+        const type = $vFormPartyType.value as 'Customer' | 'Supplier' | 'Other';
+        clearTimeout(voucherPartyDebounce);
+        $vFormPartySuggestions.innerHTML = '';
+        $vFormPartySuggestions.classList.add('hidden');
+        voucherSuggestionsIndex = -1;
+
+        if (type === 'Other' || query.length < 1) {
+            return;
+        }
+
+        voucherPartyDebounce = setTimeout(async () => {
+            voucherSuggestionsList = await searchVoucherParties(type, query);
+            if (voucherSuggestionsList.length === 0) {
+                return;
+            }
+            $vFormPartySuggestions.classList.remove('hidden');
+            voucherSuggestionsList.forEach((party, idx) => {
+                const li = document.createElement('li');
+                li.className = 'px-3 py-2 hover:bg-slate-100 cursor-pointer transition-colors';
+                li.textContent = party.name;
+                li.onclick = () => {
+                    $vFormPartyName.value = party.name;
+                    $vFormPartySuggestions.classList.add('hidden');
+                    updateVoucherLivePreview();
+                };
+                $vFormPartySuggestions.appendChild(li);
+            });
+        }, 250);
+    });
+
+    $vFormPartyName?.addEventListener('keydown', (e: KeyboardEvent) => {
+        const items = $vFormPartySuggestions.querySelectorAll('li');
+        if (items.length === 0) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            voucherSuggestionsIndex = (voucherSuggestionsIndex + 1) % items.length;
+            updateSuggestionsHighlight(items);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            voucherSuggestionsIndex = (voucherSuggestionsIndex - 1 + items.length) % items.length;
+            updateSuggestionsHighlight(items);
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (voucherSuggestionsIndex > -1) {
+                (items[voucherSuggestionsIndex] as HTMLElement).click();
+            } else {
+                (items[0] as HTMLElement).click();
+            }
+        } else if (e.key === 'Escape') {
+            $vFormPartySuggestions.classList.add('hidden');
+        }
+    });
+
+    function updateSuggestionsHighlight(items: NodeListOf<HTMLLIElement>) {
+        items.forEach((item, idx) => {
+            if (idx === voucherSuggestionsIndex) {
+                item.classList.add('bg-blue-50', 'text-blue-700', 'font-semibold');
+                item.scrollIntoView({ block: 'nearest' });
+            } else {
+                item.classList.remove('bg-blue-50', 'text-blue-700', 'font-semibold');
+            }
+        });
+    }
+
+    // Amount in Words generator
+    $vFormAmount?.addEventListener('input', () => {
+        const amt = parseFloat($vFormAmount.value) || 0;
+        if (amt > 0 && (window as any).numberToWords) {
+            const words = (window as any).numberToWords(amt);
+            $vFormAmountWords.value = `Rupees ${words} Only`;
+        } else {
+            $vFormAmountWords.value = '';
+        }
+        updateVoucherLivePreview();
+    });
+
+    // Next Voucher Number
+    async function loadNextVoucherNumber() {
+        try {
+            const res = await fetch('/payment/voucher/next-number');
+            const data = await res.json();
+            if (data.success) {
+                $vFormNumber.value = data.voucherNumber;
+                if ($vPreviewNo) $vPreviewNo.textContent = data.voucherNumber;
+            }
+        } catch (e) {
+            console.error('Failed to load next voucher number', e);
+        }
+    }
+
+    // Company info for preview
+    async function loadCompanyInfoForForm() {
+        if (currentVoucherCompany) return;
+        try {
+            // Fetch one voucher if exists, or use default details
+            if ($vPreviewCompanyName) $vPreviewCompanyName.textContent = "SHRESHT SYSTEMS";
+            if ($vPreviewCompanyAddress) $vPreviewCompanyAddress.textContent = "CCTV & Energy Solutions";
+            if ($vPreviewCompanyContact) $vPreviewCompanyContact.textContent = "Phone: +91 | Email: support@shresht.com";
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    // Live preview updater
+    function updateVoucherLivePreview() {
+        if ($vPreviewNo) $vPreviewNo.textContent = $vFormNumber.value || 'PV-2026-XXXX';
+        
+        const dateVal = $vFormDate.value;
+        if ($vPreviewDate) {
+            $vPreviewDate.textContent = dateVal ? new Date(dateVal).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+        }
+
+        if ($vPreviewPayee) {
+            $vPreviewPayee.textContent = $vFormPartyName.value ? `${$vFormPartyName.value} (${$vFormPartyType.value})` : '-';
+        }
+
+        const method = $vFormMethod.value;
+        let methodDetails = method;
+        if (method === 'Cheque') {
+            methodDetails += ` (Cheque No: ${$vFormChequeNo.value || '-'}, Bank: ${$vFormChequeBank.value || '-'}, Date: ${$vFormChequeDate.value ? new Date($vFormChequeDate.value).toLocaleDateString('en-IN') : '-'})`;
+        } else if (method === 'Bank Transfer') {
+            methodDetails += ` (Bank: ${$vFormBankName.value || '-'}, Ref: ${$vFormBankRef.value || '-'})`;
+        } else if (method === 'UPI') {
+            methodDetails += ` (UPI Ref: ${$vFormUpiRef.value || '-'})`;
+        }
+        if ($vPreviewMethod) $vPreviewMethod.textContent = methodDetails;
+
+        if ($vPreviewTowards) $vPreviewTowards.textContent = $vFormPurpose.value || '-';
+        if ($vPreviewWords) $vPreviewWords.textContent = $vFormAmountWords.value || '-';
+        
+        const amt = parseFloat($vFormAmount.value) || 0;
+        if ($vPreviewAmount) {
+            $vPreviewAmount.textContent = '₹ ' + amt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+    }
+
+    // Reset Form
+    function resetVoucherForm() {
+        $vForm.reset();
+        $vFormChequeFields?.classList.add('hidden');
+        $vFormBankFields?.classList.add('hidden');
+        $vFormUpiFields?.classList.add('hidden');
+        $vPreviewActions?.classList.add('hidden');
+        $vForm.querySelector('button[type="submit"]')?.classList.remove('hidden');
+        $vFormBtnReset?.classList.remove('hidden');
+        
+        // Re-enable form fields
+        Array.from($vForm.elements).forEach(el => {
+            (el as any).removeAttribute('disabled');
+        });
+        
+        $vFormDate.value = new Date().toISOString().split('T')[0];
+        $vFormMethod.value = 'Cash';
+        $vFormPartyType.value = 'Customer';
+        
+        selectedVoucher = null;
+        updateVoucherLivePreview();
+    }
+
+    $vFormBtnReset?.addEventListener('click', resetVoucherForm);
+
+    // Form submit
+    $vForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const payload = {
+            date: $vFormDate.value,
+            partyName: $vFormPartyName.value,
+            partyType: $vFormPartyType.value,
+            amount: parseFloat($vFormAmount.value),
+            amountInWords: $vFormAmountWords.value,
+            paymentMethod: $vFormMethod.value,
+            chequeNumber: $vFormChequeNo.value || undefined,
+            bankName: ($vFormMethod.value === 'Cheque' || $vFormMethod.value === 'Bank Transfer') ? ($vFormChequeBank.value || $vFormBankName.value) : undefined,
+            chequeDate: $vFormChequeDate.value || undefined,
+            referenceNumber: ($vFormMethod.value === 'Bank Transfer' || $vFormMethod.value === 'UPI') ? ($vFormBankRef.value || $vFormUpiRef.value) : undefined,
+            paidTowards: $vFormPurpose.value,
+            createdBy: 'Admin'
+        };
+
+        try {
+            const res = await fetch('/payment/voucher/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.success) {
+                (window as any).showAlert('Payment Voucher created successfully!');
+                selectedVoucher = data.voucher;
+                
+                // Refresh main Payments Ledger
+                fetchPayments();
+
+                // Display preview with actions
+                $vPreviewActions?.classList.remove('hidden');
+                $vForm.querySelector('button[type="submit"]')?.classList.add('hidden');
+                $vFormBtnReset?.classList.add('hidden');
+                
+                // Disable all form fields
+                Array.from($vForm.elements).forEach(el => {
+                    (el as any).setAttribute('disabled', 'disabled');
+                });
+            } else {
+                (window as any).showAlert(data.message || 'Failed to create voucher');
+            }
+        } catch (err: unknown) {
+            console.error('Error creating voucher', err);
+            (window as any).showAlert('Failed to create payment voucher');
+        }
+    });
+
+    // History list filters
+    const historyFilters = [$fVNumber, $fVName, $fVType, $fVMethod, $fVStartDate, $fVEndDate, $fVMinAmount, $fVMaxAmount];
+    historyFilters.forEach(filter => {
+        filter?.addEventListener('input', () => loadVouchersList());
+        filter?.addEventListener('change', () => loadVouchersList());
+    });
+
+    $vBtnResetFilters?.addEventListener('click', () => {
+        $fVNumber.value = '';
+        $fVName.value = '';
+        $fVType.value = '';
+        $fVMethod.value = '';
+        $fVStartDate.value = '';
+        $fVEndDate.value = '';
+        $fVMinAmount.value = '';
+        $fVMaxAmount.value = '';
+        loadVouchersList();
+    });
+
+    // Load vouchers list
+    async function loadVouchersList() {
+        if (!$vListTbody) return;
+        $vListTbody.innerHTML = `<tr><td colspan="7" class="px-6 py-10 text-center text-slate-400">Loading vouchers...</td></tr>`;
+
+        const params = new URLSearchParams();
+        if ($fVNumber.value) params.append('voucherNumber', $fVNumber.value.trim());
+        if ($fVName.value) params.append('partyName', $fVName.value.trim());
+        if ($fVType.value) params.append('partyType', $fVType.value);
+        if ($fVMethod.value) params.append('paymentMethod', $fVMethod.value);
+        if ($fVStartDate.value) params.append('startDate', $fVStartDate.value);
+        if ($fVEndDate.value) params.append('endDate', $fVEndDate.value);
+        if ($fVMinAmount.value) params.append('amountMin', $fVMinAmount.value);
+        if ($fVMaxAmount.value) params.append('amountMax', $fVMaxAmount.value);
+
+        try {
+            const res = await fetch(`/payment/voucher/list?${params.toString()}`);
+            const data = await res.json();
+            if (data.success) {
+                const vouchers = data.vouchers || [];
+                if ($vListCount) $vListCount.textContent = `Showing ${vouchers.length} vouchers`;
+                
+                if (vouchers.length === 0) {
+                    $vListTbody.innerHTML = `<tr><td colspan="7" class="px-6 py-10 text-center text-slate-450">No vouchers found</td></tr>`;
+                    return;
+                }
+
+                $vListTbody.innerHTML = vouchers.map((v: any) => {
+                    return `
+                    <tr class="hover:bg-slate-50 border-b border-slate-100 transition-colors">
+                        <td class="px-4 py-3 font-medium text-slate-600">${new Date(v.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                        <td class="px-4 py-3 font-bold text-blue-600 cursor-pointer hover:underline" onclick="(window as any).viewVoucherByNo('${escapeHtml(v.voucherNumber)}')">${escapeHtml(v.voucherNumber)}</td>
+                        <td class="px-4 py-3 font-semibold text-slate-800">${escapeHtml(v.partyName)} <span class="text-[10px] text-slate-400 font-bold uppercase">(${v.partyType})</span></td>
+                        <td class="px-4 py-3">${escapeHtml(v.paymentMethod)}</td>
+                        <td class="px-4 py-3 text-right font-extrabold text-slate-900">₹ ${v.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        <td class="px-4 py-3 truncate max-w-[150px]" title="${escapeHtml(v.paidTowards)}">${escapeHtml(v.paidTowards)}</td>
+                        <td class="px-4 py-3 text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <button onclick="event.stopPropagation(); (window as any).printVoucher('${v._id}')" class="p-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded hover:bg-emerald-100 transition-colors" title="Print"><i class="fas fa-print text-xs"></i></button>
+                                <button onclick="event.stopPropagation(); (window as any).downloadVoucherPDF('${v._id}')" class="p-1.5 bg-slate-100 text-slate-700 border border-slate-350 rounded hover:bg-slate-200 transition-colors" title="Download PDF"><i class="fas fa-file-pdf text-xs"></i></button>
+                            </div>
+                        </td>
+                    </tr>`;
+                }).join('');
+            } else {
+                $vListTbody.innerHTML = `<tr><td colspan="7" class="px-6 py-10 text-center text-red-500">Failed to load vouchers</td></tr>`;
+            }
+        } catch (e) {
+            console.error('Failed to load vouchers list', e);
+            $vListTbody.innerHTML = `<tr><td colspan="7" class="px-6 py-10 text-center text-red-500">Failed to load vouchers</td></tr>`;
+        }
+    }
+
+    // View voucher by number (called from tables)
+    (window as any).viewVoucherByNo = async function(voucherNo: string) {
+        try {
+            const res = await fetch(`/payment/voucher/by-no/${encodeURIComponent(voucherNo)}`);
+            const data = await res.json();
+            if (data.success) {
+                selectedVoucher = data.voucher;
+                currentVoucherCompany = data.company;
+                
+                $voucherModal?.classList.remove('hidden');
+                switchVoucherTab('create');
+                
+                // Populate Form (Disabled)
+                $vFormDate.value = new Date(selectedVoucher.date).toISOString().split('T')[0];
+                $vFormPartyType.value = selectedVoucher.partyType;
+                $vFormPartyName.value = selectedVoucher.partyName;
+                $vFormAmount.value = selectedVoucher.amount;
+                $vFormAmountWords.value = selectedVoucher.amountInWords;
+                $vFormMethod.value = selectedVoucher.paymentMethod;
+                $vFormPurpose.value = selectedVoucher.paidTowards;
+                
+                // Disables all
+                Array.from($vForm.elements).forEach(el => {
+                    (el as any).setAttribute('disabled', 'disabled');
+                });
+                $vForm.querySelector('button[type="submit"]')?.classList.add('hidden');
+                $vFormBtnReset?.classList.add('hidden');
+
+                // Conditional fields
+                $vFormChequeFields?.classList.add('hidden');
+                $vFormBankFields?.classList.add('hidden');
+                $vFormUpiFields?.classList.add('hidden');
+                if (selectedVoucher.paymentMethod === 'Cheque') {
+                    $vFormChequeFields?.classList.remove('hidden');
+                    $vFormChequeNo.value = selectedVoucher.chequeNumber || '';
+                    $vFormChequeDate.value = selectedVoucher.chequeDate ? new Date(selectedVoucher.chequeDate).toISOString().split('T')[0] : '';
+                    $vFormChequeBank.value = selectedVoucher.bankName || '';
+                } else if (selectedVoucher.paymentMethod === 'Bank Transfer') {
+                    $vFormBankFields?.classList.remove('hidden');
+                    $vFormBankName.value = selectedVoucher.bankName || '';
+                    $vFormBankRef.value = selectedVoucher.referenceNumber || '';
+                } else if (selectedVoucher.paymentMethod === 'UPI') {
+                    $vFormUpiFields?.classList.remove('hidden');
+                    $vFormUpiRef.value = selectedVoucher.referenceNumber || '';
+                }
+
+                // Populate Preview
+                if ($vPreviewCompanyName) $vPreviewCompanyName.textContent = currentVoucherCompany.name;
+                if ($vPreviewCompanyAddress) $vPreviewCompanyAddress.textContent = currentVoucherCompany.address || '-';
+                if ($vPreviewCompanyContact) {
+                    $vPreviewCompanyContact.textContent = `Phone: ${currentVoucherCompany.phone || '-'} | Email: ${currentVoucherCompany.email || '-'}`;
+                }
+                
+                updateVoucherLivePreview();
+                $vFormNumber.value = selectedVoucher.voucherNumber;
+                if ($vPreviewNo) $vPreviewNo.textContent = selectedVoucher.voucherNumber;
+
+                // Show action bar
+                $vPreviewActions?.classList.remove('hidden');
+            } else {
+                (window as any).showAlert('Voucher not found');
+            }
+        } catch (e) {
+            console.error('Failed to view voucher', e);
+            (window as any).showAlert('Failed to load voucher details');
+        }
+    };
+
+    // Print & PDF helper generators
+    function generateVoucherPrintHTML(v: any, c: any): string {
+        const formatDate = (d: any) => d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+        const formatIndian = (n: any) => Number(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        
+        let methodDetails = v.paymentMethod;
+        if (v.paymentMethod === 'Cheque') {
+            methodDetails += ` (Cheque No: ${v.chequeNumber || '-'}, Bank: ${v.bankName || '-'}, Date: ${formatDate(v.chequeDate)})`;
+        } else if (v.paymentMethod === 'Bank Transfer') {
+            methodDetails += ` (Bank: ${v.bankName || '-'}, Ref: ${v.referenceNumber || '-'})`;
+        } else if (v.paymentMethod === 'UPI') {
+            methodDetails += ` (UPI Ref: ${v.referenceNumber || '-'})`;
+        }
+
+        return `
+        <html>
+        <head>
+            <title>Payment Voucher - ${v.voucherNumber}</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 30px; color: #333; background-color: #fff; margin: 0; }
+                .voucher-container { border: 2px solid #333; padding: 24px; max-width: 800px; margin: 0 auto; background: #fff; }
+                .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px double #333; padding-bottom: 15px; margin-bottom: 20px; }
+                .company-info h1 { font-size: 20px; font-weight: bold; margin: 0; color: #000; text-transform: uppercase; }
+                .company-info p { font-size: 11px; margin: 3px 0 0 0; color: #555; }
+                .voucher-title-box { text-align: center; margin: 15px 0; }
+                .voucher-title { font-size: 16px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; border: 2px solid #000; padding: 6px 16px; display: inline-block; }
+                .content-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+                .content-table td { padding: 12px 8px; font-size: 13px; vertical-align: top; }
+                .content-table tr { border-bottom: 1px solid #eee; }
+                .label { font-weight: bold; width: 25%; color: #000; }
+                .value { border-bottom: 1px dashed #333; }
+                .amount-row { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; margin-bottom: 40px; }
+                .amount-box { border: 2px solid #000; padding: 10px 20px; font-size: 18px; font-weight: bold; background-color: #f8fafc; display: inline-block; }
+                .amount-words-box { font-size: 12px; font-style: italic; width: 65%; border-bottom: 1px dashed #333; padding-bottom: 5px; }
+                .signature-row { display: flex; justify-content: space-between; margin-top: 50px; font-size: 12px; font-weight: bold; }
+                .sig-col { width: 40%; text-align: center; }
+                .sig-line { border-bottom: 1px solid #000; margin-bottom: 8px; height: 30px; }
+                @media print { body { padding: 0; } .voucher-container { border: 2px solid #000; } }
+            </style>
+        </head>
+        <body>
+            <div class="voucher-container">
+                <div class="header">
+                    <div class="company-info">
+                        <h1>${c.name}</h1>
+                        <p>${c.address || ''}</p>
+                        <p>Phone: ${c.phone || ''} | Email: ${c.email || ''}</p>
+                    </div>
+                    <div style="text-align: right; font-family: monospace;">
+                        <div style="font-weight: bold; font-size: 14px;">Voucher No: <span style="color: #c2410c;">${v.voucherNumber}</span></div>
+                        <div style="margin-top: 5px; font-size: 12px;">Date: ${formatDate(v.date)}</div>
+                    </div>
+                </div>
+                
+                <div class="voucher-title-box">
+                    <div class="voucher-title">Payment Voucher</div>
+                </div>
+
+                <table class="content-table">
+                    <tr>
+                        <td class="label">Paid To (Payee)</td>
+                        <td class="value">${v.partyName} (${v.partyType})</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Payment Method</td>
+                        <td class="value">${methodDetails}</td>
+                    </tr>
+                    <tr style="border-bottom: none;">
+                        <td class="label">Paid Towards</td>
+                        <td class="value" style="white-space: pre-wrap;">${v.paidTowards}</td>
+                    </tr>
+                </table>
+
+                <div class="amount-row">
+                    <div class="amount-words-box">
+                        <strong>Amount in Words:</strong><br>
+                        ${v.amountInWords}
+                    </div>
+                    <div class="amount-box">
+                        ₹ ${formatIndian(v.amount)}
+                    </div>
+                </div>
+
+                <div class="signature-row">
+                    <div class="sig-col">
+                        <div class="sig-line"></div>
+                        Paid By
+                    </div>
+                    <div class="sig-col">
+                        <div class="sig-line"></div>
+                        Receiver Signature
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>`;
+    }
+
+    (window as any).printVoucher = async function(id: string) {
+        try {
+            const res = await fetch(`/payment/voucher/${id}`);
+            const data = await res.json();
+            if (data.success) {
+                const html = generateVoucherPrintHTML(data.voucher, data.company);
+                if (window.electronAPI && typeof window.electronAPI.handlePrintEvent === 'function') {
+                    window.electronAPI.handlePrintEvent(html, 'print', `Voucher-${data.voucher.voucherNumber}`);
+                } else if ((window as any).handlePrint) {
+                    (window as any).handlePrint(html, 'print');
+                }
+            }
+        } catch (e) {
+            console.error('Print voucher failed', e);
+            (window as any).showAlert('Failed to print voucher');
+        }
+    };
+
+    (window as any).downloadVoucherPDF = async function(id: string) {
+        try {
+            const res = await fetch(`/payment/voucher/${id}`);
+            const data = await res.json();
+            if (data.success) {
+                const html = generateVoucherPrintHTML(data.voucher, data.company);
+                if (window.electronAPI && typeof window.electronAPI.handlePrintEvent === 'function') {
+                    window.electronAPI.handlePrintEvent(html, 'savePDF', `Voucher-${data.voucher.voucherNumber}`);
+                } else if ((window as any).handlePrint) {
+                    (window as any).handlePrint(html, 'savePDF', `Voucher-${data.voucher.voucherNumber}`);
+                }
+            }
+        } catch (e) {
+            console.error('PDF export failed', e);
+            (window as any).showAlert('Failed to download voucher PDF');
+        }
+    };
+
+    $vPreviewBtnPrint?.addEventListener('click', () => {
+        if (selectedVoucher) (window as any).printVoucher(selectedVoucher._id);
+    });
+
+    $vPreviewBtnPdf?.addEventListener('click', () => {
+        if (selectedVoucher) (window as any).downloadVoucherPDF(selectedVoucher._id);
     });
 
 })();

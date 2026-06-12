@@ -38,6 +38,7 @@
     const $detailsParty = document.getElementById('details-party') as HTMLElement;
     const $detailsReference = document.getElementById('details-reference') as HTMLElement;
     const $detailsCreated = document.getElementById('details-created') as HTMLElement;
+    const $detailsVoucher = document.getElementById('details-voucher') as HTMLElement;
     const $detailsRemarks = document.getElementById('details-remarks') as HTMLElement;
 
     // Party Card DOM Refs
@@ -565,6 +566,14 @@
         $detailsParty.textContent = `${paymentPartyType(payment)}${payment.party_display_id || payment.party_id ? `: ${payment.party_display_id || payment.party_id}` : ''}`;
         $detailsReference.innerHTML = getReferenceLinkHtml(payment);
         $detailsCreated.textContent = formatDate(payment.createdAt);
+        
+        const vNo = (payment as any).voucher_no;
+        if (vNo) {
+            $detailsVoucher.innerHTML = `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">${escapeHtml(vNo)}</span>`;
+        } else {
+            $detailsVoucher.textContent = '-';
+        }
+
         $detailsRemarks.textContent = valOrDash(payment.remarks);
 
         // Populate Financial Details
