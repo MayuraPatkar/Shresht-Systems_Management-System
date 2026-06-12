@@ -1622,24 +1622,26 @@ const generatePreview = async function () {
 
     const rows = Array.from(itemsTable.rows);
     for (const row of rows) {
+        const description = (row.cells[1].querySelector('input') as HTMLInputElement)?.value || '';
         const qty = Number((row.cells[3].querySelector('input') as HTMLInputElement)?.value || 0);
         const unitPrice = Number((row.cells[4].querySelector('input') as HTMLInputElement)?.value || 0);
         const rate = Number((row.cells[5].querySelector('input') as HTMLInputElement)?.value || 0);
         const taxableValue = qty * unitPrice;
+        const qtyToCount = (window as any).isUnitCountedAsOne(description, undefined) ? 1 : qty;
 
         if (hasTax) {
             const cgst = (taxableValue * (rate / 2)) / 100;
             const sgst = (taxableValue * (rate / 2)) / 100;
             const rowTotal = taxableValue + cgst + sgst;
 
-            totalQtySum += qty;
+            totalQtySum += qtyToCount;
             totalUnitPriceSum += unitPrice;
             totalTaxableSum += taxableValue;
             totalItemsTaxSum += (cgst + sgst);
             totalPriceSum += rowTotal;
         } else {
             const rowTotal = taxableValue;
-            totalQtySum += qty;
+            totalQtySum += qtyToCount;
             totalUnitPriceSum += unitPrice;
             totalPriceSum += rowTotal;
         }

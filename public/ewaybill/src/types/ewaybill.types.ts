@@ -7,6 +7,7 @@ interface EWayBillItem {
     description: string;
     hsn_sac: string;
     quantity: number;
+    unit?: string;
     unit_price: number;
     gst_rate: number;
     taxable_value?: number;

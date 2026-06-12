@@ -158,7 +158,7 @@
                 const taxableValue = qty * unitPrice;
                 const taxAmount = (taxableValue * rate) / 100;
 
-                totalQty += qty;
+                totalQty += (window as any).isUnitCountedAsOne(item.description, item.unit) ? 1 : qty;
                 totalTaxable += taxableValue;
                 totalTaxAmount += taxAmount;
 
@@ -283,7 +283,12 @@
                 const tax = (taxable * rate) / 100;
                 const rowTotal = taxable + tax;
                 
-                totalQty += qty;
+                const unitSelect = row.querySelector(".inline-edit-unit") as HTMLSelectElement;
+                const descText = row.querySelector(".inline-finance-desc-text") as HTMLSpanElement;
+                const unit = unitSelect ? unitSelect.value : "";
+                const description = descText ? descText.textContent || "" : "";
+
+                totalQty += (window as any).isUnitCountedAsOne(description, unit) ? 1 : qty;
                 totalTaxable += taxable;
                 totalTaxAmount += tax;
                 

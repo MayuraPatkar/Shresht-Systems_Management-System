@@ -59,6 +59,38 @@ function numberToWords(num) {
   return result.join(' ').trim();
 }
 
+/**
+ * Checks if a unit (e.g. m, kg, L) should be counted as 1 in totals quantity column
+ * @param {string} description - Item description
+ * @param {string} unit - Item unit
+ * @returns {boolean}
+ */
+function isUnitCountedAsOne(description, unit) {
+  if (unit) {
+    const u = String(unit).toLowerCase().trim();
+    if (
+      u === 'm' || u === 'mtr' || u === 'meter' || u === 'meters' || u === 'metre' || u === 'metres' ||
+      u === 'l' || u === 'ltr' || u === 'liter' || u === 'liters' || u === 'litre' || u === 'litres' ||
+      u === 'kg' || u === 'kgs' || u === 'kilo' || u === 'kilogram' || u === 'kilograms' || u === 'kilo gram' || u === 'kilo grams'
+    ) {
+      return true;
+    }
+  }
+
+  if (description) {
+    const desc = String(description).toLowerCase().trim();
+    const meterRegex = /\b\d+(\.\d+)?\s*(m|mtr|meter|meters|metre|metres)\b/i;
+    const literRegex = /\b\d+(\.\d+)?\s*(l|ltr|liter|liters|litre|litres)\b/i;
+    const kgRegex = /\b\d+(\.\d+)?\s*(kg|kgs|kilo|kilogram|kilograms|kilo\s*gram|kilo\s*grams)\b/i;
+    
+    if (meterRegex.test(desc) || literRegex.test(desc) || kgRegex.test(desc)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 // ============================================================================
 // UNIFIED DATE FORMATTING UTILITIES
 // All user-visible dates should use DD/MM/YYYY format
@@ -181,6 +213,7 @@ if (typeof window !== 'undefined') {
   // Other utilities
   window.copyToClipboard = copyToClipboard;
   window.debounce = debounce;
+  window.isUnitCountedAsOne = isUnitCountedAsOne;
 
   // Client-side table pagination manager
   class TablePaginationManager {

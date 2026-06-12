@@ -78,7 +78,7 @@
 
             const taxableValue = qty * unitPrice;
             totalTaxableValue += taxableValue;
-            totalQtySum += qty;
+            totalQtySum += (window as any).isUnitCountedAsOne(description, item.unit) ? 1 : qty;
             totalUnitPriceSum += unitPrice;
             totalTaxableSum += taxableValue;
 
@@ -519,7 +519,7 @@
 
                 totalTaxable += taxableValue;
                 totalTaxAmount += taxAmount;
-                totalQty += qty;
+                totalQty += (window as any).isUnitCountedAsOne(item.description, item.unit) ? 1 : qty;
 
                 if (viewItemsTableBody) {
                     const row = document.createElement("tr");
@@ -676,7 +676,12 @@
                 const rowTotalEl = row.querySelector(".inline-edit-row-total");
                 if (rowTotalEl) rowTotalEl.textContent = `₹ ${formatIndian(rowTotal, 2)}`;
                 
-                totalQty += qty;
+                const unitSelect = row.querySelector(".inline-edit-unit") as HTMLSelectElement;
+                const descInput = row.querySelector(".inline-edit-desc") as HTMLInputElement;
+                const unit = unitSelect ? unitSelect.value : "";
+                const description = descInput ? descInput.value : "";
+
+                totalQty += (window as any).isUnitCountedAsOne(description, unit) ? 1 : qty;
                 totalTaxable += taxable;
                 totalTaxAmount += tax;
             }

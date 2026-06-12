@@ -1222,7 +1222,7 @@ async function generatePreview() {
         const rate = parseFloat(row.cells[5].querySelector("input").value || "0");
 
         const taxableValue = qty * unitPrice;
-        totalQtySum += qty;
+        totalQtySum += (window as any).isUnitCountedAsOne(description, '') ? 1 : qty;
         totalTaxableSum += taxableValue;
         totalUnitPriceSum += unitPrice;
         let itemHTML = "";

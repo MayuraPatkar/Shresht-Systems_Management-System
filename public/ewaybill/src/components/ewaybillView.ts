@@ -59,7 +59,7 @@
             const sgst = (taxableValue * (gstRate / 2)) / 100;
             const rowTotal = taxableValue + cgst + sgst;
 
-            totalQtySum += qty;
+            totalQtySum += (window as any).isUnitCountedAsOne(description, item.unit) ? 1 : qty;
 
             itemsHTML += `
                 <tr>
@@ -420,7 +420,7 @@
                 const qty = Number(item.quantity) || 0;
                 const unitPrice = Number(item.unit_price) || 0;
                 const taxableValue = qty * unitPrice;
-                totalQty += qty;
+                totalQty += (window as any).isUnitCountedAsOne(item.description, item.unit) ? 1 : qty;
                 totalTaxableCalculated += taxableValue;
 
                 row.className = "border-b border-gray-200 hover:bg-gray-50 transition-colors";

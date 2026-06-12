@@ -129,7 +129,7 @@ async function generateInvoicePreview(invoice: Partial<Invoice> = {}, userRole: 
                 totalPrice += rowTotal;
                 totalTax += cgstValue + sgstValue;
 
-                totalQtySum += qty;
+                totalQtySum += (window as any).isUnitCountedAsOne(description, item.unit) ? 1 : qty;
                 totalUnitPriceSum += unitPrice;
                 totalTaxableSum += taxableValue;
                 totalItemsTaxSum += (cgstValue + sgstValue);
@@ -151,7 +151,7 @@ async function generateInvoicePreview(invoice: Partial<Invoice> = {}, userRole: 
                 const rowTotal = taxableValue;
                 totalPrice += rowTotal;
 
-                totalQtySum += qty;
+                totalQtySum += (window as any).isUnitCountedAsOne(description, item.unit) ? 1 : qty;
                 totalUnitPriceSum += unitPrice;
                 totalPriceSum += rowTotal;
 
@@ -734,7 +734,7 @@ async function renderInvoiceView(invoice: Invoice, userRole: string, viewType: s
                 const sgstValue = (taxableValue * sgstPercent) / 100;
                 const rowTotal = showTax ? (taxableValue + cgstValue + sgstValue) : taxableValue;
                 
-                totalQty += qty;
+                totalQty += (window as any).isUnitCountedAsOne(item.description, item.unit) ? 1 : qty;
                 view_totalTaxable += taxableValue;
                 if (showTax) {
                     view_totalCGST += cgstValue;

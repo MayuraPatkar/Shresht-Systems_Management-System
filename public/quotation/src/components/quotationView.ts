@@ -140,7 +140,7 @@ async function generateViewPreviewHTML(quotation, viewType) {
         const taxableValue = qty * unitPrice;
         const taxAmount = (taxableValue * taxRate) / 100;
         
-        totalQtySum += qty;
+        totalQtySum += (window as any).isUnitCountedAsOne(description, item.unit) ? 1 : qty;
         totalTaxableSum += taxableValue;
         totalTaxableValue += taxableValue;
         totalTax += taxAmount;
@@ -482,7 +482,7 @@ async function renderQuotationView(quotation, viewType) {
         const taxAmount = (taxableValue * taxRate) / 100;
         let totalWithTax = taxableValue + taxAmount;
 
-        totalQty += qty;
+        totalQty += (window as any).isUnitCountedAsOne(item.description, item.unit) ? 1 : qty;
         totalTaxable += taxableValue;
         totalTax += taxAmount;
         // Note: grandTotal is accumulated here but will be rounded at the end
