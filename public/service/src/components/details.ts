@@ -196,9 +196,11 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
         });
 
         // Payment Modal Events
-        document.getElementById('details-add-payment-btn')?.addEventListener('click', () => {
+        const triggerPaymentModal = () => {
             if (serviceId) openPaymentModal(serviceId);
-        });
+        };
+        document.getElementById('details-add-payment-btn')?.addEventListener('click', triggerPaymentModal);
+        document.getElementById('details-header-payment-btn')?.addEventListener('click', triggerPaymentModal);
         document.getElementById('close-payment-btn')?.addEventListener('click', () => {
             $paymentModal?.classList.add('hidden');
             resetPaymentModalState();
@@ -270,17 +272,20 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
         const $printBtn = document.getElementById('details-print-btn');
         const $pdfBtn = document.getElementById('details-pdf-btn');
         const $addPaymentBtn = document.getElementById('details-add-payment-btn');
+        const $headerPaymentBtn = document.getElementById('details-header-payment-btn');
 
         if (isVirtual) {
             if ($editBtn) $editBtn.classList.add('hidden');
             if ($printBtn) $printBtn.classList.add('hidden');
             if ($pdfBtn) $pdfBtn.classList.add('hidden');
             if ($addPaymentBtn) $addPaymentBtn.classList.add('hidden');
+            if ($headerPaymentBtn) $headerPaymentBtn.classList.add('hidden');
         } else {
             if ($editBtn) $editBtn.classList.remove('hidden');
             if ($printBtn) $printBtn.classList.remove('hidden');
             if ($pdfBtn) $pdfBtn.classList.remove('hidden');
             if ($addPaymentBtn) $addPaymentBtn.classList.remove('hidden');
+            if ($headerPaymentBtn) $headerPaymentBtn.classList.remove('hidden');
         }
 
         // Title and header details

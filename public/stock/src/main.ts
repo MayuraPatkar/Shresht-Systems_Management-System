@@ -119,14 +119,29 @@ if (homeBtn) {
     });
 }
 
+// ─── Refresh Button ─────────────────────────────────────────────────────────
+
+const stockRefreshBtn = document.getElementById('refresh-btn');
+if (stockRefreshBtn) {
+    stockRefreshBtn.addEventListener('click', () => {
+        const icon = stockRefreshBtn.querySelector('i');
+        if (icon) icon.classList.add('animate-spin');
+        fetchStockData().finally(() => {
+            setTimeout(() => {
+                if (icon) icon.classList.remove('animate-spin');
+            }, 500);
+        });
+    });
+}
+
 // ─── Tooltips ────────────────────────────────────────────────────────────────
 
 function addTooltips(): void {
     const newStockBtn = document.getElementById('newStockItemBtn');
     if (newStockBtn) newStockBtn.title = 'Add new stock item (Ctrl+N)';
 
-    const refreshBtn = document.getElementById('refreshBtn');
-    if (refreshBtn) refreshBtn.title = 'Refresh data (Ctrl+R)';
+    const tooltipRefreshBtn = document.getElementById('refresh-btn');
+    if (tooltipRefreshBtn) tooltipRefreshBtn.title = 'Refresh data (Ctrl+R)';
 
     const printBtn = document.getElementById('printBtn');
     if (printBtn) printBtn.title = 'Print stock report (Ctrl+P)';

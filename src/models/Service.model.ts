@@ -84,6 +84,7 @@ export interface IService extends Document {
 
     items?: IServiceItem[];
     other_charges?: IOtherCharges;
+    non_items?: any[];
 
     discount: number;
     totals?: ITotals;
@@ -235,6 +236,11 @@ const serviceSchema = new Schema<IService>(
 
         other_charges: {
             type: otherChargesSchema,
+        },
+
+        non_items: {
+            type: [Schema.Types.Mixed],
+            default: []
         },
 
         discount: {

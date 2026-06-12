@@ -552,9 +552,18 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
                     const priceInput = card.querySelector('.item-price') as HTMLInputElement;
                     const taxInput = card.querySelector('.item-tax') as HTMLInputElement;
 
-                    if (hsnInput) hsnInput.value = stockData.HSN_SAC || '';
-                    if (priceInput) priceInput.value = stockData.unit_price || '';
-                    if (taxInput) taxInput.value = stockData.GST || '';
+                    if (hsnInput) {
+                        hsnInput.value = stockData.hsn_sac || stockData.HSN_SAC || '';
+                        hsnInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                    if (priceInput) {
+                        priceInput.value = stockData.selling_price || stockData.purchase_price || stockData.unit_price || '';
+                        priceInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                    if (taxInput) {
+                        taxInput.value = (stockData.gst_rate !== undefined ? stockData.gst_rate : stockData.GST) || '';
+                        taxInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
                 }
             }
         } catch (error) {
