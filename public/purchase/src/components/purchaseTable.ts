@@ -20,8 +20,7 @@
             if (isTrash) {
                 headerRow.innerHTML = `
                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Date</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Purchase ID</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Purchase Invoice ID</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Purchase Invoice No</th>
                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Supplier Name</th>
                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Deleted Date</th>
                     <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider">Total</th>
@@ -38,8 +37,7 @@
                     <th id="th-date" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-slate-100 hover:text-blue-600 select-none transition-all duration-150 group">
                         <span class="flex items-center">Date ${dateIcon}</span>
                     </th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Purchase ID</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Purchase Invoice ID</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Purchase Invoice No</th>
                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Supplier Name</th>
                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Payment Status</th>
                     <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider">Total</th>
@@ -183,7 +181,7 @@
             }
             
             const purchaseId = purchase.purchase_no;
-            const invoiceId = purchase.purchase_invoice_no || '-';
+            const invoiceId = purchase.purchase_invoice_no || purchase.purchase_no || '-';
             
             const dateStr = (window as any).formatDateDisplay ? 
                 (window as any).formatDateDisplay(purchase.purchase_date) : 
@@ -209,16 +207,17 @@
                 statusClass = 'text-yellow-700 bg-yellow-50 border border-yellow-200';
             }
             
+            const invoiceIdBadge = invoiceId !== '-' ? `
+                <span class="inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-mono font-bold copy-invoice-id transition-colors cursor-pointer" data-invoice-id="${invoiceId}">
+                    ${invoiceId}
+                    <i class="far fa-copy text-[10px] opacity-70"></i>
+                </span>
+            ` : `<span class="text-slate-400 font-mono font-bold">-</span>`;
+            
             if (isTrash) {
                 tr.innerHTML = `
                     <td class="px-4 py-3.5 whitespace-nowrap font-medium text-gray-600">${dateStr}</td>
-                    <td class="px-4 py-3.5 whitespace-nowrap">
-                        <span class="inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-mono font-bold copy-id transition-colors cursor-pointer" data-id="${purchaseId}">
-                            ${purchaseId}
-                            <i class="far fa-copy text-[10px] opacity-70"></i>
-                        </span>
-                    </td>
-                    <td class="px-4 py-3.5 whitespace-nowrap font-medium text-gray-600">${invoiceId}</td>
+                    <td class="px-4 py-3.5 whitespace-nowrap">${invoiceIdBadge}</td>
                     <td class="px-4 py-3.5 font-semibold text-gray-800">${supplierName}</td>
                     <td class="px-4 py-3.5 whitespace-nowrap text-rose-600 font-medium">${deletedDateStr}</td>
                     <td class="px-4 py-3.5 text-right font-bold text-gray-900 whitespace-nowrap">₹ ${totalAmount}</td>
@@ -236,13 +235,7 @@
             } else {
                 tr.innerHTML = `
                     <td class="px-4 py-3.5 whitespace-nowrap font-medium text-gray-600">${dateStr}</td>
-                    <td class="px-4 py-3.5 whitespace-nowrap">
-                        <span class="inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-mono font-bold copy-id transition-colors cursor-pointer" data-id="${purchaseId}">
-                            ${purchaseId}
-                            <i class="far fa-copy text-[10px] opacity-70"></i>
-                        </span>
-                    </td>
-                    <td class="px-4 py-3.5 whitespace-nowrap font-medium text-gray-600">${invoiceId}</td>
+                    <td class="px-4 py-3.5 whitespace-nowrap">${invoiceIdBadge}</td>
                     <td class="px-4 py-3.5 font-semibold text-gray-800">
                         <div class="flex items-center gap-2">
                             <span>${supplierName}</span>
@@ -269,13 +262,13 @@
                 });
             }
 
-            // Copy ID
-            const copyBtn = tr.querySelector('.copy-id');
-            copyBtn?.addEventListener('click', (e) => {
+            // Copy Invoice ID
+            const copyInvoiceBtn = tr.querySelector('.copy-invoice-id');
+            copyInvoiceBtn?.addEventListener('click', (e) => {
                 e.stopPropagation();
-                if ((window as any).copyToClipboard) {
-                    (window as any).copyToClipboard(purchaseId);
-                    const icon = copyBtn.querySelector('i');
+                if ((window as any).copyToClipboard && invoiceId !== '-') {
+                    (window as any).copyToClipboard(invoiceId);
+                    const icon = copyInvoiceBtn.querySelector('i');
                     if (icon) {
                         icon.className = 'fas fa-check text-green-600';
                         setTimeout(() => { icon.className = 'far fa-copy opacity-70'; }, 2000);
@@ -316,7 +309,7 @@
             }
             
             const purchaseId = purchase.purchase_no;
-            const invoiceId = purchase.purchase_invoice_no || '-';
+            const invoiceId = purchase.purchase_invoice_no || purchase.purchase_no || '-';
             
             const dateStr = (window as any).formatDateDisplay ? 
                 (window as any).formatDateDisplay(purchase.purchase_date) : 
@@ -335,6 +328,10 @@
                 statusClass = 'text-yellow-700 bg-yellow-50 border border-yellow-200';
             }
 
+            const mobileInvoiceIdBadge = invoiceId !== '-' ? `
+                <span class="font-mono bg-blue-50 text-blue-700 px-1 py-0.5 rounded copy-invoice-id cursor-pointer">${invoiceId}</span>
+            ` : `<span class="font-mono text-slate-400 font-bold">-</span>`;
+
             div.innerHTML = `
                 <div class="flex items-center justify-between">
                     <div class="flex-1 min-w-0 pr-3">
@@ -346,8 +343,7 @@
                             ${isArchived ? `<span class="px-1.5 py-0.2 bg-slate-100 text-slate-500 rounded text-[8px] font-bold border border-slate-200 uppercase">Archived</span>` : ''}
                         </div>
                         <div class="flex items-center gap-2 text-[10px] text-gray-500 flex-wrap">
-                            <span class="font-mono bg-blue-50 text-blue-700 px-1 py-0.5 rounded copy-id cursor-pointer">${purchaseId}</span>
-                            <span>Invoice: ${invoiceId}</span>
+                            ${mobileInvoiceIdBadge}
                             <span>${dateStr}</span>
                         </div>
                     </div>
@@ -374,14 +370,14 @@
                 });
             }
 
-            const copyBtn = div.querySelector('.copy-id');
-            copyBtn?.addEventListener('click', (e) => {
+            const copyInvoiceBtnMobile = div.querySelector('.copy-invoice-id');
+            copyInvoiceBtnMobile?.addEventListener('click', (e) => {
                 e.stopPropagation();
-                if ((window as any).copyToClipboard) {
-                    (window as any).copyToClipboard(purchaseId);
-                    const originalText = copyBtn.textContent;
-                    copyBtn.textContent = 'Copied!';
-                    setTimeout(() => { copyBtn.textContent = originalText; }, 2000);
+                if ((window as any).copyToClipboard && invoiceId !== '-') {
+                    (window as any).copyToClipboard(invoiceId);
+                    const originalText = copyInvoiceBtnMobile.textContent;
+                    copyInvoiceBtnMobile.textContent = 'Copied!';
+                    setTimeout(() => { copyInvoiceBtnMobile.textContent = originalText; }, 2000);
                 }
             });
 

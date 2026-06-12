@@ -358,7 +358,7 @@ function formatAmountForTemplate(amount: number): string {
 
 // Send invoice using template (auto-generates PDF)
 router.post('/send-invoice', async (req: Request, res: Response) => {
-    const { phone, invoiceId, documentUrl: providedUrl } = req.body;
+    const { phone, invoiceId, documentUrl: providedUrl, htmlContent } = req.body;
     if (!phone || !invoiceId) return res.status(400).json({ message: 'Phone and Invoice ID required.' });
 
     try {
@@ -373,7 +373,9 @@ router.post('/send-invoice', async (req: Request, res: Response) => {
 
         if (!documentUrl && pdfGenerator) {
             const companyInfo = await getCompanyInfo();
-            const pdfResult = await pdfGenerator.generateInvoicePDF(invoice, companyInfo);
+            const pdfResult = htmlContent
+                ? await pdfGenerator.generateInvoicePDFFromHTML(htmlContent, invoiceId)
+                : await pdfGenerator.generateInvoicePDF(invoice, companyInfo);
 
             if (!pdfResult.success) {
                 logger.error('Invoice PDF generation failed', { service: "messaging", error: pdfResult.error, invoiceId });
@@ -453,7 +455,7 @@ router.post('/send-invoice', async (req: Request, res: Response) => {
 
 // Send quotation using template (auto-generates PDF)
 router.post('/send-quotation', async (req: Request, res: Response) => {
-    const { phone, quotationId, documentUrl: providedUrl } = req.body;
+    const { phone, quotationId, documentUrl: providedUrl, htmlContent } = req.body;
     if (!phone || !quotationId) return res.status(400).json({ message: 'Phone and Quotation ID required.' });
 
     try {
@@ -468,7 +470,9 @@ router.post('/send-quotation', async (req: Request, res: Response) => {
 
         if (!documentUrl && pdfGenerator) {
             const companyInfo = await getCompanyInfo();
-            const pdfResult = await pdfGenerator.generateQuotationPDF(quotation, companyInfo);
+            const pdfResult = htmlContent
+                ? await pdfGenerator.generateQuotationPDFFromHTML(htmlContent, quotationId)
+                : await pdfGenerator.generateQuotationPDF(quotation, companyInfo);
 
             if (!pdfResult.success) {
                 logger.error('Quotation PDF generation failed', { service: "messaging", error: pdfResult.error, quotationId });

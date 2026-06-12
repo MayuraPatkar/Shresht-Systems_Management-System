@@ -1012,13 +1012,17 @@ async function renderQuotationView(quotation, viewType) {
                 const originalHTML = newSendWhatsAppBtn.innerHTML;
                 newSendWhatsAppBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
                 
+                const previewContentEl = document.getElementById('view-preview-content');
+                const htmlContent = previewContentEl ? previewContentEl.innerHTML : '';
+
                 try {
                     const res = await fetch('/comms/send-quotation', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             phone: formattedPhone,
-                            quotationId: quotationId
+                            quotationId: quotationId,
+                            htmlContent: htmlContent
                         })
                     });
                     

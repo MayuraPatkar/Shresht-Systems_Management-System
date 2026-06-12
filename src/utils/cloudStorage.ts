@@ -187,11 +187,13 @@ export async function deletePDF(publicId: string): Promise<DeleteResult> {
         return { success: false, error: "Cloudinary not configured" };
     }
 
+    const idWithExt = publicId.endsWith('.pdf') ? publicId : `${publicId}.pdf`;
+
     try {
-        await cloudinary.uploader.destroy(`documents/${publicId}`, {
+        const result = await cloudinary.uploader.destroy(`documents/${idWithExt}`, {
             resource_type: "raw",
         });
-        logger.info(`PDF deleted from Cloudinary: ${publicId}`);
+        logger.info(`PDF delete request sent to Cloudinary for: ${idWithExt}`, result);
         return { success: true };
     } catch (error: any) {
         const message = error?.message || (typeof error === 'object' ? JSON.stringify(error) : String(error));

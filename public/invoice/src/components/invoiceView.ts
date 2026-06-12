@@ -1142,13 +1142,17 @@ async function renderInvoiceView(invoice: Invoice, userRole: string, viewType: s
                 const originalHTML = newSendWhatsAppBtn.innerHTML;
                 newSendWhatsAppBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
                 
+                const previewContentEl = document.getElementById('view-preview-content');
+                const htmlContent = previewContentEl ? previewContentEl.innerHTML : '';
+
                 try {
                     const res = await fetch('/comms/send-invoice', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             phone: formattedPhone,
-                            invoiceId: invoiceId
+                            invoiceId: invoiceId,
+                            htmlContent: htmlContent
                         })
                     });
                     

@@ -804,6 +804,72 @@ export async function generateQuotationPDF(
 }
 
 /**
+ * Generate quotation PDF from client-submitted HTML content
+ */
+export async function generateQuotationPDFFromHTML(
+    htmlContent: string,
+    filename: string
+): Promise<PDFResult> {
+    try {
+        const publicPath = path.join(__dirname, "../../public").replace(/\\/g, "/");
+        const cssPath = path.join(publicPath, "css/shared/documentStyles.css");
+        let css = "";
+        if (fs.existsSync(cssPath)) {
+            css = fs.readFileSync(cssPath, "utf8");
+        } else {
+            logger.warn("documentStyles.css not found at path: " + cssPath);
+        }
+
+        // Replace relative image and asset paths with absolute file:// URLs so Puppeteer can load them
+        let processedHtml = htmlContent.replace(/\.\.\/assets\//g, `file:///${publicPath}/assets/`);
+        processedHtml = processedHtml.replace(/src=["']\.\.\\assets\\/g, `src="file:///${publicPath}/assets/`);
+
+        const fullHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+            background: #ffffff !important;
+        }
+        @page { size: A4; margin: 0; }
+        @media print {
+            body { margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .preview-container { page-break-after: always; }
+            .preview-container:last-child { page-break-after: auto; }
+        }
+        ${css}
+        .preview-container {
+            width: 210mm !important; max-width: 210mm !important; min-height: 297mm !important;
+            margin: 0 !important; padding: 25px 30px !important;
+            box-shadow: none !important; border: none !important; border-radius: 0 !important;
+            position: relative; overflow: visible !important;
+        }
+    </style>
+</head>
+<body class="doc-standard">
+    ${processedHtml}
+</body>
+</html>`;
+
+        return generatePDF(fullHTML, filename);
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        logger.error("PDF generation from HTML failed", { service: "pdf_generator", error: message });
+        return { success: false, error: message };
+    }
+}
+
+/**
  * Generate invoice PDF
  */
 export async function generateInvoicePDF(
@@ -812,6 +878,72 @@ export async function generateInvoicePDF(
 ): Promise<PDFResult> {
     const html = generateInvoiceHTML(invoice, companyInfo);
     return generatePDF(html, invoice.invoice_id);
+}
+
+/**
+ * Generate invoice PDF from client-submitted HTML content
+ */
+export async function generateInvoicePDFFromHTML(
+    htmlContent: string,
+    filename: string
+): Promise<PDFResult> {
+    try {
+        const publicPath = path.join(__dirname, "../../public").replace(/\\/g, "/");
+        const cssPath = path.join(publicPath, "css/shared/documentStyles.css");
+        let css = "";
+        if (fs.existsSync(cssPath)) {
+            css = fs.readFileSync(cssPath, "utf8");
+        } else {
+            logger.warn("documentStyles.css not found at path: " + cssPath);
+        }
+
+        // Replace relative image and asset paths with absolute file:// URLs so Puppeteer can load them
+        let processedHtml = htmlContent.replace(/\.\.\/assets\//g, `file:///${publicPath}/assets/`);
+        processedHtml = processedHtml.replace(/src=["']\.\.\\assets\\/g, `src="file:///${publicPath}/assets/`);
+
+        const fullHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+            background: #ffffff !important;
+        }
+        @page { size: A4; margin: 0; }
+        @media print {
+            body { margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .preview-container { page-break-after: always; }
+            .preview-container:last-child { page-break-after: auto; }
+        }
+        ${css}
+        .preview-container {
+            width: 210mm !important; max-width: 210mm !important; min-height: 297mm !important;
+            margin: 0 !important; padding: 25px 30px !important;
+            box-shadow: none !important; border: none !important; border-radius: 0 !important;
+            position: relative; overflow: visible !important;
+        }
+    </style>
+</head>
+<body class="doc-standard">
+    ${processedHtml}
+</body>
+</html>`;
+
+        return generatePDF(fullHTML, filename);
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        logger.error("Invoice PDF generation from HTML failed", { service: "pdf_generator", error: message });
+        return { success: false, error: message };
+    }
 }
 
 /**

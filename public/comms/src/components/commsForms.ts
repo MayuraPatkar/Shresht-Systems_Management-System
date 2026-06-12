@@ -26,6 +26,7 @@ class CommsForms {
         this.setupQuotationSubmit();
         this.setupInvoiceSubmit();
         this.setupReminderSubmit();
+        this.setupKeyboardShortcuts();
         
         // Initial setup
         this.renderRecentLogs();
@@ -37,7 +38,7 @@ class CommsForms {
         if (!tabsContainer) return;
 
         const tabs = tabsContainer.querySelectorAll('button');
-        tabs.forEach(tab => {
+        tabs.forEach((tab, index) => {
             tab.addEventListener('click', () => {
                 const targetTab = tab.getAttribute('data-tab');
                 if (!targetTab) return;
@@ -66,6 +67,20 @@ class CommsForms {
                 // Refresh stats if switching to reminder
                 if (targetTab === 'reminder') {
                     this.loadReminderStats();
+                }
+            });
+
+            tab.addEventListener('keydown', (e: KeyboardEvent) => {
+                if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    const nextIndex = (index + 1) % tabs.length;
+                    tabs[nextIndex].focus();
+                    tabs[nextIndex].click();
+                } else if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    const prevIndex = (index - 1 + tabs.length) % tabs.length;
+                    tabs[prevIndex].focus();
+                    tabs[prevIndex].click();
                 }
             });
         });
@@ -131,6 +146,29 @@ class CommsForms {
             }, 300);
         });
 
+        input.addEventListener('keydown', (e: KeyboardEvent) => {
+            const items = suggestionsList.querySelectorAll('li');
+            if (items.length === 0) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedIndex = (selectedIndex + 1) % items.length;
+                this.updateActiveSuggestion(items, selectedIndex);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+                this.updateActiveSuggestion(items, selectedIndex);
+            } else if (e.key === 'Enter') {
+                if (selectedIndex >= 0 && selectedIndex < currentCustomers.length) {
+                    e.preventDefault();
+                    this.selectCustomer(currentCustomers[selectedIndex]);
+                }
+            } else if (e.key === 'Escape') {
+                suggestionsList.style.display = 'none';
+                selectedIndex = -1;
+            }
+        });
+
         // Hide suggestions on outside click
         document.addEventListener('click', (e: MouseEvent) => {
             if (!input.contains(e.target as Node) && !suggestionsList.contains(e.target as Node)) {
@@ -143,6 +181,17 @@ class CommsForms {
             const target = e.target as HTMLInputElement;
             target.value = target.value.replace(/[^\d+]/g, '');
             this.updateFormFieldsDisabledState();
+        });
+    }
+
+    private updateActiveSuggestion(items: any, index: number) {
+        items.forEach((item: HTMLElement, idx: number) => {
+            if (idx === index) {
+                item.classList.add('bg-slate-100');
+                item.scrollIntoView({ block: 'nearest' });
+            } else {
+                item.classList.remove('bg-slate-100');
+            }
         });
     }
 
@@ -813,6 +862,83 @@ class CommsForms {
             `;
             tbody.appendChild(tr);
         });
+    }
+
+    private setupKeyboardShortcuts() {
+        document.addEventListener('keydown', (e: KeyboardEvent) => {
+            if (e.altKey) {
+                const key = e.key.toLowerCase();
+                if (key === 'm') {
+                    e.preventDefault();
+                    this.switchTab('message');
+                    setTimeout(() => {
+                        document.getElementById('message-content-input')?.focus();
+                    }, 50);
+                } else if (key === 'q') {
+                    e.preventDefault();
+                    this.switchTab('quotation');
+                    setTimeout(() => {
+                        document.getElementById('quotation-select')?.focus();
+                    }, 50);
+                } else if (key === 'i') {
+                    e.preventDefault();
+                    this.switchTab('invoice');
+                    setTimeout(() => {
+                        document.getElementById('invoice-select')?.focus();
+                    }, 50);
+                } else if (key === 'r') {
+                    e.preventDefault();
+                    this.switchTab('reminder');
+                    setTimeout(() => {
+                        document.getElementById('reminder-invoice-select')?.focus();
+                    }, 50);
+                } else if (key === 'f') {
+                    e.preventDefault();
+                    document.getElementById('customer-search-input')?.focus();
+                } else if (key === 'p') {
+                    e.preventDefault();
+                    document.getElementById('customer-phone-input')?.focus();
+                }
+            }
+
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                this.submitActiveTabForm();
+            }
+        });
+    }
+
+    private switchTab(tabName: string) {
+        const tabsContainer = document.getElementById('action-tabs');
+        if (!tabsContainer) return;
+        const tabButton = tabsContainer.querySelector(`button[data-tab="${tabName}"]`) as HTMLButtonElement;
+        if (tabButton) {
+            tabButton.click();
+        }
+    }
+
+    private submitActiveTabForm() {
+        if (this.activeTab === 'message') {
+            const form = document.getElementById('message-tab-form') as HTMLFormElement;
+            if (form && !document.getElementById('btn-send-message')?.hasAttribute('disabled')) {
+                form.requestSubmit();
+            }
+        } else if (this.activeTab === 'quotation') {
+            const form = document.getElementById('quotation-tab-form') as HTMLFormElement;
+            if (form && !document.getElementById('btn-send-quotation')?.hasAttribute('disabled')) {
+                form.requestSubmit();
+            }
+        } else if (this.activeTab === 'invoice') {
+            const form = document.getElementById('invoice-tab-form') as HTMLFormElement;
+            if (form && !document.getElementById('btn-send-invoice')?.hasAttribute('disabled')) {
+                form.requestSubmit();
+            }
+        } else if (this.activeTab === 'reminder') {
+            const form = document.getElementById('reminder-tab-form') as HTMLFormElement;
+            if (form && !document.getElementById('btn-send-single-reminder')?.hasAttribute('disabled')) {
+                form.requestSubmit();
+            }
+        }
     }
 }
 

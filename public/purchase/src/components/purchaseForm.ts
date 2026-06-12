@@ -1886,12 +1886,8 @@ if (newSection) newSection.style.display = "block";
                         </div>
                         <div class="grid grid-cols-2 gap-4 text-sm">
                             <div>
-                                <span class="block text-xs font-semibold text-slate-500">Purchase ID</span>
-                                <span class="font-bold text-slate-900 text-base">${escapeHtml(data.purchase_no || 'Draft')}</span>
-                            </div>
-                            <div>
-                                <span class="block text-xs font-semibold text-slate-500">Purchase Invoice ID</span>
-                                <span class="font-bold text-slate-900 text-base">${escapeHtml(data.purchase_invoice_no || '-')}</span>
+                                <span class="block text-xs font-semibold text-slate-500">Purchase Invoice No</span>
+                                <span class="font-bold text-slate-900 text-base">${escapeHtml(data.purchase_invoice_no || data.purchase_no || '-')}</span>
                             </div>
                             <div>
                                 <span class="block text-xs font-semibold text-slate-500">Purchase Date</span>

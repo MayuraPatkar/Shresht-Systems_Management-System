@@ -2,6 +2,7 @@
     // DOM Elements
     const scrollContainer = document.getElementById('view') as HTMLElement | null;
     const scrollTopBtn = document.getElementById('floating-nav-scroll-top') as HTMLButtonElement | null;
+    const sidebar = document.getElementById('right-nav-sidebar') as HTMLElement | null;
 
     if (!scrollContainer) {
         console.error('Purchase Order view scroll container not found');
@@ -81,11 +82,39 @@
         });
     }
 
+    // Auto show/hide sidebar based on view visibility
+    function updateSidebarVisibility() {
+        const viewSection = document.getElementById('view');
+        if (!viewSection || !sidebar) return;
+
+        const isViewActive = window.getComputedStyle(viewSection).display !== 'none';
+        if (isViewActive) {
+            if (window.innerWidth >= 768) {
+                sidebar.style.display = 'flex';
+            } else {
+                sidebar.style.display = 'none';
+            }
+        } else {
+            sidebar.style.display = 'none';
+        }
+    }
+
     // Attach scroll listener to scrollContainer
     scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
     
+    // Watch display changes on viewSection
+    const viewSection = document.getElementById('view');
+    if (viewSection) {
+        const observer = new MutationObserver(updateSidebarVisibility);
+        observer.observe(viewSection, { attributes: true, attributeFilter: ['style'] });
+    }
+    window.addEventListener('resize', updateSidebarVisibility);
+
     // Initial run
-    setTimeout(handleScroll, 200);
+    setTimeout(() => {
+        updateSidebarVisibility();
+        handleScroll();
+    }, 200);
 
     // Also run when the details page is rendered by viewPurchaseOrder (danger zone could show up)
     const originalViewPurchaseOrder = (window as any).viewPurchaseOrder;
@@ -93,6 +122,7 @@
         (window as any).viewPurchaseOrder = async function(...args: any[]) {
             const result = await originalViewPurchaseOrder.apply(this, args);
             // Re-trigger scroll calculation to pick up newly shown sections
+            updateSidebarVisibility();
             setTimeout(handleScroll, 150);
             return result;
         };

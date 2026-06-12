@@ -21,6 +21,7 @@ export interface IServiceItem {
     unit_price?: number;
     taxable_value?: number;
     gst_rate?: number;
+    rate?: number;
     total?: number;
 }
 
@@ -89,6 +90,11 @@ export interface IService extends Document {
     discount: number;
     totals?: ITotals;
 
+    total_tax?: number;
+    total_amount_no_tax?: number;
+    total_amount_with_tax?: number;
+    fee_amount?: number;
+
     content?: IContent;
 
     remarks?: string;
@@ -128,6 +134,7 @@ const serviceItemSchema = new Schema<IServiceItem>(
         unit_price: { type: Number },
         taxable_value: { type: Number },
         gst_rate: { type: Number },
+        rate: { type: Number },
         total: { type: Number },
     },
     { _id: false }
@@ -250,6 +257,26 @@ const serviceSchema = new Schema<IService>(
 
         totals: {
             type: totalsSchema,
+        },
+
+        total_tax: {
+            type: Number,
+            default: 0,
+        },
+
+        total_amount_no_tax: {
+            type: Number,
+            default: 0,
+        },
+
+        total_amount_with_tax: {
+            type: Number,
+            default: 0,
+        },
+
+        fee_amount: {
+            type: Number,
+            default: 0,
         },
 
         content: {

@@ -8,12 +8,14 @@ interface ServiceItem {
     quantity: number;
     unit_price: number;
     rate: number;
+    gst_rate?: number;
 }
 
 interface ServiceNonItem {
     description: string;
     price: number;
     rate: number;
+    gst_rate?: number;
 }
 
 interface ServicePayment {
@@ -21,6 +23,7 @@ interface ServicePayment {
     payment_mode: string;
     paid_amount: number;
     extra_details?: string;
+    payment_ref?: string;
 }
 
 interface Service {
@@ -53,6 +56,7 @@ interface Service {
         customer_phone?: string;
         customer_address?: string;
         project_name?: string;
+        customer_id?: string;
     };
 }
 
