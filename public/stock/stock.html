@@ -177,25 +177,25 @@
 
         /* Modern Premium Modal Improvements */
         .modal-overlay {
-            background: rgba(15, 23, 42, 0.28);
-            backdrop-filter: blur(3px);
-            -webkit-backdrop-filter: blur(3px);
+            background: rgba(15, 23, 42, 0.3);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .modal-card-premium {
-            border-radius: 18px;
+            border-radius: 12px;
             box-shadow:
-                0 20px 60px rgba(0, 0, 0, 0.18),
-                0 0 0 1px rgba(15, 23, 42, 0.08) !important;
-            border: 1px solid rgba(255, 255, 255, 0.6) !important;
-            animation: premiumModalShow 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                0 20px 40px -10px rgba(0, 0, 0, 0.12),
+                0 0 0 1px rgba(15, 23, 42, 0.05) !important;
+            border: 1px solid rgba(226, 232, 240, 0.8) !important;
+            animation: premiumModalShow 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         @keyframes premiumModalShow {
             from {
                 opacity: 0;
-                transform: scale(0.97);
+                transform: scale(0.985);
             }
 
             to {
@@ -207,35 +207,63 @@
         /* Modern input styling */
         .form-input-premium {
             background-color: #ffffff;
-            border: 1px solid #d1d5db;
-            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
             font-size: 0.875rem;
             line-height: 1.25rem;
-            color: #1f2937;
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            color: #0f172a;
+            padding: 0.5rem 0.75rem;
+            transition: all 0.15s ease-in-out;
         }
 
         .form-input-premium::placeholder {
-            color: #9ca3af;
+            color: #94a3b8;
         }
 
         .form-input-premium:hover {
-            border-color: #9ca3af;
+            border-color: #cbd5e1;
         }
 
         .form-input-premium:focus {
             outline: none;
-            border-color: #2563eb;
+            border-color: #3b82f6;
             background-color: #ffffff;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.12);
         }
 
         .form-section-header {
-            font-size: 14px;
+            font-size: 0.875rem;
             font-weight: 600;
-            color: #2563eb;
-            border-bottom: 1px solid #f3f4f6;
-            padding-bottom: 0.5rem;
+            color: #0f172a;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 0.375rem;
+            letter-spacing: 0.025em;
+        }
+
+        /* Integrated Custom Scrollbar for Modal Content */
+        .modal-scroll-container {
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+
+        .modal-scroll-container::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .modal-scroll-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .modal-scroll-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+            background-clip: padding-box;
+        }
+
+        .modal-scroll-container::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
 
         /* ── 3-dot Context Menu ──────────────────────────────────────── */
@@ -478,9 +506,9 @@
         <div class="flex-1 h-full flex flex-col overflow-hidden">
 
             <!-- Main Content -->
-            <main class="flex-1 h-full overflow-hidden">
+            <main class="flex-1 h-full overflow-hidden flex flex-col justify-center">
         <!-- Stock Table -->
-        <div class="bg-white border border-gray-200 overflow-auto table-container">
+        <div id="stock-table-container" class="bg-white border border-gray-200 overflow-auto table-container flex-1">
             <table class="w-full text-left" id="stock-table">
                 <thead>
                     <tr class="bg-blue-600 text-white text-xs uppercase tracking-wider">
@@ -523,12 +551,19 @@
                         </td>
                     </tr>
                     <tr id="empty-row" class="hidden">
-                        <td colspan="7" class="p-8 text-center text-gray-500">
-                            No stock items found
-                        </td>
+                        <!-- Keep hidden dummy empty row to support clear dynamic rows logic -->
                     </tr>
                 </tbody>
             </table>
+        </div>
+
+        <!-- Empty State (Hidden by default) -->
+        <div id="empty-state" class="hidden flex flex-col items-center justify-center flex-1 text-gray-500 fade-in select-none">
+            <div class="text-purple-500 text-6xl mb-4">
+                <i class="fas fa-box-open"></i>
+            </div>
+            <p class="text-2xl font-bold text-gray-800">No Stock Items Found</p>
+            <p class="mt-2 text-gray-650">Try adjusting your search or filters</p>
         </div>
             </main>
         </div>
@@ -574,133 +609,119 @@
 
     <!-- Add New Stock Item Modal -->
     <div id="newStockModal" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 modal-overlay flex items-center justify-center p-4">
-            <div class="bg-white modal-card-premium w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-                <div
-                    class="px-8 py-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-10">
-                    <h2 class="text-xl font-bold text-slate-800">Add New Stock Item</h2>
+        <div class="absolute inset-0 bg-slate-900/30 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white modal-card-premium w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden">
+                <!-- Modal Header -->
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0">
+                    <h2 class="text-base font-semibold text-slate-900">Add New Stock Item</h2>
                     <button id="closeModalBtn"
-                        class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-200">
-                        <i class="fas fa-times text-lg"></i>
+                        class="w-9 h-9 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all duration-150 focus:outline-none"
+                        aria-label="Close modal">
+                        <i class="fas fa-times text-base"></i>
                     </button>
                 </div>
-                <form id="newStockForm" class="p-8 space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <!-- Basic Information -->
-                        <div class="space-y-5">
-                            <h3 class="form-section-header">Basic Information</h3>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Item Name <span
-                                        class="text-red-500">*</span></label>
-                                <input type="text" id="itemName" class="w-full px-4 py-2.5 form-input-premium" required>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">HSN/SAC Code <span
-                                        class="text-red-500">*</span></label>
-                                <input type="text" id="hsnCode" class="w-full px-4 py-2.5 form-input-premium" required>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Brand <span
-                                        class="text-red-500">*</span></label>
-                                <input type="text" id="brand" class="w-full px-4 py-2.5 form-input-premium" required>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Category <span
-                                        class="text-red-500">*</span></label>
-                                <input type="text" id="category" class="w-full px-4 py-2.5 form-input-premium" required>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
+                
+                <form id="newStockForm" class="flex flex-col flex-1 min-h-0">
+                    <!-- Scrollable Form Container -->
+                    <div class="modal-scroll-container p-6 pr-8 space-y-5 flex-1">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                            <!-- Basic Information Section -->
+                            <div class="space-y-4">
+                                <h3 class="form-section-header">Basic Information</h3>
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Type <span
-                                            class="text-red-500">*</span></label>
-                                    <select id="type" class="w-full px-4 py-2.5 form-input-premium bg-white">
-                                        <option value="Material" selected>Material</option>
-                                        <option value="Asset">Asset</option>
-                                    </select>
+                                    <label class="block text-[11px] font-medium text-slate-550 mb-1">Item Name <span class="text-red-500">*</span></label>
+                                    <input type="text" id="itemName" class="w-full px-3 py-2 form-input-premium" required>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Unit <span
-                                            class="text-red-500">*</span></label>
-                                    <select id="unit" class="w-full px-4 py-2.5 form-input-premium bg-white" required>
-                                        <option value="" disabled selected>Select Unit</option>
-                                        <option value="pc">Piece (pc)</option>
-                                        <option value="kg">Kilogram (kg)</option>
-                                        <option value="L">Litre (L)</option>
-                                        <option value="m">Metre (m)</option>
-                                    </select>
+                                    <label class="block text-[11px] font-medium text-slate-550 mb-1">HSN/SAC Code <span class="text-red-500">*</span></label>
+                                    <input type="text" id="hsnCode" class="w-full px-3 py-2 form-input-premium" required>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-medium text-slate-550 mb-1">Brand <span class="text-red-500">*</span></label>
+                                    <input type="text" id="brand" class="w-full px-3 py-2 form-input-premium" required>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-medium text-slate-550 mb-1">Category <span class="text-red-500">*</span></label>
+                                    <input type="text" id="category" class="w-full px-3 py-2 form-input-premium" required>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-[11px] font-medium text-slate-550 mb-1">Type <span class="text-red-500">*</span></label>
+                                        <select id="type" class="w-full px-3 py-2 form-input-premium bg-white">
+                                            <option value="Material" selected>Material</option>
+                                            <option value="Asset">Asset</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-medium text-slate-550 mb-1">Unit <span class="text-red-500">*</span></label>
+                                        <select id="unit" class="w-full px-3 py-2 form-input-premium bg-white" required>
+                                            <option value="" disabled selected>Select Unit</option>
+                                            <option value="pc">Piece (pc)</option>
+                                            <option value="kg">Kilogram (kg)</option>
+                                            <option value="L">Litre (L)</option>
+                                            <option value="m">Metre (m)</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Pricing & Stock -->
-                        <div class="space-y-5">
-                            <h3 class="form-section-header">Pricing & Stock</h3>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Purchase Price (₹)
-                                        <span class="text-red-500">*</span></label>
-                                    <input type="number" step="0.01" id="purchasePrice"
-                                        class="w-full px-4 py-2.5 form-input-premium" required>
+                            <!-- Pricing & Stock Section -->
+                            <div class="space-y-4">
+                                <h3 class="form-section-header">Pricing & Stock</h3>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-[11px] font-medium text-slate-550 mb-1">Purchase Price (₹) <span class="text-red-500">*</span></label>
+                                        <input type="number" step="0.01" id="purchasePrice" class="w-full px-3 py-2 form-input-premium" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-medium text-slate-550 mb-1">Selling Price (₹)</label>
+                                        <input type="number" step="0.01" id="sellingPrice" class="w-full px-3 py-2 form-input-premium">
+                                    </div>
                                 </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Selling Price
-                                        (₹)</label>
-                                    <input type="number" step="0.01" id="sellingPrice"
-                                        class="w-full px-4 py-2.5 form-input-premium">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-[11px] font-medium text-slate-550 mb-1">Margin (%)</label>
+                                        <input type="number" step="0.01" id="margin" class="w-full px-3 py-2 form-input-premium">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-medium text-slate-550 mb-1">GST Rate (%) <span class="text-red-500">*</span></label>
+                                        <input type="number" step="any" id="gstRate" class="w-full px-3 py-2 form-input-premium" required>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Margin (%)</label>
-                                    <input type="number" step="0.01" id="margin"
-                                        class="w-full px-4 py-2.5 form-input-premium">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">GST Rate (%) <span
-                                            class="text-red-500">*</span></label>
-                                    <input type="number" step="any" id="gstRate"
-                                        class="w-full px-4 py-2.5 form-input-premium" required>
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Stock
-                                        Quantity</label>
-                                    <input type="number" step="any" id="stockQuantity"
-                                        class="w-full px-4 py-2.5 form-input-premium">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Min Stock Qty <span
-                                            class="text-red-500">*</span></label>
-                                    <input type="number" id="minStockQuantity"
-                                        class="w-full px-4 py-2.5 form-input-premium" required>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-[11px] font-medium text-slate-550 mb-1">Stock Quantity</label>
+                                        <input type="number" step="any" id="stockQuantity" class="w-full px-3 py-2 form-input-premium">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-medium text-slate-550 mb-1">Min Stock Qty <span class="text-red-500">*</span></label>
+                                        <input type="number" id="minStockQuantity" class="w-full px-3 py-2 form-input-premium" required>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Additional Details -->
-                        <div class="md:col-span-2 space-y-5">
-                            <h3 class="form-section-header">Additional Details</h3>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Specifications</label>
-                                <textarea id="specifications" rows="3"
-                                    class="w-full px-4 py-2.5 form-input-premium"></textarea>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Remarks</label>
-                                <textarea id="remarks" rows="2"
-                                    class="w-full px-4 py-2.5 form-input-premium"></textarea>
+                            <!-- Additional Details Section -->
+                            <div class="md:col-span-2 space-y-4">
+                                <h3 class="form-section-header">Additional Details</h3>
+                                <div>
+                                    <label class="block text-[11px] font-medium text-slate-550 mb-1">Specifications</label>
+                                    <textarea id="specifications" rows="3" class="w-full px-3 py-2 form-input-premium resize-none"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-medium text-slate-550 mb-1">Remarks</label>
+                                    <textarea id="remarks" rows="2" class="w-full px-3 py-2 form-input-premium resize-none"></textarea>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div
-                        class="pt-6 border-t border-slate-100 flex justify-end gap-3 sticky bottom-0 bg-white/95 backdrop-blur-md z-10">
+                    <!-- Modal Footer -->
+                    <div class="px-6 py-3 border-t border-slate-100 flex justify-end gap-2.5 bg-white flex-shrink-0">
                         <button type="button" id="cancelBtn"
-                            class="px-5 py-2.5 border border-slate-200 rounded-xl text-slate-600 font-medium hover:bg-slate-50 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-200 transition-all duration-200">Cancel</button>
+                            class="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 font-medium hover:bg-slate-50 hover:text-slate-800 transition-all duration-150 focus:outline-none">Cancel</button>
                         <button type="submit"
-                            class="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-1 shadow-sm hover:shadow transition-all duration-200 flex items-center gap-2">
-                            <i class="fas fa-plus"></i> Add Stock Item
+                            class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 shadow-sm hover:shadow transition-all duration-150 focus:outline-none flex items-center gap-2">
+                            <i class="fas fa-plus text-xs"></i> Add Stock Item
                         </button>
                     </div>
                 </form>
@@ -710,136 +731,124 @@
 
     <!-- Edit Stock Item Modal -->
     <div id="editStockModal" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 modal-overlay flex items-center justify-center p-4">
-            <div class="bg-white modal-card-premium w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-                <div
-                    class="px-8 py-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-10">
-                    <h2 class="text-xl font-bold text-slate-800">Edit Stock Item</h2>
+        <div class="absolute inset-0 bg-slate-900/30 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white modal-card-premium w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden">
+                <!-- Modal Header -->
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0">
+                    <h2 class="text-base font-semibold text-slate-900">Edit Stock Item</h2>
                     <button id="closeEditModalBtn"
-                        class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-200">
-                        <i class="fas fa-times text-lg"></i>
+                        class="w-9 h-9 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all duration-150 focus:outline-none"
+                        aria-label="Close modal">
+                        <i class="fas fa-times text-base"></i>
                     </button>
                 </div>
-                <form id="editStockForm" class="p-8 space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <!-- Basic Information -->
-                        <div class="space-y-5">
-                            <h3 class="form-section-header">Basic Information</h3>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Item Name <span
-                                        class="text-red-500">*</span></label>
-                                <input type="text" id="editItemName" class="w-full px-4 py-2.5 form-input-premium"
-                                    required>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">HSN/SAC Code <span
-                                        class="text-red-500">*</span></label>
-                                <input type="text" id="editHsnCode" class="w-full px-4 py-2.5 form-input-premium"
-                                    required>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Brand <span
-                                        class="text-red-500">*</span></label>
-                                <input type="text" id="editBrand" class="w-full px-4 py-2.5 form-input-premium"
-                                    required>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Category <span
-                                        class="text-red-500">*</span></label>
-                                <input type="text" id="editCategory" class="w-full px-4 py-2.5 form-input-premium"
-                                    required>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
+                
+                <form id="editStockForm" class="flex flex-col flex-1 min-h-0">
+                    <!-- Scrollable Form Container -->
+                    <div class="modal-scroll-container p-6 pr-8 space-y-5 flex-1">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                            <!-- Basic Information Section -->
+                            <div class="space-y-4">
+                                <h3 class="form-section-header">Basic Information</h3>
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Type <span
-                                            class="text-red-500">*</span></label>
-                                    <select id="editType" class="w-full px-4 py-2.5 form-input-premium bg-white"
-                                        required>
-                                        <option value="Material">Material</option>
-                                        <option value="Asset">Asset</option>
-                                    </select>
+                                    <label class="block text-[11px] font-medium text-slate-550 mb-1">Item Name <span class="text-red-500">*</span></label>
+                                    <input type="text" id="editItemName" class="w-full px-3 py-2 form-input-premium" required>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Unit <span
-                                            class="text-red-500">*</span></label>
-                                    <select id="editUnit" class="w-full px-4 py-2.5 form-input-premium bg-white">
-                                        <option value="pc">Piece (pc)</option>
-                                        <option value="kg">Kilogram (kg)</option>
-                                        <option value="L">Litre (L)</option>
-                                        <option value="m">Metre (m)</option>
-                                    </select>
+                                    <label class="block text-[11px] font-medium text-slate-550 mb-1">HSN/SAC Code <span class="text-red-500">*</span></label>
+                                    <input type="text" id="editHsnCode" class="w-full px-3 py-2 form-input-premium" required>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-medium text-slate-550 mb-1">Brand <span class="text-red-500">*</span></label>
+                                    <input type="text" id="editBrand" class="w-full px-3 py-2 form-input-premium" required>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-medium text-slate-550 mb-1">Category <span class="text-red-500">*</span></label>
+                                    <input type="text" id="editCategory" class="w-full px-3 py-2 form-input-premium" required>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-[11px] font-medium text-slate-550 mb-1">Type <span class="text-red-500">*</span></label>
+                                        <select id="editType" class="w-full px-3 py-2 form-input-premium bg-white" required>
+                                            <option value="Material">Material</option>
+                                            <option value="Asset">Asset</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-medium text-slate-550 mb-1">Unit <span class="text-red-500">*</span></label>
+                                        <select id="editUnit" class="w-full px-3 py-2 form-input-premium bg-white">
+                                            <option value="pc">Piece (pc)</option>
+                                            <option value="kg">Kilogram (kg)</option>
+                                            <option value="L">Litre (L)</option>
+                                            <option value="m">Metre (m)</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Pricing & Stock -->
-                        <div class="space-y-5">
-                            <h3 class="form-section-header">Pricing & Stock</h3>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Purchase Price (₹)
-                                        <span class="text-red-500">*</span></label>
-                                    <input type="number" step="0.01" id="editPurchasePrice"
-                                        class="w-full px-4 py-2.5 form-input-premium" required>
+                            <!-- Pricing & Stock Section -->
+                            <div class="space-y-4">
+                                <h3 class="form-section-header">Pricing & Stock</h3>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-[11px] font-medium text-slate-550 mb-1">Purchase Price (₹) <span class="text-red-500">*</span></label>
+                                        <input type="number" step="0.01" id="editPurchasePrice" class="w-full px-3 py-2 form-input-premium" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-medium text-slate-550 mb-1">Selling Price (₹)</label>
+                                        <input type="number" step="0.01" id="editSellingPrice" class="w-full px-3 py-2 form-input-premium">
+                                    </div>
                                 </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Selling Price
-                                        (₹)</label>
-                                    <input type="number" step="0.01" id="editSellingPrice"
-                                        class="w-full px-4 py-2.5 form-input-premium">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-[11px] font-medium text-slate-550 mb-1">Margin (%)</label>
+                                        <input type="number" step="0.01" id="editMargin" class="w-full px-3 py-2 form-input-premium">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-medium text-slate-550 mb-1">GST Rate (%) <span class="text-red-500">*</span></label>
+                                        <input type="number" step="any" id="editGstRate" class="w-full px-3 py-2 form-input-premium" required>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Margin (%)</label>
-                                    <input type="number" step="0.01" id="editMargin"
-                                        class="w-full px-4 py-2.5 form-input-premium">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">GST Rate (%) <span
-                                            class="text-red-500">*</span></label>
-                                    <input type="number" step="any" id="editGstRate"
-                                        class="w-full px-4 py-2.5 form-input-premium" required>
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Stock
-                                        Quantity</label>
-                                    <input type="number" step="any" id="editStockQuantity"
-                                        class="w-full px-4 py-2.5 form-input-premium">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Min Stock Qty <span
-                                            class="text-red-500">*</span></label>
-                                    <input type="number" id="editMinStockQuantity"
-                                        class="w-full px-4 py-2.5 form-input-premium" required>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-[11px] font-medium text-slate-550 mb-1">Stock Quantity</label>
+                                        <input type="number" step="any" id="editStockQuantity" class="w-full px-3 py-2 form-input-premium">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-medium text-slate-550 mb-1">Min Stock Qty <span class="text-red-500">*</span></label>
+                                        <input type="number" id="editMinStockQuantity" class="w-full px-3 py-2 form-input-premium" required>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Additional Details -->
-                        <div class="md:col-span-2 space-y-5">
-                            <h3 class="form-section-header">Additional Details</h3>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Specifications</label>
-                                <textarea id="editSpecifications" rows="3"
-                                    class="w-full px-4 py-2.5 form-input-premium"></textarea>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Remarks</label>
-                                <textarea id="editRemarks" rows="2"
-                                    class="w-full px-4 py-2.5 form-input-premium"></textarea>
+                            <!-- Additional Details Section -->
+                            <div class="md:col-span-2 space-y-4">
+                                <h3 class="form-section-header">Additional Details</h3>
+                                <div>
+                                    <label class="block text-[11px] font-medium text-slate-550 mb-1">Specifications</label>
+                                    <textarea id="editSpecifications" rows="3" class="w-full px-3 py-2 form-input-premium resize-none"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-medium text-slate-550 mb-1">Remarks</label>
+                                    <textarea id="editRemarks" rows="2" class="w-full px-3 py-2 form-input-premium resize-none"></textarea>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div
-                        class="pt-6 border-t border-slate-100 flex justify-end gap-3 sticky bottom-0 bg-white/95 backdrop-blur-md z-10">
+                    <!-- Modal Footer -->
+                    <div class="px-6 py-3 border-t border-slate-100 flex justify-end gap-2.5 bg-white flex-shrink-0">
                         <button type="button" id="cancelEditBtn"
-                            class="px-5 py-2.5 border border-slate-200 rounded-xl text-slate-600 font-medium hover:bg-slate-50 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-200 transition-all duration-200">Cancel</button>
+                            class="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 font-medium hover:bg-slate-50 hover:text-slate-800 transition-all duration-150 focus:outline-none">Cancel</button>
                         <button type="submit"
-                            class="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-1 shadow-sm hover:shadow transition-all duration-200 flex items-center gap-2">
+                            class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 shadow-sm hover:shadow transition-all duration-150 focus:outline-none flex items-center gap-2">
+                            <i class="fas fa-save text-xs"></i> Update Stock Item
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>sition-all duration-200 flex items-center gap-2">
                             <i class="fas fa-save"></i> Update Stock Item
                         </button>
                     </div>
@@ -850,7 +859,7 @@
 
     <!-- Item Details Modal -->
     <div id="itemDetailsModal" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 modal-overlay flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/30 backdrop-blur-sm flex items-center justify-center p-4">
             <div class="bg-white modal-card-premium w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                 <!-- Sticky Header -->
                 <div
@@ -979,60 +988,66 @@
     </div>
 
     <!-- Print Modal -->
-    <div id="printModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 hidden">
-        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-xl">
-            <div class="flex justify-between items-center pb-4 border-b mb-6">
-                <h3 class="text-xl font-semibold text-gray-800">Print Stock Report</h3>
-                <button id="closePrintModalBtn" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times fa-lg"></i>
-                </button>
-            </div>
-            <div class="space-y-4">
-                <div>
-                    <label for="printTypeFilter" class="block text-sm font-medium text-gray-700">Filter by Type</label>
-                    <select id="printTypeFilter"
-                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg bg-white">
-                        <option value="all">All Types</option>
-                        <option value="Asset">Asset</option>
-                        <option value="Material">Material</option>
-                    </select>
+    <div id="printModal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-slate-900/30 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white modal-card-premium w-full max-w-xl flex flex-col overflow-hidden">
+                <!-- Modal Header -->
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0">
+                    <h2 class="text-base font-semibold text-slate-900">Print Stock Report</h2>
+                    <button id="closePrintModalBtn"
+                        class="w-9 h-9 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all duration-150 focus:outline-none"
+                        aria-label="Close modal">
+                        <i class="fas fa-times text-base"></i>
+                    </button>
                 </div>
-                <div>
-                    <label for="printCategoryFilter" class="block text-sm font-medium text-gray-700">Filter by
-                        Category</label>
-                    <select id="printCategoryFilter"
-                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg bg-white">
-                        <!-- Options populated by JS -->
-                    </select>
+                
+                <!-- Modal Body -->
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label for="printTypeFilter" class="block text-[11px] font-medium text-slate-550 mb-1">Filter by Type</label>
+                        <select id="printTypeFilter"
+                            class="w-full px-3 py-2 form-input-premium bg-white">
+                            <option value="all">All Types</option>
+                            <option value="Asset">Asset</option>
+                            <option value="Material">Material</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="printCategoryFilter" class="block text-[11px] font-medium text-slate-550 mb-1">Filter by Category</label>
+                        <select id="printCategoryFilter"
+                            class="w-full px-3 py-2 form-input-premium bg-white">
+                            <!-- Options populated by JS -->
+                        </select>
+                    </div>
+                    <div>
+                        <label for="printStatusFilter" class="block text-[11px] font-medium text-slate-550 mb-1">Filter by Status</label>
+                        <select id="printStatusFilter"
+                            class="w-full px-3 py-2 form-input-premium bg-white">
+                            <option value="all">All</option>
+                            <option value="In Stock">In Stock</option>
+                            <option value="Low Stock">Low Stock</option>
+                            <option value="Out of Stock">Out of Stock</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
                 </div>
-                <div>
-                    <label for="printStatusFilter" class="block text-sm font-medium text-gray-700">Filter by
-                        Status</label>
-                    <select id="printStatusFilter"
-                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg bg-white">
-                        <option value="all">All</option>
-                        <option value="In Stock">In Stock</option>
-                        <option value="Low Stock">Low Stock</option>
-                        <option value="Out of Stock">Out of Stock</option>
-                        <option value="Inactive">Inactive</option>
-                    </select>
+                
+                <!-- Modal Footer -->
+                <div class="px-6 py-3 border-t border-slate-100 flex justify-end gap-2.5 bg-white flex-shrink-0">
+                    <button type="button" id="cancelPrintBtn"
+                        class="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 font-medium hover:bg-slate-50 hover:text-slate-800 transition-all duration-150 focus:outline-none">Cancel</button>
+                    <button id="finalPrintBtn" type="button"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 shadow-sm hover:shadow transition-all duration-150 focus:outline-none flex items-center gap-2">
+                        <i class="fas fa-print text-xs"></i> Print Report
+                    </button>
                 </div>
-            </div>
-            <div class="flex justify-end items-center gap-4 pt-6 mt-6 border-t">
-                <button type="button" id="cancelPrintBtn"
-                    class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
-                <button id="finalPrintBtn" type="button"
-                    class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-blue-700">
-                    <i class="fas fa-print"></i>
-                    Print Report
-                </button>
             </div>
         </div>
     </div>
 
     <!-- Quantity Adjustment Modal -->
     <div id="quantityModal" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 modal-overlay flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/30 backdrop-blur-sm flex items-center justify-center p-4">
             <div class="bg-white modal-card-premium w-full max-w-md overflow-y-auto">
                 <div
                     class="px-6 py-5 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-10">

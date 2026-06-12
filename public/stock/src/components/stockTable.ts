@@ -93,15 +93,21 @@ function openContextMenu(triggerBtn: HTMLElement, items: CtxMenuItem[]): void {
 
 function showLoading(show: boolean): void {
     const loadingRow = document.getElementById('loading-row');
-    const emptyRow   = document.getElementById('empty-row');
+    const emptyState = document.getElementById('empty-state');
+    const tableContainer = document.getElementById('stock-table-container');
     if (loadingRow) loadingRow.classList.toggle('hidden', !show);
-    if (emptyRow && show) emptyRow.classList.add('hidden');
+    if (show) {
+        if (emptyState) emptyState.classList.add('hidden');
+        if (tableContainer) tableContainer.classList.remove('hidden');
+    }
 }
 
 function showEmpty(show: boolean): void {
-    const emptyRow   = document.getElementById('empty-row');
+    const emptyState   = document.getElementById('empty-state');
+    const tableContainer = document.getElementById('stock-table-container');
     const loadingRow = document.getElementById('loading-row');
-    if (emptyRow)   emptyRow.classList.toggle('hidden', !show);
+    if (emptyState)   emptyState.classList.toggle('hidden', !show);
+    if (tableContainer) tableContainer.classList.toggle('hidden', show);
     if (loadingRow && show) loadingRow.classList.add('hidden');
 }
 

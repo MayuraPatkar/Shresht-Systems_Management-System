@@ -727,38 +727,29 @@ class CommsForms {
         const data = localStorage.getItem('comms_activity');
         if (data) {
             try {
-                return JSON.parse(data);
+                const logs = JSON.parse(data);
+                if (Array.isArray(logs)) {
+                    const cleanLogs = logs.filter(log => {
+                        const rec = (log.recipient || '').toLowerCase();
+                        const det = (log.details || '').toLowerCase();
+                        return !rec.includes('ravi kumar') && 
+                               !rec.includes('abc industries') && 
+                               !rec.includes('919876543210') && 
+                               !rec.includes('918045678901') &&
+                               !det.includes('inv001') &&
+                               !det.includes('quo004');
+                    });
+                    if (cleanLogs.length !== logs.length) {
+                        localStorage.setItem('comms_activity', JSON.stringify(cleanLogs));
+                    }
+                    return cleanLogs;
+                }
+                return [];
             } catch {
                 return [];
             }
         }
-
-        // Prepopulate default mock activity to match the UX specifications
-        const mockLogs = [
-            {
-                type: 'invoice',
-                recipient: 'Ravi Kumar (+919876543210)',
-                timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-                details: 'Invoice INV001 sent',
-                status: 'success'
-            },
-            {
-                type: 'reminder',
-                recipient: 'ABC Industries (+918045678901)',
-                timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-                details: 'Reminder sent',
-                status: 'success'
-            },
-            {
-                type: 'quotation',
-                recipient: 'ABC Industries (+918045678901)',
-                timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-                details: 'Quotation QUO004 shared',
-                status: 'success'
-            }
-        ];
-        localStorage.setItem('comms_activity', JSON.stringify(mockLogs));
-        return mockLogs;
+        return [];
     }
 
     private addLog(type: string, recipientName: string, recipientPhone: string, details: string, status: 'success' | 'failed') {
