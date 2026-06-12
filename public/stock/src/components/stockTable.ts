@@ -256,7 +256,7 @@ function renderStockTable(data: StockItem[]): void {
                 </div>
             </td>
             <td class="p-3">
-                <span class="text-xs font-mono text-slate-400 bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5 tracking-wider">${escapeHtml(sku)}</span>
+                <span class="text-xs font-mono text-slate-400 bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5 tracking-wider">${escapeHtml(hsn || '—')}</span>
             </td>
             <td class="p-3 text-right font-medium text-slate-700 text-sm tabular-nums">
                 ₹&nbsp;${escapeHtml(formatIndian(purchasePriceWithTax, 2))}

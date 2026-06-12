@@ -884,8 +884,8 @@ async function renderQuotationView(quotation, viewType) {
                 const displayId = quotation.quotation_id || quotation.quotation_no;
                 sessionStorage.setItem('quotation-to-invoice-id', displayId);
                 sessionStorage.setItem('currentTab-status', 'new');
-                // Navigate to the invoice module
-                window.location.href = '../invoice/invoice.html';
+                // Navigate to the invoice module form directly
+                window.location.href = '../invoice/invoice_form.html';
             });
         }
     }

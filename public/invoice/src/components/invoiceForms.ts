@@ -848,13 +848,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // Wait for both scripts' DOMContentLoaded execution to finish so that click event listeners are registered
         setTimeout(() => {
-            // Trigger showing the new invoice form first
-            document.getElementById('new-invoice')?.click();
+            const newInvoiceBtn = document.getElementById('new-invoice');
+            if (newInvoiceBtn) {
+                // Trigger showing the new invoice form first (if on main list view)
+                newInvoiceBtn.click();
 
-            // Small delay to let the form initialize and change to step 1
-            setTimeout(async () => {
-                await loadInvoiceFromQuotation(quotationIdToConvert);
-            }, 300);
+                // Small delay to let the form initialize and change to step 1
+                setTimeout(async () => {
+                    await loadInvoiceFromQuotation(quotationIdToConvert);
+                }, 300);
+            } else {
+                // If we are already on the form view page, load directly!
+                setTimeout(async () => {
+                    await loadInvoiceFromQuotation(quotationIdToConvert);
+                }, 100);
+            }
         }, 100);
     }
 });
@@ -1894,7 +1902,7 @@ const collectFormData = function () {
     const statusInput = document.getElementById("invoice-status") as HTMLSelectElement | null;
 
     return {
-        type: sessionStorage.getItem('update-invoice'),
+        type: sessionStorage.getItem('update-invoice') || 'original',
         projectName: document.getElementById("project-name") ? (document.getElementById("project-name") as HTMLInputElement).value : '',
         invoiceId: idInput ? idInput.value : '',
         status: statusInput ? statusInput.value as InvoiceStatus : undefined,

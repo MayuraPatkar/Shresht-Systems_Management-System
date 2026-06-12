@@ -1431,6 +1431,14 @@ async function viewInvoice(invoiceId: string, userRole?: string | null) {
         if (newSection) newSection.style.display = 'none';
         if (view) view.style.display = 'flex';
 
+        const viewPaymentBtn = document.getElementById('view-payment-btn');
+        const editBtn = document.getElementById('editInvoiceBtnView');
+        const duplicateBtn = document.getElementById('duplicateInvoiceBtnView');
+
+        if (viewPaymentBtn) viewPaymentBtn.style.display = 'flex';
+        if (editBtn) editBtn.style.display = 'flex';
+        if (duplicateBtn) duplicateBtn.style.display = 'flex';
+
         await renderInvoiceView(invoice, role, type);
 
     } catch (error) {

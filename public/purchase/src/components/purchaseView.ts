@@ -103,30 +103,35 @@
         const actionHeaders = document.querySelectorAll(".action-header");
         const dangerZoneSection = document.getElementById("danger-zone") || document.getElementById("danger-zone-section");
         
+        const viewEditBtn = document.getElementById('view-edit-btn');
+        const viewSaveBtn = document.getElementById('view-save-btn');
+        const viewCancelBtn = document.getElementById('view-cancel-btn');
+        const viewPaymentBtn = document.getElementById('view-payment-btn');
+
         if (isEditingInline) {
             editFields.forEach(el => el.classList.remove("hidden"));
             viewFields.forEach(el => el.classList.add("hidden"));
             actionHeaders.forEach(el => el.classList.remove("hidden"));
             if (dangerZoneSection) dangerZoneSection.classList.add("hidden");
+
+            if (viewEditBtn) viewEditBtn.style.display = 'none';
+            if (viewSaveBtn) viewSaveBtn.style.display = 'flex';
+            if (viewCancelBtn) viewCancelBtn.style.display = 'flex';
+            if (viewPaymentBtn) viewPaymentBtn.style.display = 'none';
             
             // Populating supplier edit fields
-            const addr = snapshot.address || {};
             (document.getElementById('edit-purchase-invoice-id') as HTMLInputElement).value = purchase.purchase_invoice_no || purchase.purchase_no || '';
             (document.getElementById('edit-purchase-date') as HTMLInputElement).value = purchase.purchase_date ? purchase.purchase_date.split('T')[0] : '';
-            (document.getElementById('edit-supplier-name') as HTMLInputElement).value = snapshot.name || '';
-            (document.getElementById('edit-supplier-address-line1') as HTMLInputElement).value = addr.line1 || '';
-            (document.getElementById('edit-supplier-address-line2') as HTMLInputElement).value = addr.line2 || '';
-            (document.getElementById('edit-supplier-address-city') as HTMLInputElement).value = addr.city || '';
-            (document.getElementById('edit-supplier-address-state') as HTMLSelectElement).value = addr.state || 'Karnataka';
-            (document.getElementById('edit-supplier-address-pincode') as HTMLInputElement).value = addr.pincode || '';
-            (document.getElementById('edit-supplier-phone') as HTMLInputElement).value = snapshot.phone || '';
-            (document.getElementById('edit-supplier-email') as HTMLInputElement).value = snapshot.email || '';
-            (document.getElementById('edit-buyerGSTIN') as HTMLInputElement).value = snapshot.gstin || '';
         } else {
             editFields.forEach(el => el.classList.add("hidden"));
             viewFields.forEach(el => el.classList.remove("hidden"));
             actionHeaders.forEach(el => el.classList.add("hidden"));
             if (dangerZoneSection) dangerZoneSection.classList.remove("hidden");
+
+            if (viewEditBtn) viewEditBtn.style.display = 'flex';
+            if (viewSaveBtn) viewSaveBtn.style.display = 'none';
+            if (viewCancelBtn) viewCancelBtn.style.display = 'none';
+            if (viewPaymentBtn) viewPaymentBtn.style.display = 'flex';
         }
 
         // Item Lists - clear and populate
@@ -464,7 +469,6 @@
 
         const invoiceId = (document.getElementById('edit-purchase-invoice-id') as HTMLInputElement).value.trim();
         const date = (document.getElementById('edit-purchase-date') as HTMLInputElement).value.trim();
-        const name = (document.getElementById('edit-supplier-name') as HTMLInputElement).value.trim();
 
         if (!invoiceId) {
             showAlert("Purchase Invoice ID is required.");
@@ -472,10 +476,6 @@
         }
         if (!date) {
             showAlert("Purchase Date is required.");
-            return;
-        }
-        if (!name) {
-            showAlert("Supplier Name is required.");
             return;
         }
 
@@ -547,19 +547,7 @@
             purchase_invoice_no: invoiceId,
             purchase_date: date,
             supplier_id: currentPurchase.supplier_id || "",
-            supplier_snapshot: {
-                name: name,
-                address: {
-                    line1: (document.getElementById('edit-supplier-address-line1') as HTMLInputElement).value.trim(),
-                    line2: (document.getElementById('edit-supplier-address-line2') as HTMLInputElement).value.trim(),
-                    city: (document.getElementById('edit-supplier-address-city') as HTMLInputElement).value.trim(),
-                    state: (document.getElementById('edit-supplier-address-state') as HTMLSelectElement).value,
-                    pincode: (document.getElementById('edit-supplier-address-pincode') as HTMLInputElement).value.trim()
-                },
-                phone: (document.getElementById('edit-supplier-phone') as HTMLInputElement).value.trim(),
-                email: (document.getElementById('edit-supplier-email') as HTMLInputElement).value.trim(),
-                gstin: (document.getElementById('edit-buyerGSTIN') as HTMLInputElement).value.trim()
-            },
+            supplier_snapshot: currentPurchase.supplier_snapshot || {},
             items: items,
             totals: {
                 grand_total: roundedTotal
