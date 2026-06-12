@@ -142,5 +142,11 @@
     "typescript": "^5.9.3",
     "vitest": "^4.0.18",
     "wait-on": "^9.0.3"
+  },
+  "allowScripts": {
+    "@parcel/watcher@2.5.6": true,
+    "electron@39.8.10": true,
+    "electron-winstaller@5.4.0": true,
+    "puppeteer@24.43.1": true
   }
 }
