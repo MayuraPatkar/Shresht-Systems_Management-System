@@ -37,6 +37,8 @@ main {
 *::-webkit-scrollbar-thumb {
     background: #2563eb;
     border-radius: 4px;
+    background-clip: padding-box;
+    border: 2px solid transparent;
 }
 
 *::-webkit-scrollbar-thumb:hover {
@@ -56,13 +58,15 @@ main {
 
 /* Custom Scrollbar Track Padding & Offset for Rounded Containers */
 .shortcuts-panel::-webkit-scrollbar-track {
-    margin-top: 16px;
-    margin-bottom: 16px;
+    border-top: 16px solid transparent;
+    border-bottom: 16px solid transparent;
+    background-clip: padding-box;
 }
 
 .suggestions::-webkit-scrollbar-track {
-    margin-top: 8px;
-    margin-bottom: 8px;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    background-clip: padding-box;
 }
 
 .fade-in {
