@@ -114,21 +114,21 @@ interface Window {
 
     // ── DOM Refs ──────────────────────────────────────────
     const $tbody = document.getElementById('payment-tbody') as HTMLTableSectionElement;
-    const $totalIn = document.getElementById('total-in') as HTMLElement;
-    const $totalOut = document.getElementById('total-out') as HTMLElement;
-    const $netBalance = document.getElementById('net-balance') as HTMLElement;
-    const $totalCount = document.getElementById('total-count') as HTMLElement;
-    const $filterCount = document.getElementById('filter-count') as HTMLElement;
+    const $totalIn = document.getElementById('total-in') as HTMLElement | null;
+    const $totalOut = document.getElementById('total-out') as HTMLElement | null;
+    const $netBalance = document.getElementById('net-balance') as HTMLElement | null;
+    const $totalCount = document.getElementById('total-count') as HTMLElement | null;
+    const $filterCount = document.getElementById('filter-count') as HTMLElement | null;
     const $searchInput = document.getElementById('search-input') as HTMLInputElement;
     const $filterPopover = document.getElementById('filter-popover') as HTMLDivElement;
     const $filterBtn = document.getElementById('filter-btn') as HTMLButtonElement;
     const $refreshBtn = document.getElementById('refresh-btn') as HTMLButtonElement;
 
     // Redesigned DOM elements
-    const $trendMoneyIn = document.getElementById('trend-money-in') as HTMLElement;
-    const $trendMoneyOut = document.getElementById('trend-money-out') as HTMLElement;
-    const $netBalanceSub = document.getElementById('net-balance-sub') as HTMLElement;
-    const $transactionsSub = document.getElementById('transactions-sub') as HTMLElement;
+    const $trendMoneyIn = document.getElementById('trend-money-in') as HTMLElement | null;
+    const $trendMoneyOut = document.getElementById('trend-money-out') as HTMLElement | null;
+    const $netBalanceSub = document.getElementById('net-balance-sub') as HTMLElement | null;
+    const $transactionsSub = document.getElementById('transactions-sub') as HTMLElement | null;
     const $toggleRunningBalance = document.getElementById('toggle-running-balance') as HTMLInputElement;
     const $filterChipsContainer = document.getElementById('filter-chips-container') as HTMLDivElement;
     const $chipsList = document.getElementById('chips-list') as HTMLDivElement;
@@ -827,10 +827,10 @@ interface Window {
             .filter((p: IPaymentRecord) => p.direction === 'OUT')
             .reduce((s: number, p: IPaymentRecord) => s + (p.amount || 0), 0);
             
-        $totalIn.textContent = formatCurrency(totalIn);
-        $totalOut.textContent = formatCurrency(totalOut);
-        $netBalance.textContent = formatCurrency(totalIn - totalOut);
-        $totalCount.textContent = String(allPayments.length);
+        if ($totalIn) $totalIn.textContent = formatCurrency(totalIn);
+        if ($totalOut) $totalOut.textContent = formatCurrency(totalOut);
+        if ($netBalance) $netBalance.textContent = formatCurrency(totalIn - totalOut);
+        if ($totalCount) $totalCount.textContent = String(allPayments.length);
 
         // Trend calculations (cur month vs prev month)
         const now = new Date();
@@ -1053,8 +1053,8 @@ interface Window {
         if (paginatedPayments.length === 0) {
             const emptyStateHTML = `
                 <tr>
-                    <td colspan="8" class="px-6 py-16 text-center text-slate-455 bg-white">
-                        <div class="max-w-md mx-auto flex flex-col items-center">
+                    <td colspan="8" class="px-6 py-16 text-center text-slate-455 bg-white align-middle h-full">
+                        <div class="w-full h-full min-h-[320px] flex flex-col items-center justify-center text-center py-4 fade-in select-none">
                             <div class="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 mb-4 border border-dashed border-slate-300">
                                 <i class="fas fa-inbox text-2xl"></i>
                             </div>

@@ -1328,7 +1328,7 @@
             let emptyHtml = "";
             if (isTrash) {
                 emptyHtml = `
-                    <div class="inline-flex flex-col items-center justify-center text-center py-4 fade-in select-none" style="min-height: 300px;">
+                    <div class="w-full h-full min-h-[320px] flex flex-col items-center justify-center text-center py-4 fade-in select-none">
                         <div class="text-rose-500 text-5xl mb-4">
                             <i class="fas fa-trash-alt"></i>
                         </div>
@@ -1338,7 +1338,7 @@
                 `;
             } else if (isArchivedView) {
                 emptyHtml = `
-                    <div class="inline-flex flex-col items-center justify-center text-center py-4 fade-in select-none" style="min-height: 300px;">
+                    <div class="w-full h-full min-h-[320px] flex flex-col items-center justify-center text-center py-4 fade-in select-none">
                         <div class="text-amber-500 text-5xl mb-4">
                             <i class="fas fa-archive"></i>
                         </div>
@@ -1351,7 +1351,7 @@
                 const hasSearch = searchInput && searchInput.value.trim() !== '';
                 if (hasSearch) {
                     emptyHtml = `
-                        <div class="inline-flex flex-col items-center justify-center text-center py-4 fade-in select-none" style="min-height: 300px;">
+                        <div class="w-full h-full min-h-[320px] flex flex-col items-center justify-center text-center py-4 fade-in select-none">
                             <div class="text-yellow-500 text-5xl mb-4">
                                 <i class="fas fa-search"></i>
                             </div>
@@ -1361,7 +1361,7 @@
                     `;
                 } else {
                     emptyHtml = `
-                        <div class="inline-flex flex-col items-center justify-center text-center py-4 fade-in select-none" style="min-height: 300px;">
+                        <div class="w-full h-full min-h-[320px] flex flex-col items-center justify-center text-center py-4 fade-in select-none">
                             <div class="text-blue-500 text-5xl mb-4">
                                 <i class="fas fa-route"></i>
                             </div>
@@ -1374,7 +1374,7 @@
  
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="100" class="px-4 py-10 bg-white text-slate-400 text-center">
+                    <td colspan="100" class="px-4 py-10 bg-white text-slate-400 text-center align-middle h-full">
                         ${emptyHtml}
                     </td>
                 </tr>

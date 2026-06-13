@@ -295,9 +295,11 @@
         if (paginatedServices.length === 0) {
             $tbody.innerHTML = `
                 <tr>
-                    <td colspan="9" class="px-4 py-12 text-center text-slate-400 bg-white">
-                        <i class="fas fa-inbox text-3xl mb-2"></i>
-                        <p class="text-sm font-semibold">No services found in this category.</p>
+                    <td colspan="9" class="px-4 py-12 text-center text-slate-400 bg-white align-middle h-full">
+                        <div class="w-full h-full min-h-[320px] flex flex-col items-center justify-center text-center py-4 fade-in select-none">
+                            <i class="fas fa-inbox text-3xl mb-2"></i>
+                            <p class="text-sm font-semibold">No services found in this category.</p>
+                        </div>
                     </td>
                 </tr>`;
             if ($mobileCards) {

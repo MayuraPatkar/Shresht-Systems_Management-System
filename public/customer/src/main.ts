@@ -155,12 +155,56 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    const updateTabCounts = (search: string, type: string, status: string, isDeleted: boolean, currentFetched: any[]) => {
+        let activeInactivePromise;
+        let archivedPromise;
+
+        if (status === '') {
+            activeInactivePromise = Promise.resolve(currentFetched);
+            archivedPromise = customerApi.fetchCustomers(search, type, 'archived', isDeleted);
+        } else if (status === 'archived') {
+            activeInactivePromise = customerApi.fetchCustomers(search, type, '', isDeleted);
+            archivedPromise = Promise.resolve(currentFetched);
+        } else {
+            activeInactivePromise = customerApi.fetchCustomers(search, type, '', isDeleted);
+            archivedPromise = customerApi.fetchCustomers(search, type, 'archived', isDeleted);
+        }
+
+        Promise.all([activeInactivePromise, archivedPromise])
+            .then(([activeInactive, archived]) => {
+                const counts: Record<string, number> = {
+                    '': activeInactive.length,
+                    'active': activeInactive.filter((c: any) => c.is_active === true).length,
+                    'inactive': activeInactive.filter((c: any) => c.is_active !== true).length,
+                    'archived': archived.length
+                };
+
+                const statusTabs = document.querySelectorAll('.filter-tab');
+                statusTabs.forEach(tab => {
+                    const tabStatus = tab.getAttribute('data-status') || '';
+                    const count = counts[tabStatus] || 0;
+                    
+                    let badge = tab.querySelector('.tab-count-badge');
+                    if (!badge) {
+                        badge = document.createElement('span');
+                        tab.appendChild(badge);
+                    }
+                    badge.className = tab.classList.contains('active')
+                        ? 'tab-count-badge ml-1.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-blue-100 text-blue-600 transition-colors duration-150'
+                        : 'tab-count-badge ml-1.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-slate-100 text-slate-500 transition-colors duration-150';
+                    badge.textContent = count.toString();
+                });
+            })
+            .catch(err => console.error('Failed to update tab counts:', err));
+    };
+
     // Fetch and render function exposed to window for forms to call
     (window as any).fetchCustomers = async () => {
         try {
             const search = searchInput?.value || '';
             const type = typeFilter?.value || '';
             const status = statusFilter?.value || '';
+            const isDeleted = !!(window as any).showDeletedItems;
 
             // Update active state of filter tabs
             const statusTabs = document.querySelectorAll('.filter-tab');
@@ -172,13 +216,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            const customers = await customerApi.fetchCustomers(search, type, status, !!(window as any).showDeletedItems);
+            const customers = await customerApi.fetchCustomers(search, type, status, isDeleted);
             (window as any).currentCustomers = customers || [];
             customerTable.render(customers);
             updateArchivedCount();
             updateArchivedButtonVisuals();
             updateBulkButtonLabels();
             updateActiveFiltersBar();
+            updateTabCounts(search, type, status, isDeleted, customers);
         } catch (error) {
             showAlert('Failed to load customers');
         }

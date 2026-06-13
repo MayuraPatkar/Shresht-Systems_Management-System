@@ -118,17 +118,35 @@ class DashboardUI {
                 dashboardUtils.animateCounter("remaining-services-count", data.remainingServices);
                 dashboardUtils.animateCounter("customer-count", data.totalCustomers);
 
+                const customerTypesSubtext = document.getElementById("customer-types-subtext");
+                if (customerTypesSubtext) {
+                    customerTypesSubtext.textContent = `${data.b2bCustomers || 0} B2B | ${data.b2cCustomers || 0} B2C`;
+                }
+
                 const netCashflow = (data.totalEarned || 0) - (data.totalExpenditure || 0);
                 const netCashflowEl = document.getElementById("net-cashflow-value");
                 if (netCashflowEl) {
                     const isLoss = netCashflow < 0;
                     netCashflowEl.textContent = `${isLoss ? '-' : ''}₹${(window as any).formatIndian(Math.abs(netCashflow))}`;
-                    netCashflowEl.className = `text-2xl font-bold tracking-tight ${isLoss ? 'text-red-600' : 'text-green-600'}`;
+                    netCashflowEl.className = `text-2xl font-bold tracking-tight ${isLoss ? 'text-red-650' : 'text-green-600'}`;
                 }
 
-                this.drawSparkline("cashflow-sparkline", netCashflow < 0 ? [217320, 180000, 195000, 210000, Math.abs(netCashflow)] : [70080, 90000, 85000, 110000, netCashflow], netCashflow < 0 ? 'rgb(220, 38, 38)' : 'rgb(22, 163, 74)');
+                const netCashflowBadge = document.getElementById("net-cashflow-badge");
+                if (netCashflowBadge) {
+                    const isLoss = netCashflow < 0;
+                    netCashflowBadge.textContent = isLoss ? 'Loss' : 'Profit';
+                    netCashflowBadge.className = `text-xs font-bold px-2 py-0.5 rounded ${isLoss ? 'text-red-650 bg-red-50 border border-red-100' : 'text-green-600 bg-green-50 border border-green-100'}`;
+                }
 
-                const pipelineValue = data.totalEarned || 70080;
+                const netCashflowDetails = document.getElementById("net-cashflow-details");
+                if (netCashflowDetails) {
+                    netCashflowDetails.innerHTML = `<span>Rev: ₹${(window as any).formatIndian(data.totalEarned || 0)} | Exp: ₹${(window as any).formatIndian(data.totalExpenditure || 0)}</span>`;
+                }
+
+                const hasCashflow = (data.totalEarned || 0) > 0 || (data.totalExpenditure || 0) > 0;
+                this.drawSparkline("cashflow-sparkline", hasCashflow ? (netCashflow < 0 ? [217320, 180000, 195000, 210000, Math.abs(netCashflow)] : [70080, 90000, 85000, 110000, netCashflow]) : [0, 0, 0, 0, 0], netCashflow < 0 ? 'rgb(220, 38, 38)' : 'rgb(22, 163, 74)');
+
+                const pipelineValue = data.totalEarned || 0;
                 const pipelineValEl = document.getElementById("pipeline-value");
                 if (pipelineValEl) {
                     pipelineValEl.textContent = `₹${(window as any).formatIndian(pipelineValue)}`;
@@ -138,7 +156,25 @@ class DashboardUI {
                     pipelineCountEl.textContent = `${data.totalProjects} Projects`;
                 }
 
-                this.drawSparkline("pipeline-sparkline", [30000, 45000, 40000, 55000, pipelineValue], 'rgb(37, 99, 235)');
+                const pipelineDetails = document.getElementById("pipeline-details");
+                if (pipelineDetails) {
+                    pipelineDetails.innerHTML = `<span>${data.totalProjects} Project${data.totalProjects !== 1 ? 's' : ''} | ${data.totalQuotations} Quotation${data.totalQuotations !== 1 ? 's' : ''} Given</span>`;
+                }
+
+                const hasPipeline = (data.totalProjects || 0) > 0 || (data.totalQuotations || 0) > 0;
+                this.drawSparkline("pipeline-sparkline", hasPipeline ? [30000, 45000, 40000, 55000, pipelineValue] : [0, 0, 0, 0, 0], 'rgb(37, 99, 235)');
+
+                const expStatusEl = document.getElementById("exp-status-text");
+                if (expStatusEl) {
+                    const hasLoss = (data.totalEarned || 0) < (data.totalExpenditure || 0);
+                    expStatusEl.textContent = hasLoss ? 'Outflow exceeding sales' : 'Stable operational costs';
+                    expStatusEl.className = `text-[10px] ${hasLoss ? 'text-red-500 font-bold' : 'text-slate-400 font-medium'} mt-1 block`;
+                }
+
+                const unpaidStatusEl = document.querySelector("#unpaid-count + span");
+                if (unpaidStatusEl) {
+                    unpaidStatusEl.textContent = data.totalUnpaid > 0 ? `${data.totalUnpaid} unpaid invoice${data.totalUnpaid !== 1 ? 's' : ''}` : 'All payments cleared';
+                }
             })
             .catch((err: any) => {
                 console.error("Error fetching analytics:", err);
@@ -336,12 +372,31 @@ class DashboardUI {
                     lowStockCountEl.textContent = String(lowStock.length);
                 }
 
+                const stockHealthBadge = document.getElementById('stock-health-badge');
+                if (stockHealthBadge) {
+                    stockHealthBadge.textContent = `${lowStock.length} Alert Item${lowStock.length !== 1 ? 's' : ''}`;
+                }
+
                 const outOfStockCount = lowStock.filter(item => (parseInt(item.stock_quantity) || 0) === 0).length;
                 const lowCount = lowStock.length - outOfStockCount;
 
                 const stockHealthSummaryEl = document.getElementById('stock-health-summary');
                 if (stockHealthSummaryEl) {
                     stockHealthSummaryEl.textContent = `${outOfStockCount} Critical / ${lowCount} Low`;
+                }
+
+                const criticalStockBar = document.getElementById('critical-stock-bar');
+                const warningStockBar = document.getElementById('warning-stock-bar');
+                if (criticalStockBar && warningStockBar) {
+                    if (lowStock.length > 0) {
+                        const criticalPct = (outOfStockCount / lowStock.length) * 100;
+                        const warningPct = (lowCount / lowStock.length) * 100;
+                        criticalStockBar.style.width = `${criticalPct}%`;
+                        warningStockBar.style.width = `${warningPct}%`;
+                    } else {
+                        criticalStockBar.style.width = `0%`;
+                        warningStockBar.style.width = `0%`;
+                    }
                 }
 
                 let potentialSalesCost = 0;
