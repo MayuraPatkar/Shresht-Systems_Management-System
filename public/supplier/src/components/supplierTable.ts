@@ -195,7 +195,6 @@ class SupplierTable {
             : '?';
 
         const phone = supplier.phone || '-';
-        const email = supplier.email || '';
         const city = supplier.billing_address?.city || '';
         const state = supplier.billing_address?.state || '';
         const fullAddress = (city || state) ? `${city}${state ? ', ' + state : ''}`.trim() : '-';
@@ -207,20 +206,19 @@ class SupplierTable {
                     <i class="fas fa-copy text-[8px] opacity-50"></i>
                 </span>
             </td>
-            <td class="px-4 py-3 text-slate-900 font-semibold text-xs max-w-[180px] truncate">
-                <div class="flex items-center gap-2">
+            <td class="px-4 py-3 text-slate-900 font-semibold text-xs">
+                <div class="flex items-center gap-2 min-w-0 w-full">
                     <div class="w-7 h-7 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-center text-blue-600 font-bold text-[10px] shrink-0">
-                        ${initials}
+                         ${initials}
                     </div>
                     <span class="truncate font-semibold text-slate-800" title="${supplierName}">${supplierName}</span>
                 </div>
             </td>
-            <td class="px-4 py-3 text-xs max-w-[180px] truncate">
-                <div class="font-medium text-slate-800">${phone}</div>
-                <div class="text-[10px] text-slate-400 truncate" title="${email}">${email}</div>
+            <td class="px-4 py-3 text-xs min-w-0 w-full">
+                <div class="font-medium text-slate-800 truncate">${phone}</div>
             </td>
-            <td class="px-4 py-3 text-slate-500 max-w-[150px] truncate text-xs" title="${fullAddress}">
-                ${fullAddress}
+            <td class="px-4 py-3 text-slate-500 text-xs min-w-0 w-full">
+                <span class="truncate" title="${fullAddress}">${fullAddress}</span>
             </td>
             <td class="px-4 py-3 text-slate-600 whitespace-nowrap text-xs">
                 ${supplier.supplier_type || 'Vendor'}

@@ -41,6 +41,51 @@
             background: #eff6ff; /* blue-50 */
             border-bottom-color: #2563eb;
         }
+
+        /* Scrollable table body with fixed table header (scrollbar starts below header) */
+        .hidden.md\:block.overflow-y-auto {
+            overflow-y: hidden !important;
+        }
+
+        .hidden.md\:block.overflow-y-auto table {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .hidden.md\:block.overflow-y-auto thead {
+            display: block;
+            flex-shrink: 0;
+            scrollbar-gutter: stable;
+        }
+
+        .hidden.md\:block.overflow-y-auto tbody {
+            display: block;
+            overflow-y: auto;
+            flex-grow: 1;
+            scrollbar-gutter: stable;
+        }
+
+        .hidden.md\:block.overflow-y-auto tr {
+            display: flex;
+            width: 100%;
+        }
+
+        .hidden.md\:block.overflow-y-auto th,
+        .hidden.md\:block.overflow-y-auto td {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .hidden.md\:block.overflow-y-auto th:nth-child(1), .hidden.md\:block.overflow-y-auto td:nth-child(1) { flex: 1.0; }
+        .hidden.md\:block.overflow-y-auto th:nth-child(2), .hidden.md\:block.overflow-y-auto td:nth-child(2) { flex: 1.2; }
+        .hidden.md\:block.overflow-y-auto th:nth-child(3), .hidden.md\:block.overflow-y-auto td:nth-child(3) { flex: 1.8; }
+        .hidden.md\:block.overflow-y-auto th:nth-child(4), .hidden.md\:block.overflow-y-auto td:nth-child(4) { flex: 1.8; }
+        .hidden.md\:block.overflow-y-auto th:nth-child(5), .hidden.md\:block.overflow-y-auto td:nth-child(5) { flex: 1.0; }
+        .hidden.md\:block.overflow-y-auto th:nth-child(6), .hidden.md\:block.overflow-y-auto td:nth-child(6) { flex: 1.2; justify-content: flex-end; text-align: right; }
+        .hidden.md\:block.overflow-y-auto th:nth-child(7), .hidden.md\:block.overflow-y-auto td:nth-child(7) { flex: 1.5; }
     </style>
 </head>
 
@@ -214,28 +259,13 @@
     </aside>
 
         <!-- Main Content -->
-        <main class="flex-grow overflow-hidden flex flex-col p-8 h-[calc(100vh-6rem)]">
+        <main class="flex-grow overflow-hidden flex flex-col h-[calc(100vh-6rem)]">
 
         <!-- Home Section -->
         <div id="home" class="flex-1 flex flex-col min-h-0 overflow-hidden">
-            <!-- Stats Summary -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 flex-shrink-0">
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                    <p class="text-sm text-gray-500 font-medium mb-1">Total Invoices</p>
-                    <h3 class="text-2xl font-bold text-gray-800" id="total-invoices-count">0</h3>
-                </div>
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                    <p class="text-sm text-gray-500 font-medium mb-1">B2B Invoices</p>
-                    <h3 class="text-2xl font-bold text-indigo-600" id="b2b-invoices-count">0</h3>
-                </div>
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                    <p class="text-sm text-gray-500 font-medium mb-1">B2C Invoices</p>
-                    <h3 class="text-2xl font-bold text-purple-600" id="b2c-invoices-count">0</h3>
-                </div>
-            </div>
 
             <!-- Filter Tabs & Invoice List -->
-            <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden fade-in flex-1 flex flex-col min-h-0">
+            <section class="bg-white shadow-sm border border-slate-200 overflow-hidden fade-in flex-1 flex flex-col min-h-0">
                 <div class="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 bg-slate-50/50 flex-shrink-0">
                     <div class="flex items-center gap-1">
                         <!-- Status Tabs -->

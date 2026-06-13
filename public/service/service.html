@@ -23,6 +23,58 @@
             -ms-user-select: none;
         }
 
+        /* Scrollable table body with fixed table header (scrollbar starts below header) */
+        .hidden.md\:block.overflow-y-auto {
+            overflow-y: hidden !important;
+        }
+
+        .hidden.md\:block.overflow-y-auto table {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .hidden.md\:block.overflow-y-auto thead {
+            display: block;
+            flex-shrink: 0;
+            scrollbar-gutter: stable;
+        }
+
+        .hidden.md\:block.overflow-y-auto tbody {
+            display: block;
+            overflow-y: auto;
+            flex-grow: 1;
+            scrollbar-gutter: stable;
+        }
+
+        .hidden.md\:block.overflow-y-auto tr {
+            display: flex;
+            width: 100%;
+        }
+
+        .hidden.md\:block.overflow-y-auto th,
+        .hidden.md\:block.overflow-y-auto td {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Pending view columns (5 columns) */
+        .pending-tab th:nth-child(1), .pending-tab td:nth-child(1) { flex: 1.2; }
+        .pending-tab th:nth-child(2), .pending-tab td:nth-child(2) { flex: 1.0; }
+        .pending-tab th:nth-child(3), .pending-tab td:nth-child(3) { flex: 2.0; }
+        .pending-tab th:nth-child(4), .pending-tab td:nth-child(4) { flex: 2.0; }
+        .pending-tab th:nth-child(5), .pending-tab td:nth-child(5) { flex: 1.2; }
+
+        /* Completed view columns (6 columns) */
+        .completed-tab th:nth-child(1), .completed-tab td:nth-child(1) { flex: 1.2; }
+        .completed-tab th:nth-child(2), .completed-tab td:nth-child(2) { flex: 1.0; }
+        .completed-tab th:nth-child(3), .completed-tab td:nth-child(3) { flex: 2.0; }
+        .completed-tab th:nth-child(4), .completed-tab td:nth-child(4) { flex: 2.0; }
+        .completed-tab th:nth-child(5), .completed-tab td:nth-child(5) { flex: 1.2; }
+        .completed-tab th:nth-child(6), .completed-tab td:nth-child(6) { flex: 1.2; }
+
         input,
         textarea,
         select,
@@ -328,71 +380,12 @@
     </aside>
 
         <!-- Main Content -->
-        <main class="flex-grow overflow-hidden flex flex-col p-8 h-[calc(100vh-6rem)]">
+        <main class="flex-grow overflow-hidden flex flex-col h-[calc(100vh-6rem)]">
 
         <!-- Home Section -->
         <div id="home" class="flex-1 flex flex-col min-h-0 overflow-hidden">
-            <!-- Summary Stats -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 flex-shrink-0">
-                <!-- Due Services -->
-                <div class="stat-card bg-white rounded-xl shadow-sm border border-slate-200 p-4 border-l-4 border-l-orange-500 hover:border-orange-500 hover:shadow-md cursor-pointer transition-all duration-200 min-h-[110px] flex flex-col justify-between" title="Due Services">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Due Services</span>
-                        <div class="bg-orange-50 p-2 rounded-lg text-orange-600 w-8 h-8 flex items-center justify-center">
-                            <i class="fas fa-clock text-sm"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <h2 id="due-count" class="text-xl font-bold text-slate-900 tracking-tight">0</h2>
-                        <span class="text-slate-500 text-xs font-medium">Services currently due</span>
-                    </div>
-                </div>
-
-                <!-- Paused Schedules -->
-                <div class="stat-card bg-white rounded-xl shadow-sm border border-slate-200 p-4 border-l-4 border-l-yellow-500 hover:border-yellow-500 hover:shadow-md cursor-pointer transition-all duration-200 min-h-[110px] flex flex-col justify-between" title="Paused Schedules">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Paused Schedules</span>
-                        <div class="bg-yellow-50 p-2 rounded-lg text-yellow-600 w-8 h-8 flex items-center justify-center">
-                            <i class="fas fa-pause text-sm"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <h2 id="paused-count" class="text-xl font-bold text-slate-900 tracking-tight">0</h2>
-                        <span class="text-slate-500 text-xs font-medium">Schedules temporarily paused</span>
-                    </div>
-                </div>
-
-                <!-- Completed Services -->
-                <div class="stat-card bg-white rounded-xl shadow-sm border border-slate-200 p-4 border-l-4 border-l-green-500 hover:border-green-500 hover:shadow-md cursor-pointer transition-all duration-200 min-h-[110px] flex flex-col justify-between" title="Completed Services">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Completed Services</span>
-                        <div class="bg-green-50 p-2 rounded-lg text-green-600 w-8 h-8 flex items-center justify-center">
-                            <i class="fas fa-check-circle text-sm"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <h2 id="completed-count" class="text-xl font-bold text-slate-900 tracking-tight">0</h2>
-                        <span class="text-slate-500 text-xs font-medium">Recent completed services</span>
-                    </div>
-                </div>
-
-                <!-- Total active schedules -->
-                <div class="stat-card bg-white rounded-xl shadow-sm border border-slate-200 p-4 border-l-4 border-l-blue-500 hover:border-blue-500 hover:shadow-md cursor-pointer transition-all duration-200 min-h-[110px] flex flex-col justify-between" title="Total active schedules">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Services</span>
-                        <div class="bg-blue-50 p-2 rounded-lg text-blue-600 w-8 h-8 flex items-center justify-center">
-                            <i class="fas fa-wrench text-sm"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <h2 id="service-count" class="text-xl font-bold text-slate-900 tracking-tight">0</h2>
-                        <span class="text-slate-500 text-xs font-medium">Total registered services</span>
-                    </div>
-                </div>
-            </div>
-
             <!-- Tabs Selection & List Panel -->
-            <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden fade-in flex-1 flex flex-col min-h-0">
+            <section class="bg-white shadow-sm border border-slate-200 overflow-hidden fade-in flex-1 flex flex-col min-h-0">
                 <div class="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 bg-slate-50/50 flex-shrink-0">
                     <div class="flex items-center gap-1">
                         <!-- Navigation tabs -->

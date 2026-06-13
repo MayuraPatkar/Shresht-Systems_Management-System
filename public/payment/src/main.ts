@@ -1000,6 +1000,17 @@ interface Window {
     function renderTable(): void {
         const showBalance = $toggleRunningBalance?.checked || false;
 
+        const tableContainer = $tbody?.closest('.hidden.md\\:block.overflow-y-auto') as HTMLElement | null;
+        if (tableContainer) {
+            if (showBalance) {
+                tableContainer.classList.add('show-balance-tab');
+                tableContainer.classList.remove('hide-balance-tab');
+            } else {
+                tableContainer.classList.add('hide-balance-tab');
+                tableContainer.classList.remove('show-balance-tab');
+            }
+        }
+
         // Toggle balance headers in DOM
         document.querySelectorAll('.running-balance-col').forEach(el => {
             el.classList.toggle('hidden', !showBalance);

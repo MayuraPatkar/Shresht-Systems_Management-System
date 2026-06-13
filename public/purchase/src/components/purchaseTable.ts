@@ -17,6 +17,17 @@
             const headerRow = document.getElementById('table-header-row');
             if (!headerRow) return;
 
+            const tableContainer = headerRow.closest('.hidden.md\\:block.overflow-y-auto') as HTMLElement | null;
+            if (tableContainer) {
+                if (isTrash) {
+                    tableContainer.classList.add('trash-tab');
+                    tableContainer.classList.remove('normal-tab');
+                } else {
+                    tableContainer.classList.add('normal-tab');
+                    tableContainer.classList.remove('trash-tab');
+                }
+            }
+
             if (isTrash) {
                 headerRow.innerHTML = `
                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Date</th>

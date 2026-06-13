@@ -248,9 +248,14 @@
                 break;
         }
 
+        const tableContainer = $tableHeader.closest('.hidden.md\\:block.overflow-y-auto') as HTMLElement | null;
         services = applyFilters(services);
 
         if (ServiceState.currentTab === 'completed') {
+            if (tableContainer) {
+                tableContainer.classList.add('completed-tab');
+                tableContainer.classList.remove('pending-tab');
+            }
             $tableHeader.innerHTML = `
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Completed Date</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Service ID</th>
@@ -260,6 +265,10 @@
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Payment Status</th>
             `;
         } else {
+            if (tableContainer) {
+                tableContainer.classList.add('pending-tab');
+                tableContainer.classList.remove('completed-tab');
+            }
             // Pending / Due / Scheduled
             $tableHeader.innerHTML = `
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Scheduled Date</th>

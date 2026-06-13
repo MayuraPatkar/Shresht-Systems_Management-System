@@ -20,6 +20,71 @@
             -ms-user-select: none;
         }
 
+        /* Scrollable table body with fixed table header (scrollbar starts below header) */
+        .hidden.md\:block.overflow-y-auto {
+            overflow-y: hidden !important;
+        }
+
+        .hidden.md\:block.overflow-y-auto table {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .hidden.md\:block.overflow-y-auto thead {
+            display: block;
+            flex-shrink: 0;
+            scrollbar-gutter: stable;
+        }
+
+        .hidden.md\:block.overflow-y-auto tbody {
+            display: block;
+            overflow-y: auto;
+            flex-grow: 1;
+            scrollbar-gutter: stable;
+        }
+
+        .hidden.md\:block.overflow-y-auto tr {
+            display: flex;
+            width: 100%;
+        }
+
+        .hidden.md\:block.overflow-y-auto th,
+        .hidden.md\:block.overflow-y-auto td {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Adjust final columns for alignments */
+        .hidden.md\:block.overflow-y-auto th:last-child,
+        .hidden.md\:block.overflow-y-auto td:last-child {
+            justify-content: flex-end;
+            text-align: right;
+        }
+
+        /* Hide balance view columns (8 columns) */
+        .hide-balance-tab th:nth-child(1), .hide-balance-tab td:nth-child(1) { flex: 1.0; }
+        .hide-balance-tab th:nth-child(2), .hide-balance-tab td:nth-child(2) { flex: 1.2; }
+        .hide-balance-tab th:nth-child(3), .hide-balance-tab td:nth-child(3) { flex: 0.8; }
+        .hide-balance-tab th:nth-child(4), .hide-balance-tab td:nth-child(4) { flex: 1.5; }
+        .hide-balance-tab th:nth-child(5), .hide-balance-tab td:nth-child(5) { flex: 1.2; }
+        .hide-balance-tab th:nth-child(6), .hide-balance-tab td:nth-child(6) { flex: 1.2; }
+        .hide-balance-tab th:nth-child(7), .hide-balance-tab td:nth-child(7) { flex: 1.0; }
+        .hide-balance-tab th:nth-child(8), .hide-balance-tab td:nth-child(8) { flex: 1.2; justify-content: flex-end; text-align: right; }
+
+        /* Show balance view columns (9 columns) */
+        .show-balance-tab th:nth-child(1), .show-balance-tab td:nth-child(1) { flex: 1.0; }
+        .show-balance-tab th:nth-child(2), .show-balance-tab td:nth-child(2) { flex: 1.2; }
+        .show-balance-tab th:nth-child(3), .show-balance-tab td:nth-child(3) { flex: 0.8; }
+        .show-balance-tab th:nth-child(4), .show-balance-tab td:nth-child(4) { flex: 1.5; }
+        .show-balance-tab th:nth-child(5), .show-balance-tab td:nth-child(5) { flex: 1.2; }
+        .show-balance-tab th:nth-child(6), .show-balance-tab td:nth-child(6) { flex: 1.2; }
+        .show-balance-tab th:nth-child(7), .show-balance-tab td:nth-child(7) { flex: 1.0; }
+        .show-balance-tab th:nth-child(8), .show-balance-tab td:nth-child(8) { flex: 1.2; justify-content: flex-end; text-align: right; }
+        .show-balance-tab th:nth-child(9), .show-balance-tab td:nth-child(9) { flex: 1.2; justify-content: flex-end; text-align: right; }
+
         input,
         textarea,
         select,
@@ -286,81 +351,13 @@
     </aside>
 
         <!-- Main Content -->
-        <main class="flex-grow overflow-hidden flex flex-col p-8 h-[calc(100vh-6rem)]">
+        <main class="flex-grow overflow-hidden flex flex-col h-[calc(100vh-6rem)]">
 
         <!-- Home Section -->
         <div id="home" class="flex-1 flex flex-col min-h-0 overflow-hidden">
-            <!-- Summary Stats -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 flex-shrink-0">
-                <!-- Money In -->
-                <div id="card-money-in" class="stat-card bg-white rounded-xl shadow-sm border border-slate-200 p-4 border-l-4 border-l-emerald-500 hover:border-emerald-500 hover:shadow-md cursor-pointer transition-all duration-200 min-h-[110px] flex flex-col justify-between" title="Click to filter by Money In">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Money In</span>
-                        <div class="bg-emerald-50 p-2 rounded-lg text-emerald-600 w-8 h-8 flex items-center justify-center">
-                            <i class="fas fa-arrow-down text-sm"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <h2 id="total-in" class="text-xl font-bold text-slate-900 tracking-tight">₹ 0.00</h2>
-                        <div class="flex items-center justify-between mt-1">
-                            <span class="text-slate-500 text-xs font-medium">Total Received</span>
-                            <span id="trend-money-in" class="text-xs font-bold text-emerald-600 flex items-center gap-0.5">--</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Money Out -->
-                <div id="card-money-out" class="stat-card bg-white rounded-xl shadow-sm border border-slate-200 p-4 border-l-4 border-l-rose-500 hover:border-rose-500 hover:shadow-md cursor-pointer transition-all duration-200 min-h-[110px] flex flex-col justify-between" title="Click to filter by Money Out">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Money Out</span>
-                        <div class="bg-rose-50 p-2 rounded-lg text-rose-600 w-8 h-8 flex items-center justify-center">
-                            <i class="fas fa-arrow-up text-sm"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <h2 id="total-out" class="text-xl font-bold text-slate-900 tracking-tight">₹ 0.00</h2>
-                        <div class="flex items-center justify-between mt-1">
-                            <span class="text-slate-500 text-xs font-medium">Total Paid</span>
-                            <span id="trend-money-out" class="text-xs font-bold text-rose-600 flex items-center gap-0.5">--</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Net Cash Flow -->
-                <div id="card-net-cash" class="stat-card bg-white rounded-xl shadow-sm border border-slate-200 p-4 border-l-4 border-l-blue-500 hover:border-blue-500 hover:shadow-md cursor-pointer transition-all duration-200 min-h-[110px] flex flex-col justify-between" title="Click to reset filters">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Net Cash Flow</span>
-                        <div class="bg-blue-50 p-2 rounded-lg text-blue-600 w-8 h-8 flex items-center justify-center">
-                            <i class="fas fa-balance-scale text-sm"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <h2 id="net-balance" class="text-xl font-bold text-slate-900 tracking-tight">₹ 0.00</h2>
-                        <div class="flex items-center mt-1 text-slate-500 text-xs font-medium">
-                            <span id="net-balance-sub">Received ₹0.00 • Paid ₹0.00</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Transactions -->
-                <div id="card-transactions" class="stat-card bg-white rounded-xl shadow-sm border border-slate-200 p-4 border-l-4 border-l-purple-500 hover:border-purple-500 hover:shadow-md cursor-pointer transition-all duration-200 min-h-[110px] flex flex-col justify-between" title="Click to view all transactions">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Transactions</span>
-                        <div class="bg-purple-50 p-2 rounded-lg text-purple-600 w-8 h-8 flex items-center justify-center">
-                            <i class="fas fa-receipt text-sm"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <h2 id="total-count" class="text-xl font-bold text-slate-900 tracking-tight">0</h2>
-                        <div class="flex items-center mt-1 text-slate-500 text-xs font-medium">
-                            <span id="transactions-sub">Completed: 0 • Pending: 0</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <!-- Main Toolbar -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-4 fade-in flex-shrink-0">
+            <div class="bg-white shadow-sm border border-slate-200 p-4 fade-in flex-shrink-0">
                 <div class="flex flex-wrap items-center justify-between gap-4">
                     <!-- Left: Date Range Filters -->
                     <div class="flex flex-wrap items-center gap-1.5" id="date-range-filters">
@@ -395,7 +392,7 @@
             </div>
 
             <!-- Filter Tabs & Payment List -->
-            <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden fade-in flex-1 flex flex-col min-h-0">
+            <section class="bg-white shadow-sm border border-slate-200 overflow-hidden fade-in flex-1 flex flex-col min-h-0">
                 <div class="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 bg-slate-50/50 flex-shrink-0">
                     <div class="flex items-center gap-2">
                         <h3 class="font-bold text-slate-800 text-sm">Transactions Ledger</h3>
@@ -418,7 +415,7 @@
                     </div>
                 </div>
 
-                <div class="hidden md:block overflow-x-auto overflow-y-auto flex-1 min-h-0">
+                <div class="hidden md:block overflow-x-auto overflow-y-auto flex-1 min-h-0 hide-balance-tab">
                     <table class="w-full text-sm border-collapse">
                         <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
                             <tr class="text-slate-700 border-b border-slate-200">
