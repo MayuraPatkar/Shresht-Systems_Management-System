@@ -32,7 +32,6 @@ class QuotationTable {
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">ID</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Project</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Customer</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Deleted Date</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
                 <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider">Total</th>
                 <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider">Actions</th>
@@ -60,7 +59,6 @@ class QuotationTable {
                     <span class="flex items-center">Project Name ${nameIcon}</span>
                 </th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Customer</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Valid Till</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
                 <th id="th-total" class="px-4 py-3 text-right text-xs font-semibold tracking-wider cursor-pointer hover:bg-slate-100 hover:text-purple-600 select-none transition-all duration-150 group">
                     <span class="flex items-center justify-end">${amountIcon} Total</span>
@@ -159,7 +157,7 @@ class QuotationTable {
         if (mobileContainer) mobileContainer.innerHTML = "";
 
         if (!quotations || quotations.length === 0) {
-            const isArchivedView = typeof isArchiveMode !== 'undefined' && isArchiveMode;
+            const isArchivedView = (window as any).currentFilters?.status === 'archived';
             const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
             const hasSearch = searchInput && searchInput.value.trim() !== '';
 
@@ -231,7 +229,6 @@ class QuotationTable {
                 const customerName = q.customer_snapshot?.name || q.customer_name || '-';
                 const totalAmountTax = q.totals?.grand_total || q.total_amount_tax || 0;
                 const status = q.quotation_status || 'Draft';
-                const validTill = q.valid_till ? formatDateIndian(q.valid_till) : '-';
                 const isArchived = !!q.is_archived;
                 const statusBadge = isArchived ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border bg-slate-100 text-slate-600 border-slate-200">ARCHIVED</span>' : this.getStatusBadge(status);
 
@@ -249,7 +246,6 @@ class QuotationTable {
                         <p class="text-sm font-extrabold text-purple-600">₹${formatIndian(totalAmountTax, 2)}</p>
                     </div>
                     <div class="bg-slate-50 rounded-lg p-2 flex items-center justify-between text-xs text-slate-600 border border-slate-100">
-                        <span>Valid: <span class="font-bold text-slate-800">${validTill}</span></span>
                         <span class="font-bold text-slate-400">${quotationId}</span>
                     </div>
                 </div>`;
@@ -278,7 +274,6 @@ class QuotationTable {
         })();
         const totalAmountTax = quotation.totals?.grand_total || quotation.total_amount_tax || 0;
         const status = quotation.quotation_status || 'Draft';
-        const validTill = quotation.valid_till ? formatDateIndian(quotation.valid_till) : '-';
         const isConverted = status === 'Converted' || !!quotation.converted_invoice_id;
 
         quotationCard.innerHTML = `
@@ -296,7 +291,6 @@ class QuotationTable {
                 <div class="font-medium text-slate-800" title="${customerName}">${customerName}</div>
                 <div class="text-[10px] text-slate-400 truncate" title="${customerAddress}">${customerAddress}</div>
             </td>
-            <td class="px-4 py-3 text-slate-500 whitespace-nowrap text-xs">${validTill}</td>
             <td class="px-4 py-3 whitespace-nowrap">
                 ${isArchived ? '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border bg-slate-100 text-slate-600 border-slate-200">ARCHIVED</span>' : this.getStatusBadge(status)}
             </td>
@@ -368,9 +362,6 @@ class QuotationTable {
                 ${quotation.project_name || '-'}
             </td>
             <td class="px-4 py-3 text-slate-700 text-xs max-w-[180px] truncate" title="${customerName}">${customerName}</td>
-            <td class="px-4 py-3 text-red-500 font-medium whitespace-nowrap text-xs">
-                <i class="fas fa-trash mr-1 text-[10px]"></i> ${deletedAt}
-            </td>
             <td class="px-4 py-3 whitespace-nowrap">${this.getStatusBadge(status)}</td>
             <td class="px-4 py-3 text-right font-bold text-xs whitespace-nowrap text-red-500">
                 ₹${formatIndian(totalAmountTax, 2)}

@@ -24,22 +24,21 @@
             color: #64748b; /* slate-500 */
             cursor: pointer;
             transition: all 0.15s ease-in-out;
-            border-bottom: 2px solid transparent;
             gap: 0.25rem;
             outline: none;
+            border-radius: 0.5rem; /* rounded-lg */
             user-select: none;
             -webkit-user-select: none;
         }
 
         .filter-tab:hover:not(.active) {
             color: #334155; /* slate-700 */
-            background: #f8fafc; /* slate-50 */
+            background: #f1f5f9; /* slate-100 */
         }
 
         .filter-tab.active {
             color: #2563eb; /* blue-600 */
             background: #eff6ff; /* blue-50 */
-            border-bottom-color: #2563eb;
         }
 
         /* Scrollable table body with fixed table header (scrollbar starts below header) */
@@ -104,14 +103,6 @@
                     class="bg-blue-600 text-white w-36 h-10 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 font-medium whitespace-nowrap cursor-pointer">
                     <i class="fas fa-plus"></i>
                     New Invoice
-                </button>
-                <button id="archived-invoices-btn"
-                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 px-4 h-10 rounded-lg flex items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
-                    title="View Archived Invoices (Ctrl+Shift+A)">
-                    <i class="fas fa-archive text-slate-400"></i>
-                    <span>Archived</span>
-                    <span id="archived-count-badge"
-                        class="ml-1 px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded-md text-[10px] font-bold">0</span>
                 </button>
                 <button id="bulk-restore-btn"
                     class="hidden bg-emerald-600 hover:bg-emerald-700 text-white px-4 h-10 rounded-lg items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
@@ -265,13 +256,13 @@
         <div id="home" class="flex-1 flex flex-col min-h-0 overflow-hidden">
 
             <!-- Filter Tabs & Invoice List -->
-            <section class="bg-white shadow-sm border border-slate-200 overflow-hidden fade-in flex-1 flex flex-col min-h-0">
+            <section class="bg-white shadow-sm border border-slate-200 overflow-hidden flex-1 flex flex-col min-h-0">
                 <div class="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 bg-slate-50/50 flex-shrink-0">
                     <div class="flex items-center gap-1">
                         <!-- Status Tabs -->
-                        <div class="flex border-b border-slate-200" id="status-tabs-container">
+                        <div class="flex items-center gap-1.5 bg-slate-100/80 p-1 rounded-xl" id="status-tabs-container">
                             <button class="list-tab filter-tab active" data-status="all">
-                                <i class="fas fa-list mr-1"></i>All
+                                All
                             </button>
                             <button class="list-tab filter-tab" data-status="DRAFT">
                                 <i class="fas fa-file-alt mr-1"></i>Draft
@@ -287,6 +278,9 @@
                             </button>
                             <button class="list-tab filter-tab" data-status="OVERDUE">
                                 <i class="fas fa-exclamation-circle mr-1"></i>Overdue
+                            </button>
+                            <button class="list-tab filter-tab" data-status="archived">
+                                <i class="fas fa-archive mr-1"></i>Archived
                             </button>
                         </div>
                     </div>
@@ -364,6 +358,7 @@
                 <option value="PAID">Paid</option>
                 <option value="CANCELLED">Cancelled</option>
                 <option value="REFUNDED">Refunded</option>
+                <option value="archived">Archived</option>
             </select>
         </div>
         <div class="mb-4">

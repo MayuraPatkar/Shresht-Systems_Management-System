@@ -992,7 +992,7 @@ interface Window {
             return true;
         });
 
-        $filterCount.textContent = String(filteredPayments.length);
+        if ($filterCount) $filterCount.textContent = String(filteredPayments.length);
         renderFilterChips();
         renderTable();
     }

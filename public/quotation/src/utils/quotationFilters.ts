@@ -1,6 +1,7 @@
 // @ts-nocheck
 
 let allQuotations: any[] = [];
+let archivedQuotations: any[] = [];
 let currentFilters = {
     dateFilter: 'all',
     sortBy: 'date-desc',
@@ -14,9 +15,14 @@ function applyQuotationFilters() {
     // 1. Update counts on status tabs based on allQuotations
     updateTabCounts();
 
-    let source = [...allQuotations];
-    if (currentFilters.status && currentFilters.status !== 'all') {
-        source = source.filter(q => (q.quotation_status || 'Draft') === currentFilters.status);
+    let source = [];
+    if (currentFilters.status === 'archived') {
+        source = [...archivedQuotations];
+    } else {
+        source = [...allQuotations];
+        if (currentFilters.status && currentFilters.status !== 'all') {
+            source = source.filter(q => (q.quotation_status || 'Draft') === currentFilters.status);
+        }
     }
     const filtered = applyFilters(source, {
         dateFilter: currentFilters.dateFilter,
@@ -47,7 +53,8 @@ function updateTabCounts() {
         Sent: 0,
         Approved: 0,
         Converted: 0,
-        Rejected: 0
+        Rejected: 0,
+        archived: archivedQuotations.length
     };
 
     allQuotations.forEach(q => {

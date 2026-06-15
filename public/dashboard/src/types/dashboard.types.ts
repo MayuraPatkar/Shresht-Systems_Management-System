@@ -2,6 +2,19 @@
  * Dashboard Module Types
  */
 
+interface MorningBriefData {
+  outOfStockCount: number;
+  lowStockCount: number;
+  potentialSalesCost: number;
+  revenue: number;
+  expenses: number;
+  revenueLastMonth: number;
+  quotationsGiven: number;
+  activeProjects: number;
+  outstandingAmount: number;
+  totalCustomers: number;
+}
+
 interface OverviewData {
     totalProjects: number;
     totalQuotations: number;
