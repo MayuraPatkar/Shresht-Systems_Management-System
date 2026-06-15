@@ -56,6 +56,33 @@
         .hidden.md\:block.overflow-y-auto th:nth-child(4), .hidden.md\:block.overflow-y-auto td:nth-child(4) { flex: 2.0; }
         .hidden.md\:block.overflow-y-auto th:nth-child(5), .hidden.md\:block.overflow-y-auto td:nth-child(5) { flex: 1.2; justify-content: flex-end; text-align: right; }
         .hidden.md\:block.overflow-y-auto th:nth-child(6), .hidden.md\:block.overflow-y-auto td:nth-child(6) { flex: 1.5; }
+
+        /* Status Filter Tabs Styling */
+        .filter-tab {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: #64748b; /* slate-500 */
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+            gap: 0.25rem;
+            outline: none;
+            border-radius: 0.5rem; /* rounded-lg */
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .filter-tab:hover:not(.active) {
+            color: #334155; /* slate-700 */
+            background: #f1f5f9; /* slate-100 */
+        }
+
+        .filter-tab.active {
+            color: #2563eb; /* blue-600 */
+            background: #eff6ff; /* blue-50 */
+        }
     </style>
     <title>Purchase Bill</title>
 </head>
@@ -75,14 +102,6 @@
                     class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
                     <i class="fas fa-plus"></i>
                     New Purchase
-                </button>
-                <button id="archived-purchase-orders-btn"
-                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 px-4 h-10 rounded-lg flex items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
-                    title="View Archived Purchase Orders (Ctrl+Shift+A)">
-                    <i class="fas fa-archive text-slate-400"></i>
-                    <span>Archived</span>
-                    <span id="archived-count-badge"
-                        class="ml-1 px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded-md text-[10px] font-bold">0</span>
                 </button>
                 <button id="bulk-restore-btn"
                     class="hidden bg-emerald-600 hover:bg-emerald-700 text-white px-4 h-10 rounded-lg items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
@@ -228,9 +247,17 @@
         <!-- Home View - Purchase Bills List -->
         <div id="home" class="flex-1 flex flex-col min-h-0 overflow-hidden">
             <section class="bg-white shadow-sm border border-slate-200 overflow-hidden flex-1 flex flex-col min-h-0">
-                <!-- Table Controls/Tabs Header -->
                 <div class="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 bg-slate-50/50 flex-shrink-0">
-                    <h3 class="text-base font-bold text-gray-800">Purchase Bills</h3>
+                    <div class="flex items-center justify-between md:justify-start gap-2 overflow-x-auto no-scrollbar scroll-smooth">
+                        <div class="flex items-center gap-1.5 bg-slate-100/80 p-1 rounded-xl" id="status-tabs-container">
+                            <button class="list-tab filter-tab active" data-status="all">
+                                All
+                            </button>
+                            <button class="list-tab filter-tab" data-status="archived">
+                                <i class="fas fa-archive mr-1"></i>Archived
+                            </button>
+                        </div>
+                    </div>
                     
                     <!-- Search & Filter wrapper next to status filter -->
                     <div class="flex items-center gap-3 max-w-md w-full" id="search-wrapper">

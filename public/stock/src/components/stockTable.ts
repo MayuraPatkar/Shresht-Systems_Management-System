@@ -92,23 +92,25 @@ function openContextMenu(triggerBtn: HTMLElement, items: CtxMenuItem[]): void {
 // ─── Loading / Empty state ────────────────────────────────────────────────────
 
 function showLoading(show: boolean): void {
-    const loadingRow = document.getElementById('loading-row');
+    const loadingState = document.getElementById('loading-state');
     const emptyState = document.getElementById('empty-state');
     const tableContainer = document.getElementById('stock-table-container');
-    if (loadingRow) loadingRow.classList.toggle('hidden', !show);
+    
+    if (loadingState) loadingState.classList.toggle('hidden', !show);
     if (show) {
         if (emptyState) emptyState.classList.add('hidden');
-        if (tableContainer) tableContainer.classList.remove('hidden');
+        if (tableContainer) tableContainer.classList.add('hidden');
     }
 }
 
 function showEmpty(show: boolean): void {
+    const loadingState = document.getElementById('loading-state');
     const emptyState   = document.getElementById('empty-state');
     const tableContainer = document.getElementById('stock-table-container');
-    const loadingRow = document.getElementById('loading-row');
+    
     if (emptyState)   emptyState.classList.toggle('hidden', !show);
     if (tableContainer) tableContainer.classList.toggle('hidden', show);
-    if (loadingRow && show) loadingRow.classList.add('hidden');
+    if (loadingState && show) loadingState.classList.add('hidden');
 }
 
 // ─── SKU generation (deterministic from item data) ────────────────────────────
@@ -189,15 +191,16 @@ function renderStockTable(data: StockItem[]): void {
     if (!tbody) return;
 
     // Remove dynamic rows, keep loading/empty sentinels
-    tbody.querySelectorAll('tr:not(#loading-row):not(#empty-row)').forEach(r => r.remove());
+    tbody.querySelectorAll('tr:not(#empty-row)').forEach(r => r.remove());
 
     showLoading(false);
-    showEmpty(false);
 
     if (!data || data.length === 0) {
         showEmpty(true);
         return;
     }
+
+    showEmpty(false);
 
     data.forEach(item => {
         const id       = item._id;

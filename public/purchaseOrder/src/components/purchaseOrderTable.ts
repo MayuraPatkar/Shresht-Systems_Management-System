@@ -378,22 +378,8 @@
         handleDelete(id: string) {
             if ((window as any).deleteDocument) {
                 (window as any).deleteDocument('purchaseOrder', id, 'Purchase Order', async () => {
-                    if ((window as any).purchaseOrderApi) {
-                        try {
-                            const status = (window as any).statusFilter || '';
-                            const deleted = !!(window as any).showDeletedItems;
-                            const data = await (window as any).purchaseOrderApi.fetchRecentPurchaseOrders(status, deleted);
-                            if ((window as any).allPurchaseOrders) {
-                                (window as any).allPurchaseOrders = data.purchaseOrders;
-                            }
-                            if ((window as any).applyPurchaseOrderFilters) {
-                                (window as any).applyPurchaseOrderFilters();
-                            } else {
-                                this.renderPurchaseOrders(data.purchaseOrders);
-                            }
-                        } catch (err) {
-                            console.error("Error refreshing after delete", err);
-                        }
+                    if (typeof (window as any).loadRecentPurchaseOrders === 'function') {
+                        (window as any).loadRecentPurchaseOrders();
                     }
                 });
             } else {

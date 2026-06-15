@@ -553,7 +553,7 @@
             <!-- Main Content -->
             <main class="flex-1 h-full overflow-hidden flex flex-col justify-center">
         <!-- Stock Table -->
-        <div id="stock-table-container" class="bg-white border border-gray-200 overflow-auto table-container flex-1">
+        <div id="stock-table-container" class="hidden bg-white border border-gray-200 overflow-auto table-container flex-1">
             <table class="w-full text-left" id="stock-table">
                 <thead>
                     <tr class="bg-blue-600 text-white text-xs uppercase tracking-wider">
@@ -587,19 +587,19 @@
                 </thead>
                 <tbody class="text-gray-700" id="stock-table-body">
                     <!-- Table rows will be inserted here by JavaScript -->
-                    <tr id="loading-row" class="hidden">
-                        <td colspan="7" class="p-8 text-center">
-                            <div class="flex items-center justify-center">
-                                <i class="fas fa-spinner fa-spin mr-2"></i>
-                                Loading stock data...
-                            </div>
-                        </td>
-                    </tr>
                     <tr id="empty-row" class="hidden">
                         <!-- Keep hidden dummy empty row to support clear dynamic rows logic -->
                     </tr>
                 </tbody>
             </table>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-state" class="flex flex-col items-center justify-center flex-1 text-gray-500 fade-in select-none">
+            <div class="flex items-center justify-center text-lg font-semibold text-gray-650">
+                <i class="fas fa-spinner fa-spin mr-3 text-purple-600 text-2xl"></i>
+                Loading stock data...
+            </div>
         </div>
 
         <!-- Empty State (Hidden by default) -->
