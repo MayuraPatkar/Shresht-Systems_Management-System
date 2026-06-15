@@ -1,25 +1,22 @@
 {
   "name": "shresht-systems-management-system",
-  "version": "3.6.0",
+  "version": "3.6.1",
   "description": "Software for Shresht systems",
-  "main": "dist/main.js",
+  "main": "main.js",
   "scripts": {
-    "dev:css": "tailwindcss -i ./public/css/input.css -o ./public/css/tailwind.css --watch",
-    "dev:ts": "tsc --watch",
-    "dev:public": "tsc -p tsconfig.public.json --watch",
-    "dev:electron": "wait-on dist/main.js && electron .",
-    "dev": "concurrently -k -s none --names \"TS,CSS,PUBLIC,APP\" -c \"blue,yellow,green,magenta\" \"npm run dev:ts\" \"npm run dev:css\" \"npm run dev:public\" \"npm run dev:electron\"",
-    "build:ts": "tsc",
-    "build:public": "tsc -p tsconfig.public.json",
-    "build:css": "tailwindcss -i ./public/css/input.css -o ./public/css/tailwind.css --minify",
-    "build": "npm run build:css && npm run build:ts && npm run build:public",
-    "electron": "npm run build && electron .",
-    "start": "node dist/server.js",
-    "test": "vitest",
-    "backup": "node dist/utils/backup.js",
-    "migrate": "node dist/utils/migrate.js",
+    "start": "npm run build-css-prod && electron .",
+    "dev": "NODE_ENV=development electron .",
+    "server": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "backup": "node utils/backup.js",
+    "clean": "rm -rf dist/ logs/ uploads/ backups/",
+    "build-css": "tailwindcss -i ./public/css/input.css -o ./public/css/tailwind.css --watch",
+    "build-css-prod": "tailwindcss -i ./public/css/input.css -o ./public/css/tailwind.css --minify",
+    "migrate": "node src/utils/migrate.js",
     "logs": "tail -f logs/app.log",
-    "clean": "rimraf dist logs uploads backups"
+    "build": "electron-builder --win",
+    "build:publish": "electron-builder --win --publish always",
+    "release": "npm run build-css-prod && electron-builder --win --publish always"
   },
   "keywords": [],
   "author": "Mayura Patkar, Souvik Poddar",
@@ -45,7 +42,8 @@
     "winston": "^3.18.3"
   },
   "optionalDependencies": {
-    "keytar": "npm:null@^7.10.0"
+    "keytar": "npm:null@^7.10.0",
+    "electron-reload": "^2.0.0-alpha.1"
   },
   "repository": {
     "type": "git",
@@ -127,26 +125,8 @@
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.17",
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
-    "@types/multer": "^2.0.0",
-    "@types/node": "^25.0.10",
-    "concurrently": "^10.0.3",
-    "cross-env": "^7.0.3",
-    "electron": "^40.10.3",
+    "electron": "^39.2.4",
     "electron-builder": "^26.0.12",
-    "nodemon": "^3.1.11",
-    "rimraf": "^6.1.2",
-    "tailwindcss": "^4.1.17",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.18",
-    "wait-on": "^9.0.3"
-  },
-  "allowScripts": {
-    "electron-winstaller@5.4.0": true,
-    "puppeteer@24.43.1": true,
-    "electron@40.10.3": true,
-    "@parcel/watcher@2.5.1": true
+    "tailwindcss": "^4.1.17"
   }
 }

@@ -286,26 +286,34 @@
     font-weight: 500;
 }
 
-.doc-quotation table td.text-right,
-.doc-quotation table th.text-right {
-    text-align: right !important;
-    padding-right: 15px !important;
+.doc-quotation table td:nth-child(1),
+.doc-quotation table td:nth-child(2) {
+    text-align: left;
+    padding-left: 10px;
 }
-.doc-quotation table td.text-center,
-.doc-quotation table th.text-center {
-    text-align: center !important;
+
+.doc-quotation table td:nth-child(3) {
+    text-align: center;
 }
-.doc-quotation table td.text-left,
-.doc-quotation table th.text-left {
-    text-align: left !important;
-    padding-left: 15px !important;
+
+.doc-quotation table td:first-child {
+    text-align: center;
+    font-weight: 600;
 }
-.doc-quotation table tr.totals-row td {
-    font-weight: 700 !important;
-    background-color: #f1f5f9 !important;
-    border-top: 2px solid #cbd5e1 !important;
-    border-bottom: 2px solid #cbd5e1 !important;
-    color: #1e293b !important;
+
+.doc-quotation table td:nth-child(5) {
+    text-align: right;
+    font-weight: 600;
+}
+
+.doc-quotation table td:nth-child(6) {
+    text-align: right;
+    font-weight: 600;
+}
+
+.doc-quotation table td:nth-child(8) {
+    text-align: right;
+    font-weight: 600;
 }
 
 /* ===== QUOTATION TOTALS SECTION ===== */
