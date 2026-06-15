@@ -436,6 +436,9 @@ if (!window._ctrlTabNavRegistered) {
         ? (currentIndex - 1 + navigationOrder.length) % navigationOrder.length
         : (currentIndex + 1) % navigationOrder.length;
 
+      // Mark as direct module navigation so the Back button is not shown
+      sessionStorage.setItem('ssms.sidebarNavigation', 'true');
+
       // Navigate to the next route
       window.location.href = navigationOrder[nextIndex];
     }

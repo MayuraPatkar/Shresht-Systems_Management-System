@@ -931,19 +931,6 @@
     }
 
     function setupListeners() {
-        const homeBtn = document.getElementById("home-btn");
-        if (homeBtn) {
-            homeBtn.addEventListener("click", () => {
-                window.location.href = '/purchaseorder';
-            });
-        }
-
-        const refreshBtn = document.getElementById("refresh-btn");
-        if (refreshBtn) {
-            refreshBtn.addEventListener("click", () => {
-                window.location.reload();
-            });
-        }
 
         const editBtn = document.getElementById("view-edit-btn") as HTMLButtonElement;
         if (editBtn) {

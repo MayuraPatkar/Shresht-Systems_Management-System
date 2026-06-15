@@ -50,6 +50,13 @@ document.addEventListener("DOMContentLoaded", () => {
         settingsPreferences.loadSecuritySettings();
     });
 
+    // Hide Integrations tab for manager role
+    const userRole = sessionStorage.getItem('userRole');
+    if (userRole === 'manager') {
+        const integrationsBtn = document.getElementById('integrations-button');
+        if (integrationsBtn) integrationsBtn.style.display = 'none';
+    }
+
     // Integrations/WhatsApp section
     document.getElementById("integrations-button")?.addEventListener("click", () => {
         settingsUtils.toggleSection("integrations-section");

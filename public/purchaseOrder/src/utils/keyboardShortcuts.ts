@@ -17,8 +17,8 @@
             title: 'Actions',
             icon: 'fas fa-bolt text-yellow-600',
             items: [
-                { label: 'New Purchase', keys: ['Ctrl', 'N'] },
-                { label: 'Save Purchase', keys: ['Ctrl', 'S'] },
+                { label: 'New Purchase Order', keys: ['Ctrl', 'N'] },
+                { label: 'Save Purchase Order', keys: ['Ctrl', 'S'] },
                 { label: 'View Preview', keys: ['Ctrl', 'P'] },
                 { label: 'Print', keys: ['Ctrl', 'Shift', 'P'] },
                 { label: 'Add Item', keys: ['Ctrl', 'I'] },
