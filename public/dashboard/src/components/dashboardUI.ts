@@ -7,7 +7,7 @@ declare var dashboardUtils: any;
 declare function showAlert(message: string): void;
 
 class DashboardUI {
-    private refreshInterval: NodeJS.Timeout | null = null;
+    private refreshInterval: any = null;
     private stockItems: any[] = [];
 
     init() {
@@ -16,6 +16,7 @@ class DashboardUI {
         this.loadStockAlerts();
         this.loadPerformanceMetrics();
 
+        this.setupUserBadge();
         this.setupEventListeners();
         this.startAutoRefresh();
 
@@ -29,6 +30,29 @@ class DashboardUI {
                 this.startAutoRefresh();
             }
         });
+    }
+
+    private setupUserBadge() {
+        const role = sessionStorage.getItem('userRole') || 'admin';
+        const roleEl = document.getElementById('header-user-role');
+        const roleIconEl = document.getElementById('header-user-role-icon');
+
+        if (roleEl) {
+            roleEl.textContent = role.charAt(0).toUpperCase() + role.slice(1);
+            
+            if (role.toLowerCase() === 'manager') {
+                roleEl.className = 'text-sm font-bold uppercase tracking-wider bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md border border-blue-200';
+                if (roleIconEl) {
+                    roleIconEl.className = 'fas fa-user-tie text-blue-500 text-sm';
+                }
+            } else {
+                // Default to Admin
+                roleEl.className = 'text-sm font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-md border border-emerald-200';
+                if (roleIconEl) {
+                    roleIconEl.className = 'fas fa-user-shield text-emerald-500 text-sm';
+                }
+            }
+        }
     }
 
     private setupEventListeners() {
