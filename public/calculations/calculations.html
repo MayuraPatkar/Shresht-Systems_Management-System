@@ -17,8 +17,8 @@
         }
 
         .sidebar {
-            width: 240px;
-            height: 100%;
+            width: 280px;
+            height: 100vh;
             overflow-y: auto;
             /* Enable sidebar scroll */
             overflow-x: hidden;
@@ -26,7 +26,7 @@
 
         /* Main content scrolling */
         main {
-            height: 100%;
+            height: 100vh;
             overflow-y: auto;
             overflow-x: hidden;
         }
@@ -45,8 +45,6 @@
         *::-webkit-scrollbar-thumb {
             background: #2563eb;
             border-radius: 4px;
-            background-clip: padding-box;
-            border: 2px solid transparent;
         }
 
         *::-webkit-scrollbar-thumb:hover {
@@ -87,10 +85,8 @@
         </div>
     </header>
 
-    <!-- Layout Wrapper -->
-    <div class="flex pt-24 h-screen w-full overflow-hidden">
-        <!-- Sidebar -->
-        <aside class="sidebar bg-white h-full flex flex-col border-r border-gray-200 flex-shrink-0">
+    <!-- Sidebar -->
+    <aside class="sidebar fixed top-0 left-0 bg-white h-screen flex flex-col border-r border-gray-200 pt-24">
         <!-- Navigation Links -->
         <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
             <div class="flex flex-col gap-2">
@@ -99,20 +95,10 @@
                     <i class="fas fa-th-large w-8 text-center"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="/customer" id="customer"
-                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
-                    <i class="fas fa-users w-8 text-center"></i>
-                    <span>Customers</span>
-                </a>
                 <a href="../quotation/quotation.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-file-alt w-8 text-center"></i>
                     <span>Quotation</span>
-                </a>
-                <a href="/supplier" id="supplier"
-                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
-                    <i class="fas fa-truck w-8 text-center"></i>
-                    <span>Suppliers</span>
                 </a>
                 <a href="../purchaseOrder/purchaseOrder.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
@@ -133,16 +119,6 @@
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-wrench w-8 text-center"></i>
                     <span>Service</span>
-                </a>
-                <a href="../purchase/purchase.html"
-                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold" id="purchaseOnly">
-                    <i class="fas fa-shopping-bag w-8 text-center"></i>
-                    <span>Purchases</span>
-                </a>
-                <a href="../payment/payment.html"
-                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
-                    <i class="fas fa-money-bill-wave w-8 text-center"></i>
-                    <span>Payments</span>
                 </a>
                 <a href="../stock/stock.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
@@ -173,8 +149,8 @@
         </nav>
     </aside>
 
-        <!-- Main Content -->
-        <main class="flex-1 h-full overflow-y-auto p-8 content-section">
+    <!-- Main Content -->
+    <main class="ml-[280px] pt-24 mt-6 p-8 content-section">
 
         <!-- Quick Actions Bar -->
         <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow-lg p-4 mb-6 fade-in">
@@ -536,20 +512,16 @@
         </section>
 
     </main>
-    </div>
 
     <!-- Scripts -->
     <!-- Shared utilities -->
-    <script src="../../dist/public/ts/shared/core/utils.js"></script>
-    <script src="../../dist/public/ts/shared/documents/calculations.js"></script>
-    <script src="../../dist/public/ts/shared/core/ipc.js"></script>
-    <script src="../../dist/public/ts/shared/core/globalScript.js"></script>
+    <script src="../js/shared/utils.js"></script>
+    <script src="../js/shared/calculations.js"></script>
+    <script src="../js/shared/ipc.js"></script>
+    <script src="../js/shared/globalScript.js"></script>
 
-    <!-- Calculations module scripts (compiled from TypeScript) -->
-    <script src="../../dist/public/calculations/src/types/calculations.types.js"></script>
-    <script src="../../dist/public/calculations/src/utils/calculationsUtils.js"></script>
-    <script src="../../dist/public/calculations/src/components/calculationsForms.js"></script>
-    <script src="../../dist/public/calculations/src/main.js"></script>
+    <!-- Module-specific scripts -->
+    <script src="./calculations.js"></script>
 </body>
 
 </html>

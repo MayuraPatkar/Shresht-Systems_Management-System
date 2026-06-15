@@ -1,6 +1,17 @@
 {
   "versions": [
     {
+      "version": "3.6.1",
+      "date": "2026-05-18",
+      "title": "Invoice View & Edit Fixes",
+      "changes": [
+        {
+          "type": "bugfix",
+          "description": "Invoice Edit: Fixed issue where edits to an invoice were not being saved correctly"
+        }
+      ]
+    },
+    {
       "version": "3.6.0",
       "date": "2026-01-09",
       "title": "Custom IDs & Module Overhauls",
