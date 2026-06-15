@@ -156,6 +156,93 @@ function applyFilters(): void {
     (window as any).filteredStockData = filteredData;
     updateBulkButtonLabels(searchTerm, typeFilter, categoryFilter, statusFilter);
     updateFilterButtonLabels(typeFilter, categoryFilter, statusFilter);
+
+    // Sync status tabs UI with selected status filter
+    const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
+    statusTabs.forEach(tab => {
+        const tabStatus = tab.getAttribute('data-status') || 'all';
+        if (tabStatus === statusFilter) {
+            tab.classList.add('active');
+        } else {
+            tab.classList.remove('active');
+        }
+    });
+
+    updateStockTabCounts();
+}
+
+function updateStockTabCounts(): void {
+    const typeFilter = document.querySelector('#typeFilterDropdown .bg-gray-100')?.getAttribute('data-type-filter') || 'all';
+    const categoryFilter = document.querySelector('#categoryFilterDropdown .bg-gray-100')?.getAttribute('data-type-filter') || 'all';
+    const searchTerm = (document.getElementById('search-input') as HTMLInputElement | null)?.value.toLowerCase().trim() || '';
+
+    let filteredForCounts = currentStockData.filter(item => {
+        const isDeleted = (item.deletion && item.deletion.is_deleted === true) || (item as any).is_deleted === true;
+        return window.showDeletedItems ? isDeleted : !isDeleted;
+    });
+
+    if (searchTerm) {
+        filteredForCounts = filteredForCounts.filter(item => {
+            const name = (item.item_name || '').toLowerCase();
+            const brand = (item.brand || '').toLowerCase();
+            const category = (item.category || '').toLowerCase();
+            const hsn = (item.hsn_sac || '').toLowerCase();
+
+            return name.includes(searchTerm) ||
+                brand.includes(searchTerm) ||
+                category.includes(searchTerm) ||
+                hsn.includes(searchTerm);
+        });
+    }
+
+    if (typeFilter !== 'all') {
+        filteredForCounts = filteredForCounts.filter(item => item.item_type === typeFilter);
+    }
+
+    if (categoryFilter !== 'all') {
+        filteredForCounts = filteredForCounts.filter(item => item.category === categoryFilter);
+    }
+
+    const counts: { [key: string]: number } = {
+        'all': filteredForCounts.length,
+        'In Stock': 0,
+        'Low Stock': 0,
+        'Out of Stock': 0,
+        'Inactive': 0
+    };
+
+    filteredForCounts.forEach(item => {
+        const isActive = item.is_active !== false;
+        if (!isActive) {
+            counts['Inactive']++;
+        } else {
+            const quantity = Number(item.stock_quantity) || 0;
+            const minQuantity = Number(item.min_stock_quantity) || 0;
+            if (quantity >= minQuantity) {
+                counts['In Stock']++;
+            } else if (quantity > 0 && quantity < minQuantity) {
+                counts['Low Stock']++;
+            } else if (quantity === 0) {
+                counts['Out of Stock']++;
+            }
+        }
+    });
+
+    const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
+    statusTabs.forEach(tab => {
+        const tabStatus = tab.getAttribute('data-status') || '';
+        const count = counts[tabStatus] || 0;
+        
+        let badge = tab.querySelector('.tab-count-badge');
+        if (!badge) {
+            badge = document.createElement('span');
+            tab.appendChild(badge);
+        }
+        badge.className = tab.classList.contains('active')
+            ? 'tab-count-badge ml-1.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-blue-100 text-blue-600 transition-colors duration-150'
+            : 'tab-count-badge ml-1.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-slate-100 text-slate-500 transition-colors duration-150';
+        badge.textContent = count.toString();
+    });
 }
 
 function updateFilterButtonLabels(type: string, category: string, status: string): void {
@@ -209,6 +296,29 @@ function setupFilterHandlers(dropdownId: string): void {
 setupFilterHandlers('typeFilterDropdown');
 setupFilterHandlers('categoryFilterDropdown');
 setupFilterHandlers('filterDropdown');
+
+// Register status filter tab click handlers
+(function setupStatusTabs() {
+    const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
+    statusTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const status = tab.getAttribute('data-status') || 'all';
+            
+            // Update active state in filterDropdown
+            const filterDropdown = document.getElementById('filterDropdown');
+            if (filterDropdown) {
+                filterDropdown.querySelectorAll('a').forEach(a => {
+                    a.classList.remove('bg-gray-100', 'font-semibold');
+                    if (a.getAttribute('data-filter') === status) {
+                        a.classList.add('bg-gray-100', 'font-semibold');
+                    }
+                });
+            }
+            
+            applyFilters();
+        });
+    });
+})();
 
 // ─── Search Functionality ────────────────────────────────────────────────────
 
