@@ -96,6 +96,7 @@
                 </button>
                 <button id="archived-quotations-btn"
                     class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 px-4 h-10 rounded-lg flex items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
+                    style="display: none;"
                     title="View Archived Quotations (Ctrl+Shift+A)">
                     <i class="fas fa-archive text-slate-400"></i>
                     <span>Archived</span>
@@ -255,13 +256,13 @@
         <!-- Home Section -->
         <div id="home" class="flex-1 flex flex-col min-h-0 overflow-hidden">
             <!-- Filter Tabs & Quotation List -->
-            <section class="bg-white shadow-sm border border-slate-200 overflow-hidden fade-in flex-1 flex flex-col min-h-0">
+            <section class="bg-white shadow-sm border border-slate-200 overflow-hidden flex-1 flex flex-col min-h-0">
                 <div class="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 bg-slate-50/50 flex-shrink-0">
                     <div class="flex items-center gap-1">
                         <!-- Status Tabs -->
-                        <div class="flex border-b border-slate-200" id="status-tabs-container">
+                        <div class="flex items-center gap-1.5 bg-slate-100/80 p-1 rounded-xl" id="status-tabs-container">
                             <button class="list-tab filter-tab active" data-status="all">
-                                <i class="fas fa-list mr-1"></i>All
+                                All
                             </button>
                             <button class="list-tab filter-tab" data-status="Draft">
                                 <i class="fas fa-file-alt mr-1"></i>Draft
@@ -274,6 +275,9 @@
                             </button>
                             <button class="list-tab filter-tab" data-status="Converted">
                                 <i class="fas fa-file-invoice-dollar mr-1"></i>Converted
+                            </button>
+                            <button class="list-tab filter-tab" data-status="archived">
+                                <i class="fas fa-archive mr-1"></i>Archived
                             </button>
                         </div>
                     </div>
@@ -310,7 +314,6 @@
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Quotation ID</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Project Name</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Customer</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Valid Till</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
                                 <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider">Total</th>
                             </tr>
@@ -349,6 +352,7 @@
                 <option value="Rejected">Rejected</option>
                 <option value="Converted">Converted</option>
                 <option value="Expired">Expired</option>
+                <option value="archived">Archived</option>
             </select>
         </div>
         <div class="mb-4">

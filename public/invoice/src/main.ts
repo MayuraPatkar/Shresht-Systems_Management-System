@@ -22,6 +22,7 @@
 
     // Filter state
     let allInvoices: Invoice[] = [];
+    let archivedInvoices: Invoice[] = [];
     let currentFilteredInvoices: Invoice[] = [];
     let currentFilters = {
         status: 'all',
@@ -31,6 +32,7 @@
         customStartDate: null as string | null,
         customEndDate: null as string | null
     };
+    (window as any).currentFilters = currentFilters;
 
     interface ShortcutItem {
         label: string;
@@ -519,13 +521,14 @@
 
     async function loadRecentInvoices() {
         try {
-            const status = (window as any).statusFilter || '';
             const deleted = !!(window as any).showDeletedItems;
-            const invoices = await (window as any).invoiceApi.fetchRecentInvoices(status, deleted);
+            const [invoices, archived] = await Promise.all([
+                (window as any).invoiceApi.fetchRecentInvoices('', deleted),
+                (window as any).invoiceApi.fetchRecentInvoices('archived', deleted)
+            ]);
             allInvoices = invoices || [];
+            archivedInvoices = archived || [];
             applyInvoiceFilters();
-            updateArchivedCount();
-            updateArchivedButtonVisuals();
             const updateBulkLabels = (window as any).updateBulkButtonLabels;
             if (typeof updateBulkLabels === 'function') {
                 updateBulkLabels();
@@ -564,7 +567,8 @@
             'PARTIALLY PAID': 0,
             OVERDUE: 0,
             CANCELLED: 0,
-            REFUNDED: 0
+            REFUNDED: 0,
+            archived: archivedInvoices.length
         };
 
         allInvoices.forEach(inv => {
@@ -602,7 +606,9 @@
     function applyInvoiceFilters() {
         updateTabCounts();
 
-        let filtered = applyFilters(allInvoices, {
+        const sourceList = currentFilters.status === 'archived' ? archivedInvoices : allInvoices;
+
+        let filtered = applyFilters(sourceList, {
             paymentStatus: currentFilters.paymentStatus,
             dateFilter: currentFilters.dateFilter,
             sortBy: currentFilters.sortBy,
@@ -612,7 +618,7 @@
             customStartDate: currentFilters.customStartDate,
             customEndDate: currentFilters.customEndDate
         });
-        if (currentFilters.status !== 'all') {
+        if (currentFilters.status !== 'all' && currentFilters.status !== 'archived') {
             filtered = filtered.filter((inv: Invoice) => getInvoiceStatus(inv) === currentFilters.status);
         }
 
@@ -1007,7 +1013,7 @@
         }
 
         try {
-            const status = (window as any).statusFilter || '';
+            const status = currentFilters.status === 'archived' ? 'archived' : '';
             const deleted = !!(window as any).showDeletedItems;
             let url = `/invoice/search/${encodeURIComponent(query)}?`;
             if (status) url += `status=${encodeURIComponent(status)}&`;

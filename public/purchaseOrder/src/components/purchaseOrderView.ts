@@ -908,18 +908,8 @@
                 renderPurchaseOrderDetails(currentPurchaseOrder);
                 
                 // Refresh list
-                if ((window as any).purchaseOrderApi) {
-                    const status = (window as any).statusFilter || '';
-                    const deleted = !!(window as any).showDeletedItems;
-                    const data = await (window as any).purchaseOrderApi.fetchRecentPurchaseOrders(status, deleted);
-                    if ((window as any).allPurchaseOrders) {
-                        (window as any).allPurchaseOrders = data.purchaseOrders;
-                    }
-                    if ((window as any).applyPurchaseOrderFilters) {
-                        (window as any).applyPurchaseOrderFilters();
-                    } else if ((window as any).purchaseOrderTable && (window as any).purchaseOrderTable.renderPurchaseOrders) {
-                        (window as any).purchaseOrderTable.renderPurchaseOrders(data.purchaseOrders);
-                    }
+                if (typeof (window as any).loadRecentPurchaseOrders === 'function') {
+                    (window as any).loadRecentPurchaseOrders();
                 }
             } else {
                 showAlert("Failed to save purchase order.");

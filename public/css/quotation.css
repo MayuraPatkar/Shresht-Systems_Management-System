@@ -219,27 +219,26 @@ div.records {
 .filter-tab {
     display: inline-flex;
     align-items: center;
-    padding: 0.75rem 1.25rem;
+    padding: 0.5rem 1rem;
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     color: #64748b; /* slate-500 */
     cursor: pointer;
     transition: all 0.15s ease-in-out;
-    border-bottom: 3px solid transparent;
     gap: 0.25rem;
     outline: none;
+    border-radius: 0.5rem; /* rounded-lg */
     user-select: none;
     -webkit-user-select: none;
 }
 
 .filter-tab:hover:not(.active) {
     color: #334155; /* slate-700 */
-    background: #f8fafc; /* slate-50 */
+    background: #f1f5f9; /* slate-100 */
 }
 
 .filter-tab.active {
     color: #9333ea; /* purple-600 */
-    background: #faf5ff; /* purple-50/50 */
-    border-bottom-color: #9333ea;
+    background: #faf5ff; /* purple-50 */
 }
 

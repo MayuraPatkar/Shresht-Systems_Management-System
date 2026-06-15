@@ -58,10 +58,10 @@ class DashboardUtils {
     updateDateTime(): void {
         const now = new Date();
         const dateOptions: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        
+
         const dateEl = document.getElementById('current-date');
         const timeEl = document.getElementById('current-time');
-        
+
         if (dateEl) dateEl.textContent = now.toLocaleDateString(undefined, dateOptions);
         if (timeEl) timeEl.textContent = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     }
@@ -82,6 +82,19 @@ class DashboardUtils {
         if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
         if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`;
         return past.toLocaleDateString();
+    }
+
+    getGreeting(): string {
+        const hour = new Date().getHours();
+        if (hour < 12) return 'Good morning';
+        if (hour < 17) return 'Good afternoon';
+        return 'Good evening';
+    }
+
+    formatLakhs(num: number): string {
+        if (num >= 100000) return `₹${(num / 100000).toFixed(1)}L`;
+        if (num >= 1000) return `₹${(num / 1000).toFixed(0)}K`;
+        return `₹${formatIndian(num)}`;
     }
 }
 

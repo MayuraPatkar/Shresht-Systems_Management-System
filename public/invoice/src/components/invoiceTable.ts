@@ -127,7 +127,7 @@
 
         renderPage(invoices: Invoice[]) {
             const isTrash = !!(window as any).showDeletedItems;
-            const isArchivedView = !isTrash && (window as any).statusFilter === 'archived';
+            const isArchivedView = !isTrash && (window as any).currentFilters?.status === 'archived';
 
             const tbody = document.getElementById("invoice-tbody");
             const mobileContainer = document.getElementById("invoice-cards-mobile");

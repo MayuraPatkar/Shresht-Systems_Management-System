@@ -29,6 +29,7 @@
 
     // Filter state
     let allWayBills: EWayBill[] = [];
+    let archivedWayBills: EWayBill[] = [];
     (window as any).statusFilter = '';
     (window as any).showDeletedItems = false;
     let currentFilteredEWayBills: EWayBill[] = [];
@@ -40,6 +41,7 @@
         customStartDate: null as string | null,
         customEndDate: null as string | null
     };
+    (window as any).currentFilters = currentFilters;
 
     interface ShortcutItem {
         label: string;
@@ -827,7 +829,7 @@
         const icon = archivedBtn.querySelector('i');
         const badge = document.getElementById('archived-count-badge');
 
-        if ((window as any).statusFilter === 'archived') {
+        if (currentFilters.status === 'archived') {
             archivedBtn.classList.remove('bg-gray-200', 'text-gray-700', 'border-slate-200', 'hover:bg-slate-50');
             archivedBtn.classList.add('bg-amber-500', 'text-white', 'border-amber-500', 'ring-2', 'ring-amber-500/20', 'shadow-md', 'shadow-amber-500/10', 'hover:bg-amber-600');
             
@@ -856,12 +858,14 @@
     async function loadRecentWayBills() {
         const ewaybillApi = (window as any).ewaybillApi;
         try {
-            const status = (window as any).statusFilter || '';
             const deleted = !!(window as any).showDeletedItems;
-            allWayBills = await ewaybillApi.fetchRecentEWayBills(status, deleted);
+            const [waybills, archived] = await Promise.all([
+                ewaybillApi.fetchRecentEWayBills('', deleted),
+                ewaybillApi.fetchRecentEWayBills('archived', deleted)
+            ]);
+            allWayBills = waybills || [];
+            archivedWayBills = archived || [];
             applyWayBillFilters();
-            updateArchivedCount();
-            updateArchivedButtonVisuals();
             const updateBulkLabels = (window as any).updateBulkButtonLabels;
             if (typeof updateBulkLabels === 'function') {
                 updateBulkLabels();
@@ -900,13 +904,8 @@
                 }
             }
         }
-        if (typeof address === 'object' && address !== null) {
-            const parts = [
-                address.line1,
-                address.line2,
-                address.city,
-                address.state && address.pincode ? `${address.state} - ${address.pincode}` : (address.state || address.pincode)
-            ];
+        if (address && typeof address === 'object') {
+            const parts = [address.line1, address.line2, address.city, address.state, address.pincode, address.country];
             return parts.filter(Boolean).map(p => String(p).trim()).join(', ');
         }
         return String(address || '-');
@@ -921,7 +920,8 @@
             Draft: 0,
             Generated: 0,
             Cancelled: 0,
-            Expired: 0
+            Expired: 0,
+            archived: archivedWayBills.length
         };
 
         allWayBills.forEach(wb => {
@@ -1002,8 +1002,8 @@
         updateWayBillTabCounts();
         updateActiveFiltersBar();
 
-        let source = [...allWayBills];
-        if (currentFilters.status && currentFilters.status !== 'all') {
+        let source = currentFilters.status === 'archived' ? [...archivedWayBills] : [...allWayBills];
+        if (currentFilters.status && currentFilters.status !== 'all' && currentFilters.status !== 'archived') {
             source = source.filter(wb => (wb.ewaybill_status || 'Draft') === currentFilters.status);
         }
 
@@ -1312,7 +1312,7 @@
 
     function renderPage(wayBills: EWayBill[]) {
         const isTrash = !!(window as any).showDeletedItems;
-        const isArchivedView = !isTrash && (window as any).statusFilter === 'archived';
+        const isArchivedView = !isTrash && currentFilters.status === 'archived';
 
         const tbody = document.getElementById("ewaybill-tbody");
         const mobileContainer = document.getElementById("ewaybill-cards-mobile");
@@ -1663,8 +1663,41 @@
             return;
         }
 
-        await searchDocuments('eWayBill', query, wayBillsListDiv, createWayBillRow,
-            `No e-way bills match your search`);
+        try {
+            const status = currentFilters.status === 'archived' ? 'archived' : '';
+            const deleted = !!(window as any).showDeletedItems;
+            let url = `/eWayBill/search/${encodeURIComponent(query)}?`;
+            if (status) url += `status=${encodeURIComponent(status)}&`;
+            if (deleted) url += `deleted=true&`;
+
+            const response = await fetch(url);
+            if (!response.ok) {
+                if (currentFilters.status === 'archived') {
+                    archivedWayBills = [];
+                } else {
+                    allWayBills = [];
+                }
+                applyWayBillFilters();
+                const noResultsMessage = `No e-way bills match your search`;
+                const messageHtml = `<div class="inline-flex flex-col items-center justify-center text-center py-4 fade-in select-none" style="min-height: 300px;">
+                            <h2 class="text-2xl font-bold text-gray-800 mb-2">No Results Found</h2>
+                            <p class="text-gray-500 text-xs">${noResultsMessage}</p>
+                       </div>`;
+                wayBillsListDiv.innerHTML = `<tr><td colspan="100" class="px-4 py-12 bg-white text-slate-400 text-center">${messageHtml}</td></tr>`;
+                return;
+            }
+
+            const data = await response.json();
+            const docs = data.eWayBills || data.eWayBill || [];
+            if (currentFilters.status === 'archived') {
+                archivedWayBills = docs;
+            } else {
+                allWayBills = docs;
+            }
+            applyWayBillFilters();
+        } catch (error) {
+            console.error("Search failed:", error);
+        }
     }
 
     // Auto-open new form or view based on URL parameters

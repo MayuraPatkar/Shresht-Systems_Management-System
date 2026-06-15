@@ -27,18 +27,18 @@
             newBtn.addEventListener('click', showNewPurchaseForm);
         }
 
-        // Archived button toggle
-        const archivedBtn = document.getElementById('archived-purchase-orders-btn');
-        if (archivedBtn) {
-            archivedBtn.onclick = () => {
-                if ((window as any).statusFilter === 'archived') {
-                    (window as any).statusFilter = '';
-                } else {
-                    (window as any).statusFilter = 'archived';
-                }
+        // Status filter tabs toggle
+        const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
+        statusTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                statusTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                const status = (tab as HTMLElement).dataset.status;
+                (window as any).statusFilter = status === 'all' ? '' : 'archived';
                 loadRecentPurchaseOrders();
-            };
-        }
+            });
+        });
 
         // Search functionality
         const searchInput = document.getElementById('search-input') as HTMLInputElement;
@@ -305,21 +305,27 @@
     async function loadRecentPurchaseOrders() {
         try {
             if ((window as any).purchaseOrderApi) {
-                const status = (window as any).statusFilter || '';
                 const deleted = !!(window as any).showDeletedItems;
-                const data = await (window as any).purchaseOrderApi.fetchRecentPurchaseOrders(status, deleted);
-                if ((window as any).allPurchaseOrders) {
-                    (window as any).allPurchaseOrders = data.purchaseOrders;
-                }
-                
+                const [activeData, archivedData] = await Promise.all([
+                    (window as any).purchaseOrderApi.fetchRecentPurchaseOrders('', deleted),
+                    (window as any).purchaseOrderApi.fetchRecentPurchaseOrders('archived', deleted)
+                ]);
+
+                const activeList = activeData.purchaseOrders || activeData || [];
+                const archivedList = archivedData.purchaseOrders || archivedData || [];
+
+                (window as any).allPurchaseOrders = activeList;
+                (window as any).archivedPurchaseOrders = archivedList;
+
                 if ((window as any).applyPurchaseOrderFilters) {
                     (window as any).applyPurchaseOrderFilters();
                 } else if ((window as any).purchaseOrderTable) {
-                    (window as any).purchaseOrderTable.renderPurchaseOrders(data.purchaseOrders);
+                    const currentStatus = (window as any).statusFilter || '';
+                    const currentList = currentStatus === 'archived' ? archivedList : activeList;
+                    (window as any).purchaseOrderTable.renderPurchaseOrders(currentList);
                 }
 
-                updateArchivedCount();
-                updateArchivedButtonVisuals();
+                updateTabCounts(activeList.length, archivedList.length);
 
                 if (typeof (window as any).updateBulkButtonLabels === 'function') {
                     (window as any).updateBulkButtonLabels();
@@ -333,50 +339,43 @@
         }
     }
 
-    const updateArchivedCount = async () => {
-        try {
-            const archived = await (window as any).purchaseOrderApi.fetchRecentPurchaseOrders('archived', false);
-            const countBadge = document.getElementById('archived-count-badge');
-            if (countBadge) {
-                countBadge.textContent = (archived.purchaseOrders || archived).length.toString();
-            }
-        } catch (err) {
-            console.error('Failed to update archived count:', err);
-        }
-    };
-    (window as any).updateArchivedCount = updateArchivedCount;
+    function updateTabCounts(activeCount: number, archivedCount: number) {
+        const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
+        if (!statusTabs.length) return;
 
-    function updateArchivedButtonVisuals() {
-        const archivedBtn = document.getElementById('archived-purchase-orders-btn') as HTMLButtonElement | null;
-        if (!archivedBtn) return;
+        const counts = {
+            all: activeCount,
+            archived: archivedCount
+        };
 
-        const icon = archivedBtn.querySelector('i');
-        const badge = document.getElementById('archived-count-badge');
+        const currentStatus = (window as any).statusFilter || '';
+        const activeStatusKey = currentStatus === 'archived' ? 'archived' : 'all';
 
-        if ((window as any).statusFilter === 'archived') {
-            archivedBtn.classList.remove('bg-gray-200', 'text-gray-700', 'border-slate-200', 'hover:bg-slate-50');
-            archivedBtn.classList.add('bg-amber-500', 'text-white', 'border-amber-500', 'ring-2', 'ring-amber-500/20', 'shadow-md', 'shadow-amber-500/10', 'hover:bg-amber-600');
+        statusTabs.forEach(tab => {
+            const status = (tab as HTMLElement).dataset.status || 'all';
+            const count = counts[status] || 0;
             
-            if (icon) {
-                icon.className = 'fas fa-box-open text-white';
+            // Sync active class
+            if (status === activeStatusKey) {
+                tab.classList.add('active');
+            } else {
+                tab.classList.remove('active');
             }
-            if (badge) {
-                badge.classList.remove('bg-slate-100', 'text-slate-600');
-                badge.classList.add('bg-white', 'text-amber-600', 'font-extrabold');
+            
+            let badge = tab.querySelector('.tab-count-badge');
+            if (!badge) {
+                badge = document.createElement('span');
+                tab.appendChild(badge);
             }
-        } else {
-            archivedBtn.classList.remove('bg-amber-500', 'text-white', 'border-amber-500', 'ring-2', 'ring-amber-500/20', 'shadow-md', 'shadow-amber-500/10', 'hover:bg-amber-600');
-            archivedBtn.classList.add('bg-gray-200', 'text-gray-700', 'border-slate-200', 'hover:bg-slate-50');
-
-            if (icon) {
-                icon.className = 'fas fa-archive text-slate-400';
-            }
-            if (badge) {
-                badge.classList.remove('bg-white', 'text-amber-600', 'font-extrabold');
-                badge.classList.add('bg-slate-100', 'text-slate-600');
-            }
-        }
+            badge.className = tab.classList.contains('active')
+                ? 'tab-count-badge ml-1.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-blue-100 text-blue-600 transition-colors duration-150'
+                : 'tab-count-badge ml-1.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-slate-100 text-slate-500 transition-colors duration-150';
+            badge.textContent = count.toString();
+        });
     }
+
+    // Expose updateTabCounts globally
+    (window as any).updateTabCounts = updateTabCounts;
 
     function updateTrashButton() {
         const showDeletedBtn = document.getElementById('showDeletedBtn');

@@ -10,7 +10,11 @@
 
     // Apply filters to purchase orders
     function applyPurchaseOrderFilters() {
-        const filtered = (window as any).applyFilters((window as any).allPurchaseOrders || [], {
+        const sourceList = (window as any).statusFilter === 'archived'
+            ? ((window as any).archivedPurchaseOrders || [])
+            : ((window as any).allPurchaseOrders || []);
+            
+        const filtered = (window as any).applyFilters(sourceList, {
             dateFilter: currentFilters.dateFilter,
             sortBy: currentFilters.sortBy,
             dateField: 'purchase_date',

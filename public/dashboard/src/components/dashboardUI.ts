@@ -38,16 +38,6 @@ class DashboardUI {
     }
 
     private setupEventListeners() {
-        const refreshAllBtn = document.getElementById('refresh-all-btn');
-        if (refreshAllBtn) {
-            refreshAllBtn.addEventListener('click', () => {
-                this.loadOverview();
-                this.loadRecentActivity();
-                this.loadStockAlerts();
-                this.loadPerformanceMetrics();
-            });
-        }
-
         // More Actions dropdown toggle
         const moreActionsBtn = document.getElementById('more-actions-btn');
         const moreActionsDropdown = document.getElementById('more-actions-dropdown');
@@ -134,8 +124,9 @@ class DashboardUI {
                 const netCashflowBadge = document.getElementById("net-cashflow-badge");
                 if (netCashflowBadge) {
                     const isLoss = netCashflow < 0;
-                    netCashflowBadge.textContent = isLoss ? 'Loss' : 'Profit';
-                    netCashflowBadge.className = `text-xs font-bold px-2 py-0.5 rounded ${isLoss ? 'text-red-650 bg-red-50 border border-red-100' : 'text-green-600 bg-green-50 border border-green-100'}`;
+                    const isNeutral = netCashflow === 0;
+                    netCashflowBadge.textContent = isNeutral ? 'Neutral' : isLoss ? 'Loss' : 'Profit';
+                    netCashflowBadge.className = `text-xs font-bold px-2 py-0.5 rounded ${isLoss ? 'text-red-650 bg-red-50 border border-red-100' : isNeutral ? 'text-slate-600 bg-slate-50 border border-slate-100' : 'text-green-600 bg-green-50 border border-green-100'}`;
                 }
 
                 const netCashflowDetails = document.getElementById("net-cashflow-details");

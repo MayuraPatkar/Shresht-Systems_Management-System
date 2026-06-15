@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (searchWrapper) searchWrapper.style.display = 'flex';
             if (refreshBtn) refreshBtn.style.display = 'flex';
             if (trashBtn) trashBtn.style.display = 'flex';
-            if (archivedBtn) archivedBtn.style.display = 'flex';
+            if (archivedBtn) archivedBtn.style.display = 'none';
             if (closeTrashBtn) closeTrashBtn.style.display = 'none';
             if (restoreAllBtn) restoreAllBtn.style.display = 'none';
             if (deleteAllBtn) deleteAllBtn.style.display = 'none';
@@ -333,22 +333,32 @@ async function loadTrashQuotations() {
 // Load recent quotations from the server
 async function loadRecentQuotations() {
     try {
-        const response = await fetch(`/quotation/recent-quotations${isArchiveMode ? '?status=archived' : ''}`);
-        if (!response.ok) {
+        const [activeRes, archivedRes] = await Promise.all([
+            fetch('/quotation/recent-quotations'),
+            fetch('/quotation/recent-quotations?status=archived')
+        ]);
+        
+        if (!activeRes.ok || !archivedRes.ok) {
             throw new Error("Failed to fetch quotations");
         }
 
-        const data = await response.json();
+        const activeData = await activeRes.json();
+        const archivedData = await archivedRes.json();
         
         // Map backend schema to expected structure for filtering/sorting
-        allQuotations = (data.quotation || []).map((q: any) => ({
+        allQuotations = (activeData.quotation || []).map((q: any) => ({
+            ...q,
+            total_amount_tax: q.totals?.grand_total || q.total_amount_tax || 0,
+            quotation_id: q.quotation_no || q.quotation_id
+        }));
+
+        archivedQuotations = (archivedData.quotation || []).map((q: any) => ({
             ...q,
             total_amount_tax: q.totals?.grand_total || q.total_amount_tax || 0,
             quotation_id: q.quotation_no || q.quotation_id
         }));
         
         applyQuotationFilters();
-        updateArchivedCount();
     } catch (error) {
         console.error("Error loading quotations:", error);
         quotationListDiv.innerHTML = `
@@ -525,8 +535,8 @@ async function handleSearch() {
         return;
     }
 
-    if (isArchiveMode) {
-        const matches = allQuotations.filter((quotation: any) =>
+    if (currentFilters.status === 'archived') {
+        const matches = archivedQuotations.filter((quotation: any) =>
             [quotation.quotation_id, quotation.project_name, quotation.customer_snapshot?.name, quotation.quotation_status]
                 .some(value => String(value || '').toLowerCase().includes(query.toLowerCase()))
         );
