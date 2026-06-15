@@ -55,16 +55,6 @@ class DashboardUtils {
         }, delay);
     }
 
-    updateDateTime(): void {
-        const now = new Date();
-        const dateOptions: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-
-        const dateEl = document.getElementById('current-date');
-        const timeEl = document.getElementById('current-time');
-
-        if (dateEl) dateEl.textContent = now.toLocaleDateString(undefined, dateOptions);
-        if (timeEl) timeEl.textContent = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    }
 
     formatTimeAgo(date: string | Date | undefined): string {
         if (!date) return 'Unknown';

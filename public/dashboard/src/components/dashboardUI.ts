@@ -16,7 +16,6 @@ class DashboardUI {
         this.loadStockAlerts();
         this.loadPerformanceMetrics();
 
-        this.setupDateTime();
         this.setupEventListeners();
         this.startAutoRefresh();
 
@@ -30,11 +29,6 @@ class DashboardUI {
                 this.startAutoRefresh();
             }
         });
-    }
-
-    private setupDateTime() {
-        setInterval(() => dashboardUtils.updateDateTime(), 1000);
-        dashboardUtils.updateDateTime();
     }
 
     private setupEventListeners() {
