@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/tailwind.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <title>Payments</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        /* Scrollable table body with fixed table header (scrollbar starts below header) */
+        .hidden.md\:block.overflow-y-auto {
+            overflow-y: hidden !important;
+        }
+
+        .hidden.md\:block.overflow-y-auto table {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .hidden.md\:block.overflow-y-auto thead {
+            display: block;
+            flex-shrink: 0;
+            scrollbar-gutter: stable;
+        }
+
+        .hidden.md\:block.overflow-y-auto tbody {
+            display: block;
+            overflow-y: auto;
+            flex-grow: 1;
+            scrollbar-gutter: stable;
+        }
+
+        .hidden.md\:block.overflow-y-auto tr {
+            display: flex;
+            width: 100%;
+        }
+
+        .hidden.md\:block.overflow-y-auto th,
+        .hidden.md\:block.overflow-y-auto td {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Adjust final columns for alignments */
+        .hidden.md\:block.overflow-y-auto th:last-child,
+        .hidden.md\:block.overflow-y-auto td:last-child {
+            justify-content: flex-end;
+            text-align: right;
+        }
+
+        /* Hide balance view columns (8 columns) */
+        .hide-balance-tab th:nth-child(1), .hide-balance-tab td:nth-child(1) { flex: 1.0; }
+        .hide-balance-tab th:nth-child(2), .hide-balance-tab td:nth-child(2) { flex: 1.2; }
+        .hide-balance-tab th:nth-child(3), .hide-balance-tab td:nth-child(3) { flex: 0.8; }
+        .hide-balance-tab th:nth-child(4), .hide-balance-tab td:nth-child(4) { flex: 1.5; }
+        .hide-balance-tab th:nth-child(5), .hide-balance-tab td:nth-child(5) { flex: 1.2; }
+        .hide-balance-tab th:nth-child(6), .hide-balance-tab td:nth-child(6) { flex: 1.2; }
+        .hide-balance-tab th:nth-child(7), .hide-balance-tab td:nth-child(7) { flex: 1.0; }
+        .hide-balance-tab th:nth-child(8), .hide-balance-tab td:nth-child(8) { flex: 1.2; justify-content: flex-end; text-align: right; }
+
+        /* Show balance view columns (9 columns) */
+        .show-balance-tab th:nth-child(1), .show-balance-tab td:nth-child(1) { flex: 1.0; }
+        .show-balance-tab th:nth-child(2), .show-balance-tab td:nth-child(2) { flex: 1.2; }
+        .show-balance-tab th:nth-child(3), .show-balance-tab td:nth-child(3) { flex: 0.8; }
+        .show-balance-tab th:nth-child(4), .show-balance-tab td:nth-child(4) { flex: 1.5; }
+        .show-balance-tab th:nth-child(5), .show-balance-tab td:nth-child(5) { flex: 1.2; }
+        .show-balance-tab th:nth-child(6), .show-balance-tab td:nth-child(6) { flex: 1.2; }
+        .show-balance-tab th:nth-child(7), .show-balance-tab td:nth-child(7) { flex: 1.0; }
+        .show-balance-tab th:nth-child(8), .show-balance-tab td:nth-child(8) { flex: 1.2; justify-content: flex-end; text-align: right; }
+        .show-balance-tab th:nth-child(9), .show-balance-tab td:nth-child(9) { flex: 1.2; justify-content: flex-end; text-align: right; }
+
+        input,
+        textarea,
+        select,
+        [contenteditable="true"] {
+            user-select: text !important;
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .sidebar {
+            width: 240px;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        main {
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        *::-webkit-scrollbar { width: 8px; height: 8px; }
+        *::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        *::-webkit-scrollbar-thumb { background: #2563eb; border-radius: 4px; background-clip: padding-box; border: 2px solid transparent; }
+        *::-webkit-scrollbar-thumb:hover { background: #1d4ed8; }
+
+        .stat-card {
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        .payment-row {
+            transition: all 0.15s ease;
+            cursor: pointer;
+        }
+
+        .payment-row:hover {
+            background: #f0f7ff;
+        }
+
+        .payment-row:focus {
+            outline: 2px solid #2563eb;
+            outline-offset: -2px;
+            background: #eff6ff;
+        }
+
+        .badge-in {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .badge-out {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .badge-cash { background: #fef3c7; color: #d97706; }
+        .badge-upi { background: #e0e7ff; color: #4f46e5; }
+        .badge-bank { background: #dbeafe; color: #2563eb; }
+        .badge-cheque { background: #f3e8ff; color: #7c3aed; }
+
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .steps {
+            display: none;
+        }
+
+        .steps.active {
+            display: block;
+        }
+
+        .filter-tab {
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+
+        .filter-tab.active {
+            color: #2563eb;
+            background: #eff6ff;
+            border-bottom-color: #2563eb;
+        }
+
+        .filter-tab:hover:not(.active) {
+            background: #f3f4f6;
+        }
+
+        button,
+        [role="button"] {
+            cursor: pointer !important;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+
+    <!-- Fixed Header -->
+    <header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-30 h-24 flex items-center px-4">
+        <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-3">
+                <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
+                <h1 class="text-xl font-bold text-gray-800">Payments</h1>
+            </div>
+            <div class="flex items-center gap-2">
+                <!-- Export Dropdown -->
+                <div class="relative inline-block text-left" id="export-dropdown-wrapper">
+                    <button id="export-btn" class="bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 px-3 py-2 rounded-lg flex items-center gap-2 font-semibold h-10 transition-all duration-150 active:scale-95 cursor-pointer shadow-sm" title="Export payments">
+                        <i class="fas fa-download"></i>
+                        <span>Export</span>
+                    </button>
+                    <!-- Dropdown menu -->
+                    <div id="export-menu" class="hidden absolute right-0 mt-1.5 w-40 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50 border border-slate-155">
+                        <div class="py-1" role="menu" aria-orientation="vertical">
+                            <button id="export-csv" class="w-full text-left px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer transition-colors" role="menuitem">
+                                <i class="fas fa-file-csv text-green-600 text-sm"></i>Export CSV
+                            </button>
+                            <button id="export-excel" class="w-full text-left px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer transition-colors" role="menuitem">
+                                <i class="fas fa-file-excel text-emerald-600 text-sm"></i>Export Excel
+                            </button>
+                            <button id="print-report" class="w-full text-left px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer transition-colors" role="menuitem">
+                                <i class="fas fa-print text-blue-600 text-sm"></i>Print Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="home-btn"
+                    class="hidden bg-gray-600 text-white px-4 py-2.5 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium h-10"
+                    title="Home (Ctrl+H)">
+                    <i class="fas fa-home"></i>
+                    Home
+                </button>
+                <button id="voucher-btn"
+                    class="bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 px-3 py-2 rounded-lg flex items-center gap-2 font-semibold h-10 transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    title="Create Payment Voucher">
+                    <i class="fas fa-file-invoice-dollar text-slate-550"></i>
+                    <span>Voucher</span>
+                </button>
+                <button id="new-payment-btn"
+                    class="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium h-10"
+                    title="New Payment (Ctrl+N)">
+                    <i class="fas fa-plus"></i>
+                    New Payment
+                </button>
+                <button id="refresh-btn"
+                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 p-2.5 rounded-lg flex items-center justify-center gap-2 font-semibold w-10 h-10 transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    title="Refresh Payments (Ctrl+R)">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button id="shortcuts-btn"
+                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 p-2.5 rounded-lg flex items-center justify-center gap-2 font-semibold w-10 h-10 transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    title="Keyboard Shortcuts (?)">
+                    <i class="fas fa-keyboard"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Layout Wrapper -->
+    <div class="flex pt-24 h-screen w-full overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar bg-white h-full flex flex-col border-r border-gray-200 flex-shrink-0 no-select">
+        <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
+            <div class="flex flex-col gap-2">
+                <a href="#"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-th-large w-8 text-center"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/customer" id="customer"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-users w-8 text-center"></i>
+                    <span>Customers</span>
+                </a>
+                <a href="../quotation/quotation.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-file-alt w-8 text-center"></i>
+                    <span>Quotation</span>
+                </a>
+                <a href="/supplier" id="supplier"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-truck w-8 text-center"></i>
+                    <span>Suppliers</span>
+                </a>
+                <a href="../purchaseOrder/purchaseOrder.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-shopping-cart w-8 text-center"></i>
+                    <span>Purchase Order</span>
+                </a>
+                <a href="../invoice/invoice.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-file-invoice-dollar w-8 text-center"></i>
+                    <span>Invoice</span>
+                </a>
+                <a href="../ewaybill/eWayBill.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-route w-8 text-center"></i>
+                    <span>E-Way Bill</span>
+                </a>
+                <a href="../service/service.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-wrench w-8 text-center"></i>
+                    <span>Service</span>
+                </a>
+                <a href="../purchase/purchase.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold" id="purchaseOnly">
+                    <i class="fas fa-shopping-bag w-8 text-center"></i>
+                    <span>Purchases</span>
+                </a>
+                <a href="../payment/payment.html"
+                    class="flex items-center gap-5 p-6 text-xl text-blue-600 bg-blue-50 rounded-lg font-semibold">
+                    <i class="fas fa-money-bill-wave w-8 text-center"></i>
+                    <span>Payments</span>
+                </a>
+                <a href="../stock/stock.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-box w-8 text-center"></i>
+                    <span>Stock</span>
+                </a>
+                <a href="../comms/comms.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-comments w-8 text-center"></i>
+                    <span>Comms</span>
+                </a>
+                <a href="../reports/reports.html" id="reports"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-chart-bar w-8 text-center"></i>
+                    <span>Reports</span>
+                </a>
+                <a href="../calculations/calculations.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-calculator w-8 text-center"></i>
+                    <span>Calculations</span>
+                </a>
+                <a href="../settings/settings.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-cog w-8 text-center"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+        <!-- Main Content -->
+        <main class="flex-grow overflow-hidden flex flex-col h-[calc(100vh-6rem)]">
+
+        <!-- Home Section -->
+        <div id="home" class="flex-1 flex flex-col min-h-0 overflow-hidden">
+
+            <!-- Main Toolbar -->
+            <div class="bg-white shadow-sm border border-slate-200 p-4 fade-in flex-shrink-0">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <!-- Left: Date Range Filters -->
+                    <div class="flex flex-wrap items-center gap-1.5" id="date-range-filters">
+                        <span class="text-xs font-semibold text-slate-500 mr-2"><i class="fas fa-calendar-alt mr-1"></i>Period:</span>
+                        <button class="date-filter-btn px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-50 active:scale-95 transition-all text-slate-700 cursor-pointer" data-range="today">Today</button>
+                        <button class="date-filter-btn px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-50 active:scale-95 transition-all text-slate-700 cursor-pointer" data-range="week">This Week</button>
+                        <button class="date-filter-btn px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-50 active:scale-95 transition-all text-slate-700 cursor-pointer active bg-blue-50 border-blue-200 text-blue-600 font-semibold" data-range="month">This Month</button>
+                        <button class="date-filter-btn px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-50 active:scale-95 transition-all text-slate-700 cursor-pointer" data-range="quarter">This Quarter</button>
+                        <button class="date-filter-btn px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-50 active:scale-95 transition-all text-slate-700 cursor-pointer" data-range="year">This Year</button>
+                        <button class="date-filter-btn px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white hover:bg-slate-50 active:scale-95 transition-all text-slate-700 cursor-pointer" data-range="custom">Custom Range</button>
+                    </div>
+
+                    <!-- Middle/Right: Custom Date Range Inputs (hidden by default) -->
+                    <div id="custom-date-inputs" class="hidden flex items-center gap-2 text-xs bg-slate-50 p-1.5 rounded-lg border border-slate-200 bg-white">
+                        <input type="date" id="custom-start-date" class="px-2 py-1 border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white text-slate-800">
+                        <span class="text-slate-400 font-medium">to</span>
+                        <input type="date" id="custom-end-date" class="px-2 py-1 border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white text-slate-800">
+                        <button id="apply-custom-date" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded-md font-semibold transition-colors cursor-pointer">Apply</button>
+                    </div>
+
+                    <!-- Right: Running Balance Toggle -->
+                    <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-2">
+                            <label class="relative inline-flex items-center cursor-pointer select-none">
+                                <input type="checkbox" id="toggle-running-balance" class="sr-only peer">
+                                <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                                <span class="ml-2 text-xs font-semibold text-slate-700">Running Balance</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Tabs & Payment List -->
+            <section class="bg-white shadow-sm border border-slate-200 overflow-hidden fade-in flex-1 flex flex-col min-h-0">
+                <div class="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 bg-slate-50/50 flex-shrink-0">
+                    <div class="flex items-center gap-2">
+                        <h3 class="font-bold text-slate-800 text-sm">Transactions Ledger</h3>
+                        <span id="filter-count" class="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-bold border border-blue-100">0</span>
+                    </div>
+                    <!-- Search & Filter wrapper next to ledger title -->
+                    <div class="flex items-center gap-3 max-w-md w-full" id="search-wrapper">
+                        <div class="relative flex-1">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" id="search-input" placeholder="Search payments... (Ctrl+F)" autocomplete="off"
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white">
+                            <!-- Search Suggestions List -->
+                            <ul id="search-suggestions" class="hidden absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-64 overflow-y-auto z-50">
+                                <!-- Rendered dynamically -->
+                            </ul>
+                        </div>
+                        <button id="filter-btn" class="bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 px-3 py-2 rounded-lg transition-all duration-150 flex items-center justify-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500/20 active:scale-95 cursor-pointer" title="Open Filters (Ctrl+Shift+F)">
+                            <i class="fas fa-filter text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="hidden md:block overflow-x-auto overflow-y-auto flex-1 min-h-0 hide-balance-tab">
+                    <table class="w-full text-sm border-collapse">
+                        <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
+                            <tr class="text-slate-700 border-b border-slate-200">
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Date</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Transaction Type</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Party</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Reference</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Voucher No</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Method</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider">Amount</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider running-balance-col hidden">Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody id="payment-tbody">
+                            <tr>
+                                <td colspan="8" class="px-4 py-12 text-center text-slate-400">
+                                    <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
+                                    <p>Loading payments...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile stacked layout (displayed only on mobile) -->
+                <div id="payment-cards-mobile" class="block md:hidden space-y-3 p-4 bg-slate-50 overflow-y-auto flex-1 min-h-0">
+                    <!-- Cards will be populated dynamically by JavaScript -->
+                </div>
+            </section>
+        </div>
+
+        <!-- New Payment Form Section -->
+        <div id="new" class="flex-1 overflow-y-auto min-h-0 hidden">
+            <div class="w-full mx-auto bg-white border border-gray-200 p-8 fade-in">
+                <!-- Form Header -->
+                <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200 flex-shrink-0">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                        <i class="fas fa-money-bill-wave text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h2 id="modal-title" class="text-2xl font-bold text-gray-800">New Payment</h2>
+                        <p id="modal-subtitle" class="text-sm text-gray-500">Record a new payment transaction</p>
+                    </div>
+                </div>
+
+                <!-- Form Body -->
+                <form id="payment-form" class="space-y-5">
+                    <input type="hidden" id="form-payment-id" value="">
+
+                    <!-- Step 1: Payment Details -->
+                    <div class="steps active" id="step-1">
+                        <div class="space-y-5">
+                            <!-- Direction Toggle -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-exchange-alt text-gray-500 mr-1"></i>Direction <span class="text-red-500">*</span>
+                                </label>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <label class="relative cursor-pointer">
+                                        <input type="radio" name="direction" value="IN" class="peer sr-only" checked>
+                                        <div class="p-4 border-2 border-gray-200 rounded-xl text-center peer-checked:border-green-500 peer-checked:bg-green-50 transition-all">
+                                            <i class="fas fa-arrow-down text-2xl text-green-600 mb-1"></i>
+                                            <p class="font-semibold text-gray-800">Money In</p>
+                                            <p class="text-xs text-gray-500">Received</p>
+                                        </div>
+                                    </label>
+                                    <label class="relative cursor-pointer">
+                                        <input type="radio" name="direction" value="OUT" class="peer sr-only">
+                                        <div class="p-4 border-2 border-gray-200 rounded-xl text-center peer-checked:border-red-500 peer-checked:bg-red-50 transition-all">
+                                            <i class="fas fa-arrow-up text-2xl text-red-600 mb-1"></i>
+                                            <p class="font-semibold text-gray-800">Money Out</p>
+                                            <p class="text-xs text-gray-500">Paid</p>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Amount & Date Row -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="form-amount" class="block text-sm font-medium text-gray-700 mb-1">
+                                        <i class="fas fa-rupee-sign text-gray-500 mr-1"></i>Amount <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="number" id="form-amount" name="amount" step="0.01" min="0" required
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="0.00">
+                                </div>
+                                <div>
+                                    <label for="form-date" class="block text-sm font-medium text-gray-700 mb-1">
+                                        <i class="fas fa-calendar text-gray-500 mr-1"></i>Payment Date
+                                    </label>
+                                    <input type="date" id="form-date" name="date"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+
+                            <!-- Mode & Status Row -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="form-mode" class="block text-sm font-medium text-gray-700 mb-1">
+                                        <i class="fas fa-credit-card text-gray-500 mr-1"></i>Payment Mode <span class="text-red-500">*</span>
+                                    </label>
+                                    <select id="form-mode" name="mode" required
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                                        <option value="Cash">Cash</option>
+                                        <option value="UPI">UPI</option>
+                                        <option value="Bank Transfer">Bank Transfer</option>
+                                        <option value="Cheque">Cheque</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="form-status" class="block text-sm font-medium text-gray-700 mb-1">
+                                        <i class="fas fa-check-circle text-gray-500 mr-1"></i>Status <span class="text-red-500">*</span>
+                                    </label>
+                                    <select id="form-status" name="status" required
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                                        <option value="Completed">Completed</option>
+                                        <option value="Pending">Pending</option>
+                                        <option value="Failed">Failed</option>
+                                        <option value="Cancelled">Cancelled</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Party Details -->
+                    <div class="steps" id="step-2">
+                        <div class="space-y-5">
+                            <!-- Party Row -->
+                            <div class="space-y-4">
+                                <div class="relative" id="party-search-container">
+                                    <label for="form-party-name" class="block text-sm font-medium text-gray-700 mb-1">
+                                        <i class="fas fa-search text-gray-500 mr-1"></i>Search Party <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="text" id="form-party-name" name="party_name" autocomplete="off"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Search by name, phone, email, or GSTIN...">
+                                    <input type="hidden" id="form-party-id-hidden" name="party_id">
+                                    <ul id="party-suggestions" class="suggestions hidden absolute z-50 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto"></ul>
+                                </div>
+
+                                <!-- Profile Card Container — JS renders empty state or selected card here -->
+                                <div id="party-profile-card-container" class="mt-2"></div>
+
+                                <!-- Hidden legacy spans for backward-compat data references -->
+                                <div class="hidden">
+                                    <span id="preview-party-name"></span>
+                                    <span id="preview-party-phone"></span>
+                                    <span id="preview-party-gstin"></span>
+                                    <span id="preview-party-email"></span>
+                                    <span id="preview-party-address"></span>
+                                    <div id="party-details-container"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Reference & Additional Info -->
+                    <div class="steps" id="step-3">
+                        <div class="space-y-5">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="form-reference-type" class="block text-sm font-medium text-gray-700 mb-1">
+                                        <i class="fas fa-link text-gray-500 mr-1"></i>Reference Type
+                                    </label>
+                                    <select id="form-reference-type" name="reference_type"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                                        <option value="">-- None --</option>
+                                        <option value="Invoice">Invoice</option>
+                                        <option value="Purchase">Purchase</option>
+                                        <option value="Service">Service</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="form-reference-id" class="block text-sm font-medium text-gray-700 mb-1">
+                                        <i class="fas fa-hashtag text-gray-500 mr-1"></i>Reference ID
+                                    </label>
+                                    <input type="text" id="form-reference-id" name="reference_id"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Invoice/PO/Service No.">
+                                </div>
+                            </div>
+
+                            <!-- Transaction Details -->
+                            <div>
+                                <label for="form-transaction-details" class="block text-sm font-medium text-gray-700 mb-1">
+                                    <i class="fas fa-info-circle text-gray-500 mr-1"></i>Transaction Details
+                                </label>
+                                <input type="text" id="form-transaction-details"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="UTR / Cheque No. / Bank Ref.">
+                            </div>
+
+                            <!-- Advance & Refund Checkboxes -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="flex items-center gap-3 bg-amber-50 p-3 rounded-lg border border-amber-200">
+                                    <input type="checkbox" id="form-advance"
+                                        class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                    <label for="form-advance" class="text-sm font-medium text-amber-800 cursor-pointer">
+                                        <i class="fas fa-forward mr-1"></i>This is an advance payment
+                                    </label>
+                                </div>
+                                <div id="refund-checkbox-container" class="flex items-center gap-3 bg-red-50 p-3 rounded-lg border border-red-200">
+                                    <input type="checkbox" id="form-refund"
+                                        class="w-5 h-5 text-red-600 border-gray-300 rounded focus:ring-red-500">
+                                    <label for="form-refund" class="text-sm font-medium text-red-800 cursor-pointer">
+                                        <i class="fas fa-undo mr-1"></i>This is a refund transaction
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Remarks -->
+                            <div>
+                                <label for="form-remarks" class="block text-sm font-medium text-gray-700 mb-1">
+                                    <i class="fas fa-sticky-note text-gray-500 mr-1"></i>Remarks
+                                </label>
+                                <textarea id="form-remarks" rows="2"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                                    placeholder="Optional notes..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hidden Save Button clicked programmatically by wizard -->
+                    <button type="submit" id="save-btn" class="hidden">
+                        <span id="submit-btn-text">Save Payment</span>
+                    </button>
+
+                    <!-- Navigation Panel -->
+                    <div id="step-navigation" class="mt-6 flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                        <div class="flex gap-2">
+                            <button type="button" id="prev-btn" disabled
+                                class="bg-gray-300 text-gray-600 px-6 py-2 rounded-lg hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-all">
+                                <i class="fas fa-chevron-left mr-2"></i>Previous
+                            </button>
+                        </div>
+                        <div id="step-indicator" class="text-gray-600 font-medium">
+                            <!-- Step indicator will be dynamically updated -->
+                        </div>
+                        <button type="button" id="next-btn"
+                            class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium transition-all">
+                            Next<i class="fas fa-chevron-right ml-2"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </main>
+    </div>
+
+    <!-- Payment Details Modal -->
+    <div id="payment-details-modal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-overlay absolute inset-0" id="details-modal-overlay"></div>
+        <div class="absolute inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl relative overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div id="details-icon" class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+                            <i class="fas fa-receipt text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-800">Payment Details</h2>
+                            <p id="details-subtitle" class="text-sm text-gray-500">Transaction summary</p>
+                        </div>
+                    </div>
+                    <button id="close-details-modal-btn" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all" title="Close">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+
+                <div class="p-6 space-y-5">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Amount</p>
+                            <p id="details-amount" class="text-3xl font-extrabold text-gray-900 mt-1">₹ 0.00</p>
+                        </div>
+                        <span id="details-direction" class="px-3 py-1.5 rounded-full text-xs font-bold uppercase">-</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Date</p>
+                            <p id="details-date" class="font-bold text-gray-800 mt-1">-</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Mode</p>
+                            <p id="details-mode" class="font-bold text-gray-800 mt-1">-</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Party</p>
+                            <p id="details-party" class="font-bold text-gray-800 mt-1 break-all">-</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Reference</p>
+                            <p id="details-reference" class="font-bold text-gray-800 mt-1 break-all">-</p>
+                        </div>
+                    </div>
+
+                    <!-- Expanded Party Details -->
+                    <div id="details-party-expanded" class="hidden bg-blue-50/50 border border-blue-100 rounded-xl p-4 text-sm">
+                        <p class="text-xs font-bold text-blue-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                            <i class="fas fa-id-card"></i> Expanded Party Info
+                        </p>
+                        <div class="grid grid-cols-2 gap-x-4 gap-y-2 mt-2">
+                            <div><span class="text-gray-500">Phone:</span> <span id="details-party-phone" class="font-semibold text-gray-800">-</span></div>
+                            <div><span class="text-gray-500">GSTIN:</span> <span id="details-party-gstin" class="font-semibold text-gray-800">-</span></div>
+                            <div class="col-span-2"><span class="text-gray-500">Email:</span> <span id="details-party-email" class="font-semibold text-gray-800 break-all">-</span></div>
+                            <div class="col-span-2"><span class="text-gray-500">Address:</span> <span id="details-party-address" class="font-semibold text-gray-800">-</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Expanded Reference Details -->
+                    <div id="details-ref-expanded" class="hidden bg-emerald-50/50 border border-emerald-100 rounded-xl p-4 text-sm">
+                        <p class="text-xs font-bold text-emerald-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                            <i class="fas fa-file-invoice"></i> Expanded Reference Info
+                        </p>
+                        <div class="grid grid-cols-2 gap-x-4 gap-y-2 mt-2">
+                            <div><span class="text-gray-500">Reference ID:</span> <span id="details-ref-id" class="font-semibold text-gray-800">-</span></div>
+                            <div><span class="text-gray-500">Date:</span> <span id="details-ref-date" class="font-semibold text-gray-800">-</span></div>
+                            <div><span class="text-gray-500">Amount:</span> <span id="details-ref-amount" class="font-semibold text-gray-800">-</span></div>
+                            <div><span class="text-gray-500">Status:</span> <span id="details-ref-status" class="font-semibold text-gray-800 uppercase">-</span></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-xl p-4">
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Transaction Details</p>
+                        <p id="details-transaction" class="font-medium text-gray-800 mt-1 break-words">-</p>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-xl p-4">
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Remarks</p>
+                        <p id="details-remarks" class="font-medium text-gray-800 mt-1 break-words">-</p>
+                    </div>
+
+                    <div class="flex items-center gap-3 pt-1">
+                        <button type="button" id="details-edit-btn"
+                            class="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 font-semibold flex items-center justify-center gap-2 transition-all">
+                            <i class="fas fa-edit"></i>
+                            Edit
+                        </button>
+                        <button type="button" id="details-refund-btn"
+                            class="flex-1 bg-amber-500 text-white px-4 py-3 rounded-lg hover:bg-amber-600 font-semibold flex items-center justify-center gap-2 transition-all">
+                            <i class="fas fa-rotate-left"></i>
+                            Refund
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast"
+        class="fixed bottom-6 right-6 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg hidden z-50 flex items-center gap-2">
+        <i class="fas fa-check-circle"></i>
+        <span id="toast-message">Success!</span>
+    </div>
+
+    <!-- Filter Popover (Redesigned) -->
+    <div id="filter-popover" class="fixed bg-white rounded-xl shadow-2xl border border-slate-200 p-5 z-40 hidden transition-all duration-200 ease-in-out"
+        style="width: 320px;">
+        <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-2">
+            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                <i class="fas fa-filter text-blue-600"></i>Advanced Filters
+            </h3>
+            <button id="close-filter" class="text-slate-400 hover:text-slate-600 text-sm cursor-pointer p-1 rounded hover:bg-slate-100">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="space-y-3.5 max-h-[400px] overflow-y-auto pr-1">
+            <!-- Transaction Type -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Transaction Type</label>
+                <select id="tx-type-filter" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                    <option value="">All Types</option>
+                    <option value="Payment Received">Payment Received</option>
+                    <option value="Payment Sent">Payment Sent</option>
+                    <option value="Refund Issued">Refund Issued</option>
+                    <option value="Refund Received">Refund Received</option>
+                    <option value="Advance Received">Advance Received</option>
+                    <option value="Advance Paid">Advance Paid</option>
+                </select>
+            </div>
+
+            <!-- Status -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Status</label>
+                <select id="status-filter" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                    <option value="">All Statuses</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Refunded">Refunded</option>
+                    <option value="Partially Refunded">Partially Refunded</option>
+                    <option value="Cancelled">Cancelled</option>
+                    <option value="Failed">Failed</option>
+                </select>
+            </div>
+
+
+
+            <!-- Payment Method -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Payment Method</label>
+                <select id="mode-filter" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                    <option value="">All Methods</option>
+                    <option value="Cash">Cash</option>
+                    <option value="UPI">UPI</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="Cheque">Cheque</option>
+                    <option value="Card">Card</option>
+                </select>
+            </div>
+
+            <!-- Reference Type -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Reference Type</label>
+                <select id="reference-filter" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                    <option value="">All Reference Types</option>
+                    <option value="Invoice">Invoice</option>
+                    <option value="Purchase">Purchase</option>
+                    <option value="Service">Service</option>
+                    <option value="Adjustment">Adjustment</option>
+                </select>
+            </div>
+
+            <!-- Amount Range -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Amount Range</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="number" id="amount-min-filter" placeholder="Min (₹)"
+                        class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                    <input type="number" id="amount-max-filter" placeholder="Max (₹)"
+                        class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                </div>
+            </div>
+        </div>
+
+        <div class="flex gap-2.5 mt-4 pt-3 border-t border-slate-100">
+            <button id="reset-filters"
+                class="flex-1 px-3 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 font-bold text-xs transition-all cursor-pointer">
+                Reset All
+            </button>
+            <button id="apply-filters-btn"
+                class="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold text-xs transition-all cursor-pointer">
+                Apply Filters
+            </button>
+        </div>
+    </div>
+
+    </div>
+
+    <!-- Voucher Management Modal -->
+    <div id="voucher-modal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-overlay absolute inset-0 bg-slate-900/60 backdrop-blur-sm" id="voucher-modal-overlay"></div>
+        <div class="absolute inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col relative overflow-hidden">
+                <!-- Modal Header -->
+                <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between flex-shrink-0">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+                            <i class="fas fa-file-invoice-dollar text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800">Payment Voucher Management</h2>
+                            <p class="text-xs text-slate-550">Create, search, print, and export cash payment vouchers</p>
+                        </div>
+                    </div>
+                    <!-- Tab Buttons -->
+                    <div class="flex bg-slate-205 p-1 rounded-lg gap-1">
+                        <button id="voucher-tab-history" class="px-4 py-1.5 rounded-md text-xs font-bold text-slate-700 bg-white shadow-sm cursor-pointer transition-all">
+                            <i class="fas fa-history mr-1"></i>Voucher History
+                        </button>
+                        <button id="voucher-tab-create" class="px-4 py-1.5 rounded-md text-xs font-bold text-slate-600 hover:text-slate-800 cursor-pointer transition-all">
+                            <i class="fas fa-plus mr-1"></i>New Voucher
+                        </button>
+                    </div>
+                    <button id="close-voucher-modal-btn" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 rounded-lg transition-all" title="Close">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="flex-1 overflow-hidden flex flex-col">
+                    <!-- Tab Content: Voucher History -->
+                    <div id="voucher-content-history" class="flex-1 flex overflow-hidden">
+                        <!-- Filters Sidebar -->
+                        <div class="w-72 border-r border-slate-200 p-5 overflow-y-auto space-y-4 bg-slate-50 flex-shrink-0">
+                            <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Search & Filters</h3>
+                            
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-650 mb-1">Voucher Number</label>
+                                <input type="text" id="filter-v-number" placeholder="e.g. PV-2026-0001" 
+                                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-650 mb-1">Payee Name</label>
+                                <input type="text" id="filter-v-name" placeholder="Search payee name" 
+                                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-650 mb-1">Payee Type</label>
+                                <select id="filter-v-type" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                                    <option value="">All Types</option>
+                                    <option value="Customer">Customer</option>
+                                    <option value="Supplier">Supplier</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-650 mb-1">Payment Method</label>
+                                <select id="filter-v-method" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                                    <option value="">All Methods</option>
+                                    <option value="Cash">Cash</option>
+                                    <option value="Cheque">Cheque</option>
+                                    <option value="Bank Transfer">Bank Transfer</option>
+                                    <option value="UPI">UPI</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-655 mb-1">Date Range</label>
+                                <div class="grid grid-cols-1 gap-2">
+                                    <input type="date" id="filter-v-start-date" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none">
+                                    <input type="date" id="filter-v-end-date" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-655 mb-1">Amount Range</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <input type="number" id="filter-v-min-amount" placeholder="Min" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none">
+                                    <input type="number" id="filter-v-max-amount" placeholder="Max" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none">
+                                </div>
+                            </div>
+
+                            <button id="v-btn-reset-filters" class="w-full py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg text-xs transition-colors cursor-pointer">
+                                Reset Filters
+                            </button>
+                        </div>
+
+                        <!-- Vouchers Table -->
+                        <div class="flex-1 p-6 overflow-y-auto flex flex-col min-w-0">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-xs font-semibold text-slate-500" id="voucher-list-count">Showing 0 vouchers</span>
+                            </div>
+                            <div class="border border-slate-200 rounded-xl overflow-x-auto overflow-y-auto bg-white flex-1 min-h-[300px]">
+                                <table class="w-full text-xs text-left border-collapse min-w-[700px]">
+                                    <thead class="bg-slate-50 border-b border-slate-200 text-slate-750 font-semibold uppercase sticky top-0 z-10">
+                                        <tr>
+                                            <th class="px-4 py-3">Date</th>
+                                            <th class="px-4 py-3">Voucher No</th>
+                                            <th class="px-4 py-3">Payee</th>
+                                            <th class="px-4 py-3">Method</th>
+                                            <th class="px-4 py-3 text-right">Amount</th>
+                                            <th class="px-4 py-3">Purpose</th>
+                                            <th class="px-4 py-3 text-center">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="voucher-list-tbody" class="divide-y divide-slate-100">
+                                        <tr>
+                                            <td colspan="7" class="px-6 py-10 text-center text-slate-400">Loading vouchers...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab Content: New Voucher -->
+                    <div id="voucher-content-create" class="flex-1 hidden overflow-hidden flex flex-col md:flex-row">
+                        <!-- Form Panel -->
+                        <div class="w-full md:w-[45%] border-r border-slate-200 p-6 overflow-y-auto bg-slate-50 space-y-4 flex-shrink-0">
+                            <form id="voucher-create-form" class="space-y-4">
+                                <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Voucher Details</h3>
+                                
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1">Voucher Number</label>
+                                        <input type="text" id="v-form-number" class="w-full px-3 py-2 border border-slate-350 bg-slate-200 text-slate-600 rounded-lg text-xs font-bold focus:outline-none" readonly>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1">Date *</label>
+                                        <input type="date" id="v-form-date" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none" required>
+                                    </div>
+                                </div>
+
+                                <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider pt-2 border-t border-slate-200">Payee Information</h3>
+                                
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div class="col-span-1">
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1">Payee Type *</label>
+                                        <select id="v-form-party-type" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none" required>
+                                            <option value="Customer">Customer</option>
+                                            <option value="Supplier">Supplier</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-span-2 relative">
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1">Payee Name *</label>
+                                        <input type="text" id="v-form-party-name" placeholder="Search customer or supplier..." autocomplete="off" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none" required>
+                                        <ul id="v-form-party-suggestions" class="absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-lg z-50 hidden text-xs divide-y divide-slate-100"></ul>
+                                    </div>
+                                </div>
+
+                                <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider pt-2 border-t border-slate-200">Amount Information</h3>
+                                
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Amount (₹) *</label>
+                                    <input type="number" step="any" min="0.01" id="v-form-amount" placeholder="e.g. 28542" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none" required>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Amount in Words</label>
+                                    <textarea id="v-form-amount-words" rows="2" class="w-full px-3 py-2 border border-slate-350 bg-slate-200 text-slate-600 rounded-lg text-xs italic focus:outline-none" readonly placeholder="Calculated automatically..."></textarea>
+                                </div>
+
+                                <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider pt-2 border-t border-slate-200">Payment Details</h3>
+                                
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Payment Method *</label>
+                                    <select id="v-form-method" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none" required>
+                                        <option value="Cash">Cash</option>
+                                        <option value="Cheque">Cheque</option>
+                                        <option value="Bank Transfer">Bank Transfer</option>
+                                        <option value="UPI">UPI</option>
+                                    </select>
+                                </div>
+
+                                <!-- Conditional fields: Cheque -->
+                                <div id="v-form-cheque-fields" class="hidden p-4 bg-slate-200/50 rounded-xl border border-slate-300/50 space-y-3">
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Cheque Number *</label>
+                                            <input type="text" id="v-form-cheque-no" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Cheque Date *</label>
+                                            <input type="date" id="v-form-cheque-date" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Bank Name *</label>
+                                        <input type="text" id="v-form-cheque-bank" placeholder="e.g. HDFC Bank" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none">
+                                    </div>
+                                </div>
+
+                                <!-- Conditional fields: Bank Transfer -->
+                                <div id="v-form-bank-fields" class="hidden p-4 bg-slate-200/50 rounded-xl border border-slate-300/50 space-y-3">
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Bank Name *</label>
+                                        <input type="text" id="v-form-bank-name" placeholder="e.g. State Bank of India" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Reference / Transaction Number *</label>
+                                        <input type="text" id="v-form-bank-ref" placeholder="UTR Number" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none">
+                                    </div>
+                                </div>
+
+                                <!-- Conditional fields: UPI -->
+                                <div id="v-form-upi-fields" class="hidden p-4 bg-slate-200/50 rounded-xl border border-slate-300/50 space-y-3">
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">UPI Reference Number *</label>
+                                        <input type="text" id="v-form-upi-ref" placeholder="UPI Txn ID" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none">
+                                    </div>
+                                </div>
+
+                                <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider pt-2 border-t border-slate-200">Purpose</h3>
+                                
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Paid Towards *</label>
+                                    <textarea id="v-form-purpose" rows="3" placeholder="Purpose description, e.g. Purchase payment, Office rent, Supplier settlement..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none" required></textarea>
+                                </div>
+
+                                <div class="flex gap-3 pt-2">
+                                    <button type="button" id="v-form-btn-reset" class="flex-1 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg text-xs transition-colors cursor-pointer">
+                                        Reset Form
+                                    </button>
+                                    <button type="submit" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-md">
+                                        Create Voucher
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Live Preview Panel -->
+                        <div class="flex-1 bg-slate-500/5 p-6 overflow-y-auto flex flex-col justify-between min-w-0">
+                            <div class="max-w-[700px] w-full mx-auto bg-white border border-slate-300 shadow-md p-6 rounded-xl relative font-sans text-slate-800" id="voucher-preview-document">
+                                <!-- Voucher header -->
+                                <div class="flex justify-between items-start border-b-2 border-slate-800 pb-4 mb-4">
+                                    <div>
+                                        <h1 class="text-base font-extrabold text-slate-900 tracking-wide uppercase" id="preview-v-company-name">SHRESHT SYSTEMS</h1>
+                                        <p class="text-[10px] text-slate-550 mt-1 max-w-[320px]" id="preview-v-company-address">-</p>
+                                        <p class="text-[10px] text-slate-550" id="preview-v-company-contact">-</p>
+                                    </div>
+                                    <div class="text-right flex-shrink-0">
+                                        <div class="text-xs font-bold">Voucher No: <span class="text-red-600 font-extrabold" id="preview-v-no">PV-2026-XXXX</span></div>
+                                        <div class="text-[10px] text-slate-550 mt-1">Date: <span id="preview-v-date">-</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="text-center my-4">
+                                    <span class="border-2 border-slate-800 px-4 py-1 text-xs uppercase font-extrabold tracking-wider bg-slate-50">Payment Voucher</span>
+                                </div>
+
+                                <table class="w-full text-xs mb-6 border-collapse">
+                                    <tr class="border-b border-slate-100">
+                                        <td class="py-2.5 font-bold text-slate-550 w-24">Paid To:</td>
+                                        <td class="py-2.5 font-semibold text-slate-800 border-b border-slate-350 border-dashed" id="preview-v-payee">-</td>
+                                    </tr>
+                                    <tr class="border-b border-slate-100">
+                                        <td class="py-2.5 font-bold text-slate-550">Method:</td>
+                                        <td class="py-2.5 font-semibold text-slate-800 border-b border-slate-350 border-dashed" id="preview-v-method">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2.5 font-bold text-slate-550">Towards:</td>
+                                        <td class="py-2.5 font-semibold text-slate-800 border-b border-slate-350 border-dashed whitespace-pre-wrap leading-relaxed" id="preview-v-towards">-</td>
+                                    </tr>
+                                </table>
+
+                                <div class="flex justify-between items-center mt-6">
+                                    <div class="text-xs leading-relaxed max-w-[65%]">
+                                        <span class="font-bold text-slate-550 text-[10px] uppercase">Amount in Words:</span><br>
+                                        <span class="font-bold italic text-slate-700 block mt-1" id="preview-v-words">-</span>
+                                    </div>
+                                    <div class="border-2 border-slate-800 px-4 py-2 font-extrabold text-base bg-slate-50 tracking-wide text-slate-900 shadow-sm" id="preview-v-amount">
+                                        ₹ 0.00
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-between items-center mt-12 pt-6 border-t border-slate-100 text-[10px] font-bold text-slate-550">
+                                    <div class="w-32 text-center">
+                                        <div class="border-b border-slate-800 h-6 mb-1"></div>
+                                        <span>Paid By</span>
+                                    </div>
+                                    <div class="w-32 text-center">
+                                        <div class="border-b border-slate-800 h-6 mb-1"></div>
+                                        <span>Receiver Signature</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Preview Action Bar -->
+                            <div class="max-w-[700px] w-full mx-auto mt-4 flex justify-end gap-3 hidden" id="voucher-preview-actions">
+                                <button id="preview-btn-print" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm transition-colors">
+                                    <i class="fas fa-print"></i> Print Voucher
+                                </button>
+                                <button id="preview-btn-pdf" class="px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm transition-colors">
+                                    <i class="fas fa-file-pdf"></i> Download PDF
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../dist/public/ts/shared/core/utils.js"></script>
+    <script src="../../dist/public/ts/shared/core/ipc.js"></script>
+    <script src="../../dist/public/ts/shared/core/globalScript.js"></script>
+    <script src="../../dist/public/ts/shared/core/validation.js"></script>
+    <script src="../../dist/public/payment/src/types/payment.types.js"></script>
+    <script src="../../dist/public/payment/src/services/paymentApi.js"></script>
+    <script src="../../dist/public/payment/src/main.js"></script>
+</body>
+
+</html>
+

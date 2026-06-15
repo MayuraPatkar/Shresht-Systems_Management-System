@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/tailwind.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="../css/shared/documentStyles.css">
+    <link rel="stylesheet" href="../css/shared/cardTableStyles.css">
+    <link rel="stylesheet" href="../css/purchaseOrder.css">
+    <title>Purchases</title>
+    <style>
+        /* Status Filter Tabs Styling */
+        .filter-tab {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+            border-bottom: 2px solid transparent;
+            gap: 0.25rem;
+            outline: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .filter-tab:hover:not(.active) {
+            color: #334155;
+            background: #f8fafc;
+        }
+
+        .filter-tab.active {
+            color: #2563eb;
+            background: #eff6ff;
+            border-bottom-color: #2563eb;
+        }
+
+        /* Scrollable table body with fixed table header (scrollbar starts below header) */
+        .hidden.md\:block.overflow-y-auto {
+            overflow-y: hidden !important;
+        }
+
+        .hidden.md\:block.overflow-y-auto table {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .hidden.md\:block.overflow-y-auto thead {
+            display: block;
+            flex-shrink: 0;
+            scrollbar-gutter: stable;
+        }
+
+        .hidden.md\:block.overflow-y-auto tbody {
+            display: block;
+            overflow-y: auto;
+            flex-grow: 1;
+            scrollbar-gutter: stable;
+        }
+
+        .hidden.md\:block.overflow-y-auto tr {
+            display: flex;
+            width: 100%;
+        }
+
+        .hidden.md\:block.overflow-y-auto th,
+        .hidden.md\:block.overflow-y-auto td {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Adjust final columns for alignments */
+        .hidden.md\:block.overflow-y-auto th:last-child,
+        .hidden.md\:block.overflow-y-auto td:last-child {
+            justify-content: flex-end;
+            text-align: right;
+        }
+
+        /* Normal view columns (5 columns) */
+        .normal-tab th:nth-child(1), .normal-tab td:nth-child(1) { flex: 1.0; }
+        .normal-tab th:nth-child(2), .normal-tab td:nth-child(2) { flex: 1.5; }
+        .normal-tab th:nth-child(3), .normal-tab td:nth-child(3) { flex: 2.0; }
+        .normal-tab th:nth-child(4), .normal-tab td:nth-child(4) { flex: 1.0; }
+        .normal-tab th:nth-child(5), .normal-tab td:nth-child(5) { flex: 1.2; justify-content: flex-end; text-align: right; }
+
+        /* Trash view columns (6 columns) */
+        .trash-tab th:nth-child(1), .trash-tab td:nth-child(1) { flex: 1.0; }
+        .trash-tab th:nth-child(2), .trash-tab td:nth-child(2) { flex: 1.5; }
+        .trash-tab th:nth-child(3), .trash-tab td:nth-child(3) { flex: 2.0; }
+        .trash-tab th:nth-child(4), .trash-tab td:nth-child(4) { flex: 1.2; }
+        .trash-tab th:nth-child(5), .trash-tab td:nth-child(5) { flex: 1.2; justify-content: flex-end; text-align: right; }
+        .trash-tab th:nth-child(6), .trash-tab td:nth-child(6) { flex: 1.0; justify-content: flex-end; text-align: right; }
+    </style>
+</head>
+
+<body class="bg-gray-100 no-select">
+
+    <!-- Fixed Header -->
+    <header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-30 h-24 flex items-center px-4">
+        <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-3">
+                <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
+                <h1 class="text-xl font-bold text-gray-800">Purchases</h1>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button id="new-purchase"
+                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
+                    <i class="fas fa-plus"></i>
+                    New Purchase
+                </button>
+                <button id="archived-purchases-btn"
+                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-lg flex items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
+                    title="View Archived Purchases">
+                    <i class="fas fa-archive text-slate-400"></i>
+                    <span>Archived</span>
+                    <span id="archived-count-badge"
+                        class="ml-1 px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded-md text-[10px] font-bold">0</span>
+                </button>
+                <button id="bulk-restore-btn"
+                    class="hidden bg-emerald-600 hover:bg-emerald-700 text-white px-4 h-10 rounded-lg items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
+                    title="Restore All Filtered">
+                    <i class="fas fa-trash-restore"></i>
+                    <span>Restore All Filtered</span>
+                </button>
+                <button id="bulk-delete-btn"
+                    class="hidden bg-rose-600 hover:bg-rose-700 text-white px-4 h-10 rounded-lg items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
+                    title="Delete All Filtered">
+                    <i class="fas fa-trash-alt"></i>
+                    <span>Delete All Filtered</span>
+                </button>
+                <button id="showDeletedBtn"
+                    class="bg-gray-200 text-gray-700 w-10 h-10 rounded-lg font-semibold flex items-center justify-center hover:bg-gray-300 transition-all cursor-pointer shadow-sm"
+                    title="View Trash">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+                <button id="refresh-btn"
+                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    title="Refresh List (Ctrl+R)">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button id="shortcuts-btn" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300"
+                    title="Keyboard Shortcuts (?)">
+                    <i class="fas fa-keyboard"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Layout Wrapper -->
+    <div class="flex pt-24 h-screen w-full overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar bg-white h-full flex flex-col border-r border-gray-200 flex-shrink-0 no-select">
+            <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
+                <div class="flex flex-col gap-2">
+                    <a href="/dashboard" id="dashboard"
+                        class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                        <i class="fas fa-th-large w-8 text-center"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="/customer" id="customer"
+                        class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                        <i class="fas fa-users w-8 text-center"></i>
+                        <span>Customers</span>
+                    </a>
+                    <a href="../quotation/quotation.html"
+                        class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                        <i class="fas fa-file-alt w-8 text-center"></i>
+                        <span>Quotation</span>
+                    </a>
+                    <a href="/supplier" id="supplier"
+                        class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                        <i class="fas fa-truck w-8 text-center"></i>
+                        <span>Suppliers</span>
+                    </a>
+                    <a href="../purchaseOrder/purchaseOrder.html"
+                        class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                        <i class="fas fa-shopping-cart w-8 text-center"></i>
+                        <span>Purchase Order</span>
+                    </a>
+                    <a href="../invoice/invoice.html"
+                        class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                        <i class="fas fa-file-invoice-dollar w-8 text-center"></i>
+                        <span>Invoice</span>
+                    </a>
+                    <a href="../ewaybill/eWayBill.html"
+                        class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                        <i class="fas fa-route w-8 text-center"></i>
+                        <span>E-Way Bill</span>
+                    </a>
+                    <a href="../service/service.html"
+                        class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                        <i class="fas fa-wrench w-8 text-center"></i>
+                        <span>Service</span>
+                    </a>
+                    <a href="/purchase" id="purchaseOnly"
+                        class="flex items-center gap-5 p-6 text-xl text-blue-600 bg-blue-50 rounded-lg font-semibold">
+                        <i class="fas fa-shopping-bag w-8 text-center"></i>
+                        <span>Purchases</span>
+                    </a>
+                    <a href="../payment/payment.html"
+                        class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                        <i class="fas fa-money-bill-wave w-8 text-center"></i>
+                        <span>Payments</span>
+                    </a>
+                    <a href="../stock/stock.html"
+                        class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                        <i class="fas fa-box w-8 text-center"></i>
+                        <span>Stock</span>
+                    </a>
+                    <a href="../comms/comms.html"
+                        class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                        <i class="fas fa-comments w-8 text-center"></i>
+                        <span>Comms</span>
+                    </a>
+                    <a href="../reports/reports.html" id="reports"
+                        class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                        <i class="fas fa-chart-bar w-8 text-center"></i>
+                        <span>Reports</span>
+                    </a>
+                    <a href="../calculations/calculations.html"
+                        class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                        <i class="fas fa-calculator w-8 text-center"></i>
+                        <span>Calculations</span>
+                    </a>
+                    <a href="../settings/settings.html"
+                        class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                        <i class="fas fa-cog w-8 text-center"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-grow overflow-hidden flex flex-col h-[calc(100vh-6rem)]">
+
+            <!-- Home View - Purchase Bills List -->
+            <div id="home" class="flex-1 flex flex-col min-h-0 overflow-hidden">
+                <section class="bg-white shadow-sm border border-slate-200 overflow-hidden fade-in flex-1 flex flex-col min-h-0">
+                    <!-- Table Controls/Tabs Header -->
+                    <div class="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 bg-slate-50/50 flex-shrink-0">
+                        <div class="flex items-center gap-1">
+                            <!-- Status Tabs -->
+                            <div class="flex border-b border-slate-200" id="status-tabs-container">
+                                <button class="list-tab filter-tab active" data-status="all">
+                                    <i class="fas fa-list mr-1"></i>All
+                                </button>
+                                <button class="list-tab filter-tab" data-status="Paid">
+                                    <i class="fas fa-check-circle mr-1"></i>Paid
+                                </button>
+                                <button class="list-tab filter-tab" data-status="Partial">
+                                    <i class="fas fa-adjust mr-1"></i>Partially Paid
+                                </button>
+                                <button class="list-tab filter-tab" data-status="Unpaid">
+                                    <i class="fas fa-times-circle mr-1"></i>Unpaid
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Search & Filter wrapper next to status filter -->
+                        <div class="flex items-center gap-3 max-w-md w-full" id="search-wrapper">
+                            <div class="relative flex-1">
+                                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                <input type="text" id="search-input" placeholder="Search by name, phone or email... (Ctrl+F)"
+                                    class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white">
+                            </div>
+                            <button id="filter-btn" class="bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 px-3 py-2 rounded-lg transition-all duration-150 flex items-center justify-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500/20 active:scale-95 cursor-pointer">
+                                <i class="fas fa-filter text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Active Filters Info Bar -->
+                    <div id="active-filters-info-bar" class="px-6 py-2.5 bg-slate-50 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 hidden text-xs transition-all duration-200 flex-shrink-0">
+                        <div class="flex flex-wrap items-center gap-1.5" id="active-filters-badges">
+                            <span class="font-bold text-slate-500 mr-1 flex items-center gap-1">
+                                <i class="fas fa-filter text-[10px]"></i> Active Filters:
+                            </span>
+                        </div>
+                        <button id="clear-all-filters-shortcut" class="text-blue-600 hover:text-blue-800 font-bold hover:underline flex items-center gap-1 cursor-pointer transition-all duration-150">
+                            <i class="fas fa-times-circle"></i> Clear All
+                        </button>
+                    </div>
+
+                    <!-- Desktop Table View -->
+                    <div class="hidden md:block overflow-x-auto overflow-y-auto flex-1 min-h-0 normal-tab">
+                        <table class="w-full text-sm border-collapse">
+                            <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
+                                <tr id="table-header-row" class="text-slate-700 border-b border-slate-200">
+                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Date</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Purchase Invoice No</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Supplier Name</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Payment Status</th>
+                                    <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody class="records text-xs" id="purchase-tbody">
+                                <tr>
+                                    <td colspan="6" class="px-4 py-12 text-center text-slate-400">
+                                        <i class="fas fa-spinner fa-spin text-3xl mb-2 text-blue-500"></i>
+                                        <p>Loading purchases...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Mobile stacked layout (displayed only on mobile) -->
+                    <div id="purchase-cards-mobile" class="block md:hidden space-y-3 p-4 bg-slate-50 overflow-y-auto flex-1 min-h-0">
+                        <!-- Cards will be populated dynamically by JavaScript -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- Empty hidden divs for compatibility -->
+            <div id="new" style="display: none;"></div>
+            <div id="view" style="display: none;"></div>
+        </main>
+    </div>
+
+    <!-- Filter Popover -->
+    <div id="filter-popover" class="fixed bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-40 hidden"
+        style="width: 280px;">
+        <h3 class="font-semibold text-gray-800 mb-3">Filter & Sort</h3>
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
+            <select id="date-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                <option value="all">All Dates</option>
+                <option value="today">Today</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+                <option value="custom">Custom Range</option>
+            </select>
+        </div>
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+            <select id="sort-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                <option value="date-desc">Latest First</option>
+                <option value="date-asc">Oldest First</option>
+                <option value="amount-desc">Amount: High to Low</option>
+                <option value="amount-asc">Amount: Low to High</option>
+                <option value="name-asc">Name A-Z</option>
+            </select>
+        </div>
+        <div class="flex gap-2">
+            <button id="clear-filters-btn"
+                class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium text-sm">
+                Clear
+            </button>
+            <button id="apply-filters-btn"
+                class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm">
+                Apply
+            </button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <!-- Shared utilities -->
+    <script src="../../dist/public/ts/shared/core/utils.js"></script>
+    <script src="../../dist/public/ts/shared/documents/calculations.js"></script>
+    <script src="../../dist/public/ts/shared/filters/filterUtils.js"></script>
+    <script src="../../dist/public/ts/shared/core/ipc.js"></script>
+    <script src="../../dist/public/ts/shared/documents/documentManager.js"></script>
+    <script src="../../dist/public/ts/shared/config/companyConfig.js"></script>
+    <script src="../../dist/public/ts/shared/documents/sectionRenderers.js"></script>
+    <script src="../../dist/public/ts/shared/documents/documentBuilder.js"></script>
+    <script src="../../dist/public/ts/shared/documents/itemReorder.js"></script>
+
+    <!-- Shared scripts -->
+    <script src="../../dist/public/ts/shared/core/globalScript.js"></script>
+
+    <!-- Module-specific scripts -->
+    <script src="../../dist/public/purchase/src/services/purchaseApi.js"></script>
+    <script src="../../dist/public/purchase/src/utils/purchaseFilters.js"></script>
+    <script src="../../dist/public/purchase/src/utils/keyboardShortcuts.js"></script>
+    <script src="../../dist/public/purchase/src/components/purchaseView.js"></script>
+    <script src="../../dist/public/purchase/src/components/purchaseForm.js"></script>
+    <script src="../../dist/public/purchase/src/components/purchaseTable.js"></script>
+    <script src="../../dist/public/purchase/src/components/unsavedChanges.js"></script>
+    <script src="../../dist/public/purchase/src/main.js"></script>
+</body>
+
+</html>

@@ -13,6 +13,69 @@
     <link rel="stylesheet" href="../css/shared/quotationStyles.css">
     <link rel="stylesheet" href="../css/shared/cardTableStyles.css">
     <link rel="stylesheet" href="../css/quotation.css">
+    <style>
+        body {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        input,
+        textarea,
+        select,
+        [contenteditable="true"] {
+            user-select: text !important;
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+        }
+        
+        /* Scrollable table body with fixed table header (scrollbar starts below header) */
+        .hidden.md\:block.overflow-y-auto {
+            overflow-y: hidden !important;
+        }
+
+        .hidden.md\:block.overflow-y-auto table {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .hidden.md\:block.overflow-y-auto thead {
+            display: block;
+            flex-shrink: 0;
+            scrollbar-gutter: stable;
+        }
+
+        .hidden.md\:block.overflow-y-auto tbody {
+            display: block;
+            overflow-y: auto;
+            flex-grow: 1;
+            scrollbar-gutter: stable;
+        }
+
+        .hidden.md\:block.overflow-y-auto tr {
+            display: flex;
+            width: 100%;
+        }
+
+        .hidden.md\:block.overflow-y-auto th,
+        .hidden.md\:block.overflow-y-auto td {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .hidden.md\:block.overflow-y-auto th:nth-child(1), .hidden.md\:block.overflow-y-auto td:nth-child(1) { flex: 1.0; }
+        .hidden.md\:block.overflow-y-auto th:nth-child(2), .hidden.md\:block.overflow-y-auto td:nth-child(2) { flex: 1.2; }
+        .hidden.md\:block.overflow-y-auto th:nth-child(3), .hidden.md\:block.overflow-y-auto td:nth-child(3) { flex: 1.8; }
+        .hidden.md\:block.overflow-y-auto th:nth-child(4), .hidden.md\:block.overflow-y-auto td:nth-child(4) { flex: 1.8; }
+        .hidden.md\:block.overflow-y-auto th:nth-child(5), .hidden.md\:block.overflow-y-auto td:nth-child(5) { flex: 1.0; }
+        .hidden.md\:block.overflow-y-auto th:nth-child(6), .hidden.md\:block.overflow-y-auto td:nth-child(6) { flex: 1.0; }
+        .hidden.md\:block.overflow-y-auto th:nth-child(7), .hidden.md\:block.overflow-y-auto td:nth-child(7) { flex: 1.2; justify-content: flex-end; text-align: right; }
+    </style>
     <title>Quotation</title>
 </head>
 
@@ -25,21 +88,44 @@
                 <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
                 <h1 class="text-xl font-bold text-gray-800">Quotation</h1>
             </div>
-            <div class="flex items-center gap-4 flex-1 max-w-xl mx-8">
-                <div class="relative flex-1">
-                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" id="search-input" placeholder="Search quotations..."
-                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                </div>
-                <button id="filter-btn" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300">
-                    <i class="fas fa-filter"></i>
-                </button>
-            </div>
             <div class="flex items-center gap-3">
                 <button id="new-quotation"
                     class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
                     <i class="fas fa-plus"></i>
                     New Quotation
+                </button>
+                <button id="archived-quotations-btn"
+                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 px-4 h-10 rounded-lg flex items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
+                    title="View Archived Quotations (Ctrl+Shift+A)">
+                    <i class="fas fa-archive text-slate-400"></i>
+                    <span>Archived</span>
+                    <span id="archived-count-badge"
+                        class="ml-1 px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded-md text-[10px] font-bold">0</span>
+                </button>
+                <button id="trash-restore-all-btn"
+                    class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 h-10 rounded-lg flex items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
+                    style="display: none;" title="Restore All">
+                    <i class="fas fa-trash-restore"></i>
+                    <span>Restore All</span>
+                </button>
+                <button id="trash-delete-all-btn"
+                    class="bg-rose-600 hover:bg-rose-700 text-white px-4 h-10 rounded-lg flex items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
+                    style="display: none;" title="Delete All">
+                    <i class="fas fa-trash-alt"></i>
+                    <span>Delete All</span>
+                </button>
+                <!-- Trash icon-only button (gray, shown in normal mode) -->
+                <button id="showDeletedBtn"
+                    class="bg-gray-200 text-gray-700 h-10 px-3 rounded-lg font-semibold flex items-center gap-2 hover:bg-gray-300"
+                    title="View Trash">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+                <!-- Close Trash button (shown only in trash mode) -->
+                <button id="close-trash-btn"
+                    class="bg-white text-red-600 border-2 border-red-500 px-4 py-2 rounded-lg hover:bg-red-50 flex items-center gap-2 font-semibold transition-all"
+                    style="display:none;" title="Exit Trash">
+                    <i class="fas fa-trash-restore"></i>
+                    Close Trash
                 </button>
                 <button id="view-preview"
                     class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 flex items-center gap-2 font-medium"
@@ -47,12 +133,30 @@
                     <i class="fas fa-eye"></i>
                     View Preview
                 </button>
+                <button type="button" id="editQuotationBtnView"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-purple-300 bg-white px-4 py-2 text-sm font-semibold text-purple-700 transition-all hover:border-purple-500 hover:bg-purple-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-purple-200 cursor-pointer"
+                    style="display: none;">
+                    <i class="fas fa-edit"></i>
+                    Edit Quotation
+                </button>
+                <button type="button" id="duplicateQuotationBtnView"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-indigo-300 bg-white px-4 py-2 text-sm font-semibold text-indigo-700 transition-all hover:border-indigo-500 hover:bg-indigo-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-indigo-200 cursor-pointer"
+                    style="display: none;">
+                    <i class="fas fa-copy"></i>
+                    Duplicate Quotation
+                </button>
                 <button id="home-btn"
-                    class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium">
+                    class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium"
+                    style="display: none;">
                     <i class="fas fa-home"></i>
                     Home
                 </button>
-                <button id="shortcuts-btn" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300"
+                <button id="refresh-btn"
+                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 p-2.5 rounded-lg flex items-center justify-center gap-2 font-semibold w-10 h-10 transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    title="Refresh List (Ctrl+R)">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button id="shortcuts-btn" class="bg-gray-200 text-gray-700 w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-300 transition-all cursor-pointer"
                     title="Keyboard Shortcuts (?)">
                     <i class="fas fa-keyboard"></i>
                 </button>
@@ -60,19 +164,31 @@
         </div>
     </header>
 
-    <!-- Sidebar -->
-    <aside class="sidebar fixed top-0 left-0 bg-white h-screen flex flex-col border-r border-gray-200 pt-24 no-select">
+    <!-- Layout Wrapper -->
+    <div class="flex pt-24 h-screen w-full overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar bg-white h-full flex flex-col border-r border-gray-200 flex-shrink-0 no-select">
         <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
             <div class="flex flex-col gap-2">
-                <a href="#"
+                <a href="/dashboard" id="dashboard"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-th-large w-8 text-center"></i>
                     <span>Dashboard</span>
+                </a>
+                <a href="/customer" id="customer"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-users w-8 text-center"></i>
+                    <span>Customers</span>
                 </a>
                 <a href="../quotation/quotation.html"
                     class="flex items-center gap-5 p-6 text-xl text-blue-600 bg-blue-50 rounded-lg font-semibold">
                     <i class="fas fa-file-alt w-8 text-center"></i>
                     <span>Quotation</span>
+                </a>
+                <a href="/supplier" id="supplier"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-truck w-8 text-center"></i>
+                    <span>Suppliers</span>
                 </a>
                 <a href="../purchaseOrder/purchaseOrder.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
@@ -93,6 +209,16 @@
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-wrench w-8 text-center"></i>
                     <span>Service</span>
+                </a>
+                <a href="../purchase/purchase.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold" id="purchaseOnly">
+                    <i class="fas fa-shopping-bag w-8 text-center"></i>
+                    <span>Purchases</span>
+                </a>
+                <a href="../payment/payment.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-money-bill-wave w-8 text-center"></i>
+                    <span>Payments</span>
                 </a>
                 <a href="../stock/stock.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
@@ -123,540 +249,108 @@
         </nav>
     </aside>
 
-    <!-- Main Content -->
-    <main class="ml-[280px] pt-24 mt-6 p-8">
+        <!-- Main Content -->
+        <main id="main-content" class="flex-grow overflow-hidden flex flex-col h-[calc(100vh-6rem)]">
 
         <!-- Home Section -->
-        <div id="home">
-            <div class="records grid grid-cols-1 gap-4">
-                <!-- content will be loaded dynamically -->
-            </div>
-        </div>
-
-        <!-- New Quotation Form -->
-        <div id="new">
-            <form id="quotation-form" class="max-w-5xl mx-auto">
-
-                <!-- Step 1: Project Details -->
-                <div class="steps active" id="step-1">
-                    <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
-                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-                            <i class="fas fa-project-diagram text-green-600 text-2xl"></i>
-                            <h2 class="text-2xl font-semibold text-gray-800">Project Details</h2>
-                        </div>
-                        <div class="space-y-4">
-                            <div>
-                                <label for="id" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-barcode text-gray-500 mr-1"></i>Quotation ID (optional)
-                                </label>
-                                <input type="text" id="id" placeholder="Enter quotation ID"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                            </div>
-                            <div>
-                                <label for="project-name" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-briefcase text-gray-500 mr-1"></i>Project Name <span
-                                        class="text-red-500">*</span>
-                                </label>
-                                <input type="text" id="project-name" required placeholder="Enter project name"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                            </div>
-                            <div>
-                                <label for="quotation-date" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-calendar text-gray-500 mr-1"></i>Quotation Date <span
-                                        class="text-red-500">*</span>
-                                </label>
-                                <input type="date" id="quotation-date"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                            </div>
+        <div id="home" class="flex-1 flex flex-col min-h-0 overflow-hidden">
+            <!-- Filter Tabs & Quotation List -->
+            <section class="bg-white shadow-sm border border-slate-200 overflow-hidden fade-in flex-1 flex flex-col min-h-0">
+                <div class="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 bg-slate-50/50 flex-shrink-0">
+                    <div class="flex items-center gap-1">
+                        <!-- Status Tabs -->
+                        <div class="flex border-b border-slate-200" id="status-tabs-container">
+                            <button class="list-tab filter-tab active" data-status="all">
+                                <i class="fas fa-list mr-1"></i>All
+                            </button>
+                            <button class="list-tab filter-tab" data-status="Draft">
+                                <i class="fas fa-file-alt mr-1"></i>Draft
+                            </button>
+                            <button class="list-tab filter-tab" data-status="Sent">
+                                <i class="fas fa-paper-plane mr-1"></i>Sent
+                            </button>
+                            <button class="list-tab filter-tab" data-status="Approved">
+                                <i class="fas fa-check-circle mr-1"></i>Approved
+                            </button>
+                            <button class="list-tab filter-tab" data-status="Converted">
+                                <i class="fas fa-file-invoice-dollar mr-1"></i>Converted
+                            </button>
                         </div>
                     </div>
-                </div>
-
-                <!-- Step 2: Recipient Details -->
-                <div class="steps" id="step-2">
-                    <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
-                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-                            <i class="fas fa-user-tag text-purple-600 text-2xl"></i>
-                            <h2 class="text-2xl font-semibold text-gray-800">Recipient Details</h2>
+                    <!-- Search & Filter wrapper next to status filter -->
+                    <div class="flex items-center gap-3 max-w-md w-full" id="search-wrapper">
+                        <div class="relative flex-1">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" id="search-input" placeholder="Search by name, phone or email... (Ctrl+F)"
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm bg-white">
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="md:col-span-2">
-                                <label for="buyer-name" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-user text-gray-500 mr-1"></i>Buyer Name <span
-                                        class="text-red-500">*</span>
-                                </label>
-                                <input type="text" id="buyer-name" placeholder="Enter buyer name"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label for="buyer-address" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>Address <span
-                                        class="text-red-500">*</span>
-                                </label>
-                                <textarea id="buyer-address" rows="3" placeholder="Enter complete address"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"></textarea>
-                            </div>
-                            <div>
-                                <label for="buyer-phone" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-phone text-gray-500 mr-1"></i>Phone Number <span
-                                        class="text-red-500">*</span>
-                                </label>
-                                <input type="tel" id="buyer-phone" maxlength="10" pattern="[0-9]{10}"
-                                    inputmode="numeric" placeholder="Enter phone number"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                            </div>
-                            <div>
-                                <label for="buyer-email" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-envelope text-gray-500 mr-1"></i>Email
-                                </label>
-                                <input type="email" id="buyer-email" maxlength="254" pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
-                                    placeholder="Enter email address"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                            </div>
-                            <div>
-                                <label for="buyer-gstin" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-id-card text-gray-500 mr-1"></i>GSTIN
-                                </label>
-                                <input type="text" id="buyer-gstin" maxlength="15" pattern="[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}"
-                                    placeholder="Enter GSTIN (e.g., 29ABCDE1234F1Z5)"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 3: Item List -->
-                <div class="steps" id="step-3">
-                    <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
-                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-                            <i class="fas fa-list-ul text-green-600 text-2xl"></i>
-                            <h2 class="text-2xl font-semibold text-gray-800">Item List</h2>
-                        </div>
-
-                        <!-- Column Headers -->
-                        <div class="items-header">
-                            <div class="header-number">#</div>
-                            <div class="header-field description">Description</div>
-                            <div class="header-field hsn">HSN/SAC</div>
-                            <div class="header-field qty">Quantity</div>
-                            <div class="header-field price">Unit Price</div>
-                            <div class="header-field rate">Tax %</div>
-                            <div class="header-action"></div>
-                        </div>
-
-                        <!-- Items Container (Card-based) -->
-                        <div id="items-container">
-                            <!-- Items will be dynamically added here as cards -->
-                        </div>
-
-                        <!-- Hidden table for backward compatibility -->
-                        <table id="items-table" style="display: none;">
-                            <thead>
-                                <tr>
-                                    <th>S. No</th>
-                                    <th>Description</th>
-                                    <th>HSN/SAC</th>
-                                    <th>Qty</th>
-                                    <th>Unit Price</th>
-                                    <th>Rate</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Items will be synced here for data collection -->
-                            </tbody>
-                        </table>
-
-                        <button type="button" id="add-item-btn"
-                            class="mt-4 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2 font-medium shadow-md hover:shadow-lg transition-all">
-                            <i class="fas fa-plus"></i>
-                            Add Item
+                        <button id="filter-btn" class="bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 px-3 py-2 rounded-lg transition-all duration-150 flex items-center justify-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-purple-500/20 active:scale-95 cursor-pointer">
+                            <i class="fas fa-filter text-sm"></i>
                         </button>
                     </div>
                 </div>
 
-                <!-- Step 4: Non-Items -->
-                <div class="steps" id="step-4">
-                    <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
-                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-                            <i class="fas fa-plus-circle text-indigo-600 text-2xl"></i>
-                            <h2 class="text-2xl font-semibold text-gray-800">Other Charges</h2>
-                        </div>
-                        <p class="text-sm text-gray-600 mb-4">Add installation, shipping, or any other charges here.</p>
-
-                        <!-- Column Headers -->
-                        <div class="non-items-header">
-                            <div class="header-number">#</div>
-                            <div class="header-field description">Description</div>
-                            <div class="header-field price">Price</div>
-                            <div class="header-field rate">Tax %</div>
-                            <div class="header-action"></div>
-                        </div>
-
-                        <!-- Non-Items Container (Card-based) -->
-                        <div id="non-items-container">
-                            <!-- Non-items will be dynamically added here as cards -->
-                        </div>
-
-                        <!-- Hidden table for backward compatibility -->
-                        <table id="non-items-table" style="display: none;">
-                            <thead>
-                                <tr>
-                                    <th>S. No</th>
-                                    <th>Description</th>
-                                    <th>Price</th>
-                                    <th>Rate</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Non-items will be synced here for data collection -->
-                            </tbody>
-                        </table>
-
-                        <button type="button" id="add-non-item-btn"
-                            class="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 flex items-center gap-2 font-medium shadow-md hover:shadow-lg transition-all">
-                            <i class="fas fa-plus"></i>
-                            Add Charge
-                        </button>
+                <!-- Active Filters Info Bar -->
+                <div id="active-filters-info-bar" class="px-6 py-2.5 bg-slate-50 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 hidden text-xs transition-all duration-200 flex-shrink-0">
+                    <div class="flex flex-wrap items-center gap-1.5" id="active-filters-badges">
+                        <span class="font-bold text-slate-500 mr-1 flex items-center gap-1">
+                            <i class="fas fa-filter text-[10px]"></i> Active Filters:
+                        </span>
                     </div>
-                </div>
-
-                <!-- Step 5: Specifications -->
-                <div class="steps" id="step-5">
-                    <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
-                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-                            <i class="fas fa-clipboard-list text-blue-600 text-2xl"></i>
-                            <h2 class="text-2xl font-semibold text-gray-800">Add Specifications</h2>
-                        </div>
-                        <p class="text-sm text-gray-600 mb-4">Provide detailed specifications for each item.</p>
-
-                        <!-- Column Headers -->
-                        <div class="specifications-header">
-                            <div class="header-number">#</div>
-                            <div class="header-field description">Item</div>
-                            <div class="header-field specification">Specifications</div>
-                        </div>
-
-                        <!-- Specifications Container (Card-based) -->
-                        <div id="specifications-container">
-                            <!-- Specifications will be dynamically populated here as cards -->
-                        </div>
-
-                        <!-- Hidden table for backward compatibility -->
-                        <table id="items-specifications-table" style="display: none;">
-                            <thead>
-                                <tr>
-                                    <th>S. No</th>
-                                    <th>Description</th>
-                                    <th>Specifications</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Specifications will be synced here for data collection -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Step 6: Preview -->
-                <div class="steps" id="step-6">
-                    <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
-                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-                            <i class="fas fa-eye text-purple-600 text-2xl"></i>
-                            <h2 class="text-2xl font-semibold text-gray-800">Preview</h2>
-                        </div>
-                        <div id="preview-content" class="mb-6">
-                            <!-- Preview will be dynamically generated -->
-                        </div>
-                        <div class="flex gap-3 justify-center mt-6">
-                            <button type="button" id="save-btn"
-                                class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
-                                <i class="fas fa-save"></i>
-                                Save
-                            </button>
-                            <button type="button" id="print-btn"
-                                class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium">
-                                <i class="fas fa-print"></i>
-                                Print
-                            </button>
-                            <button type="button" id="save-pdf-btn"
-                                class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 flex items-center gap-2 font-medium">
-                                <i class="fas fa-file-pdf"></i>
-                                Save as PDF
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Navigation -->
-                <div id="step-navigation"
-                    class="mt-6 flex items-center justify-between bg-white p-4 rounded-lg shadow-md border border-gray-200 max-w-5xl mx-auto">
-                    <button type="button" id="prev-btn" disabled
-                        class="bg-gray-300 text-gray-600 px-6 py-2 rounded-lg hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed font-medium">
-                        <i class="fas fa-chevron-left mr-2"></i>Previous
-                    </button>
-                    <div id="step-indicator" class="text-gray-600 font-medium">
-                        <!-- Step indicator will be dynamically updated -->
-                    </div>
-                    <button type="button" id="next-btn"
-                        class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium">
-                        Next<i class="fas fa-chevron-right ml-2"></i>
+                    <button id="clear-all-filters-shortcut" class="text-purple-600 hover:text-purple-800 font-bold hover:underline flex items-center gap-1 cursor-pointer transition-all duration-150">
+                        <i class="fas fa-times-circle"></i> Clear All
                     </button>
                 </div>
-            </form>
-        </div>
 
-        <!-- View Quotation -->
-        <div id="view">
-            <div id="project-details-view" class="max-w-6xl mx-auto space-y-6">
-
-                <!-- View Type Switcher - Segmented Control -->
-                <div class="flex justify-center fade-in">
-                    <div id="view-type-tabs" class="inline-flex bg-gray-100 rounded-lg p-1 gap-1">
-                        <button type="button" data-view-type="1"
-                            class="view-type-tab active px-5 py-2 rounded-md text-sm font-medium transition-all duration-200 bg-blue-600 text-white shadow-sm">
-                            Without Tax
-                        </button>
-                        <button type="button" data-view-type="2"
-                            class="view-type-tab px-5 py-2 rounded-md text-sm font-medium transition-all duration-200 text-gray-500">
-                            With Tax
-                        </button>
-                        <button type="button" data-view-type="3"
-                            class="view-type-tab px-5 py-2 rounded-md text-sm font-medium transition-all duration-200 text-gray-500">
-                            Compact
-                        </button>
-                    </div>
+                <div class="hidden md:block overflow-x-auto overflow-y-auto flex-1 min-h-0">
+                    <table class="w-full text-sm border-collapse">
+                        <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
+                            <tr id="table-header-row" class="text-slate-700 border-b border-slate-200">
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Date</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Quotation ID</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Project Name</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Customer</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Valid Till</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody class="records text-xs" id="quotation-tbody">
+                            <tr>
+                                <td colspan="8" class="px-4 py-12 text-center text-slate-400">
+                                    <i class="fas fa-spinner fa-spin text-3xl mb-2 text-purple-500"></i>
+                                    <p>Loading quotations...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
 
-                <!-- Project Details Card -->
-                <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
-                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                        <i class="fas fa-project-diagram text-green-600 text-xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Project Details</h2>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Project Name</span>
-                            <span class="text-gray-900 font-semibold" id="view-project-name">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Quotation ID</span>
-                            <span class="text-gray-900 font-semibold" id="view-project-id">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Date</span>
-                            <span class="text-gray-900 font-semibold" id="view-quotation-date">-</span>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Recipient Details Card -->
-                <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
-                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                        <i class="fas fa-user-tag text-purple-600 text-xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Recipient Details</h2>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Name</span>
-                            <span class="text-gray-900 font-semibold" id="view-buyer-name">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Address</span>
-                            <span class="text-gray-900 font-semibold" id="view-buyer-address">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Phone</span>
-                            <span class="text-gray-900 font-semibold" id="view-buyer-phone">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Email</span>
-                            <span class="text-gray-900 font-semibold" id="view-buyer-email">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">GSTIN</span>
-                            <span class="text-gray-900 font-semibold" id="view-buyer-gstin">-</span>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Item List Card -->
-                <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
-                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                        <i class="fas fa-list-ul text-green-600 text-xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Item Details</h2>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table id="view-items-table" class="w-full border border-gray-300 rounded-lg">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        S. No</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Description</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        HSN/SAC</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Qty</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Unit Price</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Rate</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Items will be dynamically filled -->
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Items Total Amount</span>
-                            <span class="text-gray-900 font-bold" id="view-items-total-amount">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Items Total Tax</span>
-                            <span class="text-gray-900 font-bold" id="view-items-total-tax">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Overall</span>
-                            <span class="text-gray-900 font-bold" id="items-overall">-</span>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Other Charges Card -->
-                <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
-                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                        <i class="fas fa-plus-circle text-indigo-600 text-xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Other Charges</h2>
-                    </div>
-                    <div class="overflow-x-auto mb-4">
-                        <table id="view-non-items-table" class="w-full border border-gray-300 rounded-lg">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        S. No</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Description</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Price</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Rate</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Charges will be dynamically filled -->
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Non-Items Total Amount</span>
-                            <span class="text-gray-900 font-bold" id="view-non-items-total-amount">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Non-Items Total Tax</span>
-                            <span class="text-gray-900 font-bold" id="view-non-items-total-tax">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Overall</span>
-                            <span class="text-gray-900 font-bold" id="non-items-overall">-</span>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Specifications Card -->
-                <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
-                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                        <i class="fas fa-clipboard-list text-blue-600 text-xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Specifications</h2>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table id="view-specifications-table" class="w-full border border-gray-300 rounded-lg">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        S. No</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Description</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Specifications</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Specifications will be dynamically filled -->
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- Totals Card -->
-                <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
-                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                        <i class="fas fa-calculator text-purple-600 text-xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Totals</h2>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Subtotal</span>
-                            <span class="text-gray-900 font-bold text-lg" id="view-subtotal">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Tax (GST)</span>
-                            <span class="text-gray-900 font-bold text-lg" id="view-tax">-</span>
-                        </div>
-                        <div class="bg-purple-50 p-4 rounded-lg border-2 border-purple-200">
-                            <span class="block text-sm font-medium text-purple-600 mb-1">Total Amount Due</span>
-                            <span class="text-purple-900 font-bold text-xl" id="view-grand-total">-</span>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Preview & Actions Card -->
-                <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
-                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                        <i class="fas fa-eye text-purple-600 text-xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Document Preview</h2>
-                    </div>
-                    <div id="view-preview-content" class="mb-6">
-                        <!-- Preview will be dynamically generated -->
-                    </div>
-                    <div class="flex gap-3 justify-center">
-                        <button type="button" id="printProject"
-                            class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium">
-                            <i class="fas fa-print"></i>
-                            Print
-                        </button>
-                        <button type="button" id="saveProjectPDF"
-                            class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 flex items-center gap-2 font-medium">
-                            <i class="fas fa-file-pdf"></i>
-                            Save as PDF
-                        </button>
-                    </div>
-                </section>
-            </div>
+                <!-- Mobile stacked layout (displayed only on mobile) -->
+                <div id="quotation-cards-mobile" class="block md:hidden space-y-3 p-4 bg-slate-50 overflow-y-auto flex-1 min-h-0">
+                    <!-- Cards will be populated dynamically by JavaScript -->
+                </div>
+            </section>
         </div>
+
     </main>
+    </div>
 
     <!-- Filter Popover -->
-    <div id="filter-popover" class="fixed bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-40 hidden"
-        style="width: 280px;">
+    <div id="filter-popover" class="fixed bg-white rounded-2xl shadow-2xl border border-slate-200 p-5 z-40 hidden w-[340px] transition-all duration-200">
         <h3 class="font-semibold text-gray-800 mb-3">Filter & Sort</h3>
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+            <select id="status-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                <option value="all">All Statuses</option>
+                <option value="Draft">Draft</option>
+                <option value="Sent">Sent</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Converted">Converted</option>
+                <option value="Expired">Expired</option>
+            </select>
+        </div>
         <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
             <select id="date-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
@@ -690,40 +384,47 @@
     </div>
 
     <!-- Keyboard Shortcuts Modal -->
-    <div id="shortcuts-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
-        <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shortcuts-panel">
-            <div class="bg-blue-600 text-white px-6 py-4 rounded-t-lg flex items-center justify-between">
+    <div id="shortcuts-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-[999] flex items-center justify-center hidden opacity-0 transition-opacity duration-200" role="dialog" aria-modal="true" aria-label="Keyboard Shortcuts">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl max-w-xl w-full mx-4 max-h-[85vh] overflow-y-auto overflow-hidden isolate shortcuts-panel">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-10">
                 <div class="flex items-center gap-3">
-                    <i class="fas fa-keyboard text-2xl"></i>
-                    <h2 class="text-xl font-semibold">Keyboard Shortcuts</h2>
+                    <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+                        <i class="fas fa-keyboard text-lg"></i>
+                    </div>
+                    <h2 class="text-base font-extrabold text-slate-800 tracking-tight">Keyboard Shortcuts Help</h2>
                 </div>
-                <button id="close-shortcuts" class="text-white hover:text-gray-200" aria-label="Close shortcuts modal">
-                    <i class="fas fa-times text-xl"></i>
+                <button id="close-shortcuts" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-200" aria-label="Close shortcuts help modal">
+                    <i class="fas fa-times text-sm"></i>
                 </button>
             </div>
-            <div id="shortcuts-content" class="p-6 space-y-6"></div>
+            <div id="shortcuts-content" class="p-6 space-y-5"></div>
         </div>
     </div>
 
     <!-- Scripts -->
     <!-- Shared utilities -->
-    <script src="../js/shared/utils.js"></script>
-    <script src="../js/shared/calculations.js"></script>
-    <script src="../js/shared/filterUtils.js"></script>
-    <script src="../js/shared/ipc.js"></script>
-    <script src="../js/shared/documentManager.js"></script>
-    <script src="../js/shared/sectionRenderers.js"></script>
-    <script src="../js/shared/documentBuilder.js"></script>
-    <script src="../js/shared/itemReorder.js"></script>
+    <script src="../../dist/public/ts/shared/core/utils.js"></script>
+    <script src="../../dist/public/ts/shared/documents/calculations.js"></script>
+    <script src="../../dist/public/ts/shared/filters/filterUtils.js"></script>
+    <script src="../../dist/public/ts/shared/core/ipc.js"></script>
+    <script src="../../dist/public/ts/shared/documents/documentManager.js"></script>
+    <script src="../../dist/public/ts/shared/documents/sectionRenderers.js"></script>
+    <script src="../../dist/public/ts/shared/documents/documentBuilder.js"></script>
+    <script src="../../dist/public/ts/shared/documents/itemReorder.js"></script>
 
     <!-- Shared scripts -->
-    <script src="../js/shared/companyConfig.js"></script>
-    <script src="../js/shared/globalScript.js"></script>
+    <script src="../../dist/public/ts/shared/config/companyConfig.js"></script>
+    <script src="../../dist/public/ts/shared/core/globalScript.js"></script>
 
-    <!-- Module-specific scripts -->
-    <script src="./quotation_home.js"></script>
-    <script src="./quotation_view.js"></script>
-    <script src="./quotation_form.js"></script>
+    <!-- Quotation module scripts (compiled from TypeScript) -->
+    <script src="../../dist/public/quotation/src/services/quotationApi.js"></script>
+    <script src="../../dist/public/quotation/src/utils/quotationFilters.js"></script>
+    <script src="../../dist/public/quotation/src/utils/keyboardShortcuts.js"></script>
+    <script src="../../dist/public/quotation/src/components/quotationView.js"></script>
+    <script src="../../dist/public/quotation/src/components/quotationForms.js"></script>
+    <script src="../../dist/public/quotation/src/components/unsavedChanges.js"></script>
+    <script src="../../dist/public/quotation/src/components/quotationTable.js"></script>
+    <script src="../../dist/public/quotation/src/main.js"></script>
 </body>
 
 </html>

@@ -1,0 +1,18 @@
+/* Legacy view styles - Most modules now use Tailwind CSS */
+/* Keeping minimal styles for backward compatibility */
+
+/* Main view container */
+#view {
+    display: none;
+    min-width: calc(100vw - 241px);
+    max-height: calc(100vh - 72px);
+    overflow-x: auto;
+    padding: 2rem 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) transparent;
+    flex-direction: column;
+}
+
+#view-balance-due {
+    color: var(--danger);
+}

@@ -19,15 +19,15 @@ body {
 
 /* Ensure sidebar matches other pages */
 .sidebar {
-    width: 280px;
-    height: 100vh;
+    width: 240px;
+    height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
 }
 
 /* Main content scrolling to match layout */
 main {
-    height: 100vh;
+    height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
 }
@@ -365,6 +365,8 @@ main {
 *::-webkit-scrollbar-thumb {
     background: #2563eb;
     border-radius: 4px;
+    background-clip: padding-box;
+    border: 2px solid transparent;
 }
 
 *::-webkit-scrollbar-thumb:hover {

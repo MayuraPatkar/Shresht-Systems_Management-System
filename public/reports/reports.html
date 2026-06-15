@@ -30,12 +30,18 @@
             </div>
             <div class="flex items-center gap-3">
                 <button id="home-btn"
-                    class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium">
+                    class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium"
+                    style="display: none;">
                     <i class="fas fa-home"></i>
                     Home
                 </button>
+                <button id="refresh-btn"
+                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    title="Refresh List (Ctrl+R)">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
                 <button id="keyboardShortcutsBtn"
-                    class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300 mr-2"
+                    class="bg-gray-200 text-gray-700 w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-300 transition-all cursor-pointer"
                     title="Keyboard Shortcuts (?)">
                     <i class="fas fa-keyboard"></i>
                 </button>
@@ -43,8 +49,10 @@
         </div>
     </header>
 
-    <!-- Sidebar -->
-    <aside class="sidebar fixed top-0 left-0 bg-white h-screen flex flex-col border-r border-gray-200 pt-24 no-select">
+    <!-- Layout Wrapper -->
+    <div class="flex pt-24 h-screen w-full overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar bg-white h-full flex flex-col border-r border-gray-200 flex-shrink-0 no-select">
         <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
             <div class="flex flex-col gap-2">
                 <a href="#"
@@ -52,10 +60,20 @@
                     <i class="fas fa-th-large w-8 text-center"></i>
                     <span>Dashboard</span>
                 </a>
+                <a href="/customer" id="customer"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-users w-8 text-center"></i>
+                    <span>Customers</span>
+                </a>
                 <a href="../quotation/quotation.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-file-alt w-8 text-center"></i>
                     <span>Quotation</span>
+                </a>
+                <a href="/supplier" id="supplier"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-truck w-8 text-center"></i>
+                    <span>Suppliers</span>
                 </a>
                 <a href="../purchaseOrder/purchaseOrder.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
@@ -76,6 +94,16 @@
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-wrench w-8 text-center"></i>
                     <span>Service</span>
+                </a>
+                <a href="../purchase/purchase.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold" id="purchaseOnly">
+                    <i class="fas fa-shopping-bag w-8 text-center"></i>
+                    <span>Purchases</span>
+                </a>
+                <a href="../payment/payment.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-money-bill-wave w-8 text-center"></i>
+                    <span>Payments</span>
                 </a>
                 <a href="../stock/stock.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
@@ -106,8 +134,8 @@
         </nav>
     </aside>
 
-    <!-- Main Content -->
-    <main class="ml-[280px] pt-24 mt-6 p-8">
+        <!-- Main Content -->
+        <main class="flex-1 h-full overflow-y-auto p-8">
 
         <!-- Reports Home Section -->
         <div id="reports-home">
@@ -1035,61 +1063,80 @@
         </div>
 
     </main>
+    </div>
 
     <!-- Keyboard Shortcuts Modal -->
-    <div id="keyboardShortcutsModal"
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-            <div class="flex justify-between items-center pb-4 border-b mb-4">
-                <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                    <i class="fas fa-keyboard text-blue-600"></i>
-                    Keyboard Shortcuts
-                </h3>
-                <button id="closeKeyboardModalBtn" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times fa-lg"></i>
+    <div id="keyboardShortcutsModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-[999] flex items-center justify-center hidden" role="dialog" aria-modal="true" aria-label="Keyboard Shortcuts">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl max-w-xl w-full mx-4 max-h-[85vh] overflow-y-auto overflow-hidden isolate shortcuts-panel">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-10">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+                        <i class="fas fa-keyboard text-lg"></i>
+                    </div>
+                    <h2 class="text-base font-extrabold text-slate-800 tracking-tight">Keyboard Shortcuts</h2>
+                </div>
+                <button id="closeKeyboardModalBtn" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-200" aria-label="Close shortcuts help modal">
+                    <i class="fas fa-times text-sm"></i>
                 </button>
             </div>
-            <div class="space-y-3">
-                <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span class="text-gray-700">Back to Reports List</span>
-                    <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Esc</kbd>
+            <div class="p-6 space-y-4">
+                <div class="shortcut-row">
+                    <span class="text-sm font-medium text-slate-600">Back to Reports List</span>
+                    <div class="shortcut-keys">
+                        <kbd>Esc</kbd>
+                    </div>
                 </div>
-                <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span class="text-gray-700">Generate Report</span>
-                    <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Ctrl+Enter</kbd>
+                <div class="shortcut-row">
+                    <span class="text-sm font-medium text-slate-600">Generate Report</span>
+                    <div class="shortcut-keys">
+                        <kbd>Ctrl</kbd> + <kbd>Enter</kbd>
+                    </div>
                 </div>
-                <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span class="text-gray-700">Print Report</span>
-                    <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Ctrl+P</kbd>
+                <div class="shortcut-row">
+                    <span class="text-sm font-medium text-slate-600">Print Report</span>
+                    <div class="shortcut-keys">
+                        <kbd>Ctrl</kbd> + <kbd>P</kbd>
+                    </div>
                 </div>
-                <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span class="text-gray-700">Save as PDF</span>
-                    <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Ctrl+S</kbd>
+                <div class="shortcut-row">
+                    <span class="text-sm font-medium text-slate-600">Save as PDF</span>
+                    <div class="shortcut-keys">
+                        <kbd>Ctrl</kbd> + <kbd>S</kbd>
+                    </div>
                 </div>
-                <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span class="text-gray-700">Stock Report</span>
-                    <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Alt+1</kbd>
+                <div class="shortcut-row">
+                    <span class="text-sm font-medium text-slate-600">Stock Report</span>
+                    <div class="shortcut-keys">
+                        <kbd>Alt</kbd> + <kbd>1</kbd>
+                    </div>
                 </div>
-                <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span class="text-gray-700">Invoice GST Report</span>
-                    <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Alt+2</kbd>
+                <div class="shortcut-row">
+                    <span class="text-sm font-medium text-slate-600">Invoice GST Report</span>
+                    <div class="shortcut-keys">
+                        <kbd>Alt</kbd> + <kbd>2</kbd>
+                    </div>
                 </div>
-                <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span class="text-gray-700">Purchase GST Report</span>
-                    <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Alt+3</kbd>
+                <div class="shortcut-row">
+                    <span class="text-sm font-medium text-slate-600">Purchase GST Report</span>
+                    <div class="shortcut-keys">
+                        <kbd>Alt</kbd> + <kbd>3</kbd>
+                    </div>
                 </div>
-                <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span class="text-gray-700">Data Worksheet</span>
-                    <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">Alt+4</kbd>
+                <div class="shortcut-row">
+                    <span class="text-sm font-medium text-slate-600">Data Worksheet</span>
+                    <div class="shortcut-keys">
+                        <kbd>Alt</kbd> + <kbd>4</kbd>
+                    </div>
                 </div>
-                <div class="flex justify-between items-center py-2">
-                    <span class="text-gray-700">Show this help</span>
-                    <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">?</kbd>
+                <div class="shortcut-row">
+                    <span class="text-sm font-medium text-slate-600">Show this help</span>
+                    <div class="shortcut-keys">
+                        <kbd>?</kbd>
+                    </div>
                 </div>
             </div>
-            <div class="mt-6 pt-4 border-t">
-                <button id="closeKeyboardHelpBtn"
-                    class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
+            <div class="p-6 border-t border-slate-100 bg-slate-50/50">
+                <button id="closeKeyboardHelpBtn" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold transition-all shadow-sm">
                     Got it!
                 </button>
             </div>
@@ -1098,22 +1145,25 @@
 
     <!-- Scripts -->
     <!-- Shared utilities -->
-    <script src="../js/shared/globalScript.js"></script>
-    <script src="../js/shared/utils.js"></script>
-    <script src="../js/shared/calculations.js"></script>
-    <script src="../js/shared/ipc.js"></script>
-    <script src="../js/shared/documentManager.js"></script>
-    <script src="../js/shared/keyboardNavigation.js"></script>
+    <script src="../../dist/public/ts/shared/core/globalScript.js"></script>
+    <script src="../../dist/public/ts/shared/core/utils.js"></script>
+    <script src="../../dist/public/ts/shared/documents/calculations.js"></script>
+    <script src="../../dist/public/ts/shared/core/ipc.js"></script>
+    <script src="../../dist/public/ts/shared/documents/documentManager.js"></script>
+    <script src="../../dist/public/ts/shared/core/keyboardNavigation.js"></script>
 
     <!-- Shared scripts -->
-    <script src="../js/shared/companyConfig.js"></script>
+    <script src="../../dist/public/ts/shared/config/companyConfig.js"></script>
 
     <!-- Module-specific scripts -->
-    <script src="./reports.js"></script>
-    <script src="./stockReport.js"></script>
-    <script src="./gstReport.js"></script>
-    <script src="./dataWorksheetReport.js"></script>
-    <script src="./purchaseGstReport.js"></script>
+    <script src="../../dist/public/reports/src/types/reports.types.js"></script>
+    <script src="../../dist/public/reports/src/services/reportsApi.js"></script>
+    <script src="../../dist/public/reports/src/utils/reportsUtils.js"></script>
+    <script src="../../dist/public/reports/src/components/stockReport.js"></script>
+    <script src="../../dist/public/reports/src/components/gstReport.js"></script>
+    <script src="../../dist/public/reports/src/components/purchaseGstReport.js"></script>
+    <script src="../../dist/public/reports/src/components/dataWorksheetReport.js"></script>
+    <script src="../../dist/public/reports/src/main.js"></script>
 </body>
 
 </html>
