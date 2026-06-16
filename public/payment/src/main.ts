@@ -1010,7 +1010,7 @@ interface Window {
         if (paginatedPayments.length === 0) {
             const emptyStateHTML = `
                 <tr>
-                    <td colspan="8" class="px-6 py-16 text-center text-slate-455 bg-white align-middle h-full">
+                    <td colspan="7" class="px-6 py-16 text-center text-slate-455 bg-white align-middle h-full">
                         <div class="w-full h-full min-h-[320px] flex flex-col items-center justify-center text-center py-4 fade-in select-none">
                             <div class="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 mb-4 border border-dashed border-slate-300">
                                 <i class="fas fa-inbox text-2xl"></i>
@@ -1562,7 +1562,6 @@ interface Window {
                         if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
                     });
                 }
-                document.getElementById('custom-date-inputs')?.classList.add('hidden');
                 applyFilter();
             });
             $chipsList.appendChild(chip);
@@ -1650,7 +1649,6 @@ interface Window {
             setRefBtnActive(btn as HTMLElement, r === '');
         });
 
-        document.getElementById('custom-date-inputs')?.classList.add('hidden');
         applyFilter();
     }
 
@@ -2076,8 +2074,6 @@ interface Window {
     // Redesigned Popover dropdown listeners
     const dateDropdown = document.getElementById('dateFilterDropdown');
     const dateFilter = document.getElementById('date-filter') as HTMLInputElement | null;
-    const customDateInputs = document.getElementById('custom-date-inputs');
-
     if (dateDropdown && dateFilter) {
         dateDropdown.addEventListener('click', (e: Event) => {
             const target = e.target as HTMLElement;
@@ -2087,35 +2083,33 @@ interface Window {
             e.preventDefault();
 
             const range = link.getAttribute('data-date-filter') || 'all';
-            
-            dateDropdown.querySelectorAll('a').forEach(a => {
-                a.classList.remove('bg-gray-100', 'font-semibold');
-            });
-            link.classList.add('bg-gray-100', 'font-semibold');
 
             if (range === 'custom') {
-                customDateInputs?.classList.remove('hidden');
+                (window as any).showCustomDateModal((startDate: string, endDate: string) => {
+                    dateDropdown.querySelectorAll('a').forEach(a => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                    });
+                    link.classList.add('bg-gray-100', 'font-semibold');
+
+                    advancedFilters.dateRange = 'custom';
+                    advancedFilters.startDate = startDate;
+                    advancedFilters.endDate = endDate;
+                    dateFilter.value = 'custom';
+                    $filterPopover?.classList.add('hidden');
+                    applyFilter();
+                });
             } else {
-                customDateInputs?.classList.add('hidden');
+                dateDropdown.querySelectorAll('a').forEach(a => {
+                    a.classList.remove('bg-gray-100', 'font-semibold');
+                });
+                link.classList.add('bg-gray-100', 'font-semibold');
+
                 advancedFilters.dateRange = range;
                 dateFilter.value = range;
                 applyFilter();
             }
         });
     }
-
-    const applyCustomDateBtn = document.getElementById('apply-custom-date');
-    applyCustomDateBtn?.addEventListener('click', () => {
-        const startVal = (document.getElementById('custom-start-date') as HTMLInputElement)?.value || '';
-        const endVal = (document.getElementById('custom-end-date') as HTMLInputElement)?.value || '';
-        
-        advancedFilters.dateRange = 'custom';
-        advancedFilters.startDate = startVal;
-        advancedFilters.endDate = endVal;
-        
-        if (dateFilter) dateFilter.value = 'custom';
-        applyFilter();
-    });
 
     const txTypeDropdown = document.getElementById('txTypeFilterDropdown');
     const txTypeFilter = document.getElementById('tx-type-filter') as HTMLInputElement | null;

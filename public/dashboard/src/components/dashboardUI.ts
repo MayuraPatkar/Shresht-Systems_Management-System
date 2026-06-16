@@ -121,8 +121,6 @@ class DashboardUI {
         dashboardApi.getOverview()
             .then((data: any) => {
                 dashboardUtils.animateCounter("project-count", data.totalProjects);
-                dashboardUtils.animateCounter("unpaid-count", data.totalUnpaid);
-                dashboardUtils.animateCounter("expenditure-count", data.totalExpenditure, true);
                 dashboardUtils.animateCounter("remaining-services-count", data.remainingServices);
                 dashboardUtils.animateCounter("customer-count", data.totalCustomers);
 
@@ -172,22 +170,10 @@ class DashboardUI {
 
                 const hasPipeline = (data.totalProjects || 0) > 0 || (data.totalQuotations || 0) > 0;
                 this.drawSparkline("pipeline-sparkline", hasPipeline ? [30000, 45000, 40000, 55000, pipelineValue] : [0, 0, 0, 0, 0], 'rgb(37, 99, 235)');
-
-                const expStatusEl = document.getElementById("exp-status-text");
-                if (expStatusEl) {
-                    const hasLoss = (data.totalEarned || 0) < (data.totalExpenditure || 0);
-                    expStatusEl.textContent = hasLoss ? 'Outflow exceeding sales' : 'Stable operational costs';
-                    expStatusEl.className = `text-[10px] ${hasLoss ? 'text-red-500 font-bold' : 'text-slate-400 font-medium'} mt-1 block`;
-                }
-
-                const unpaidStatusEl = document.querySelector("#unpaid-count + span");
-                if (unpaidStatusEl) {
-                    unpaidStatusEl.textContent = data.totalUnpaid > 0 ? `${data.totalUnpaid} unpaid invoice${data.totalUnpaid !== 1 ? 's' : ''}` : 'All payments cleared';
-                }
             })
             .catch((err: any) => {
                 console.error("Error fetching analytics:", err);
-                ['project-count', 'unpaid-count', 'expenditure-count', 'remaining-services-count', 'customer-count'].forEach(id => {
+                ['project-count', 'remaining-services-count', 'customer-count'].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.textContent = '0';
                 });

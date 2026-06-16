@@ -373,7 +373,7 @@
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Reference</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Voucher No</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Method</th>
-                                <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider">Amount</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider">Amount</th>
                             </tr>
                         </thead>
                         <tbody id="payment-tbody">
@@ -752,18 +752,7 @@
                     <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-date-filter="year">This Year</a>
                     <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-date-filter="custom">Custom Range</a>
                 </div>
-                <!-- Custom Date Range Inputs -->
-                <div id="custom-date-inputs" class="hidden flex flex-col gap-2 mt-2 bg-slate-50 p-2 rounded-lg border border-slate-200">
-                    <div class="flex items-center gap-1.5 text-xs">
-                        <span class="text-slate-500 w-8">From</span>
-                        <input type="date" id="custom-start-date" class="flex-1 px-2 py-1 border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white text-slate-800">
-                    </div>
-                    <div class="flex items-center gap-1.5 text-xs">
-                        <span class="text-slate-500 w-8">To</span>
-                        <input type="date" id="custom-end-date" class="flex-1 px-2 py-1 border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white text-slate-800">
-                    </div>
-                    <button id="apply-custom-date" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-1 rounded-md font-semibold text-xs transition-colors cursor-pointer">Apply Range</button>
-                </div>
+
             </div>
 
             <!-- Transaction Type Section -->
@@ -1135,6 +1124,7 @@
     <script src="../../dist/public/ts/shared/core/ipc.js"></script>
     <script src="../../dist/public/ts/shared/core/globalScript.js"></script>
     <script src="../../dist/public/ts/shared/core/validation.js"></script>
+    <script src="../../dist/public/ts/shared/filters/filterUtils.js"></script>
     <script src="../../dist/public/payment/src/types/payment.types.js"></script>
     <script src="../../dist/public/payment/src/services/paymentApi.js"></script>
     <script src="../../dist/public/payment/src/main.js"></script>
