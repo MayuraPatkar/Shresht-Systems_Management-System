@@ -4,8 +4,9 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('supplier-search') as HTMLInputElement;
-    const typeFilter = document.getElementById('type-filter') as HTMLSelectElement;
-    const statusFilter = document.getElementById('status-filter') as HTMLSelectElement;
+    const typeFilter = document.getElementById('type-filter') as HTMLInputElement;
+    const statusFilter = document.getElementById('status-filter') as HTMLInputElement;
+    const typeDropdown = document.getElementById('typeFilterDropdown');
     const resetBtn = document.getElementById('reset-filters');
     const addBtn = document.getElementById('add-supplier-btn');
     const filterBtn = document.getElementById('filter-btn');
@@ -65,6 +66,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 clearFn: () => {
                     if (typeFilter) {
                         typeFilter.value = '';
+                        const typeDropdown = document.getElementById('typeFilterDropdown');
+                        if (typeDropdown) {
+                            typeDropdown.querySelectorAll('a').forEach((a, i) => {
+                                a.classList.remove('bg-gray-100', 'font-semibold');
+                                if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                            });
+                        }
                         (window as any).fetchSuppliers();
                     }
                 }
@@ -321,6 +329,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (searchInput) searchInput.value = '';
             if (typeFilter) typeFilter.value = '';
             if (statusFilter) statusFilter.value = '';
+            if (typeDropdown) {
+                typeDropdown.querySelectorAll('a').forEach((a, i) => {
+                    a.classList.remove('bg-gray-100', 'font-semibold');
+                    if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                });
+            }
             (window as any).fetchSuppliers();
             filterPopover?.classList.add('hidden');
         };
@@ -451,7 +465,7 @@ document.addEventListener('DOMContentLoaded', () => {
         filterBtn.onclick = (e) => {
             e.stopPropagation();
             const rect = filterBtn.getBoundingClientRect();
-            const popoverWidth = 320; // w-80 is 320px
+            const popoverWidth = 280; // redesigned popover width is 280px
             
             filterPopover.style.top = `${rect.bottom + 8}px`;
             
@@ -476,12 +490,35 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    // Setup Type Filter click handlers
+    if (typeDropdown && typeFilter) {
+        typeDropdown.addEventListener('click', (e: Event) => {
+            const target = e.target as HTMLElement;
+            const link = target.closest('a');
+            if (!link) return;
+
+            e.preventDefault();
+
+            typeDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+            link.classList.add('bg-gray-100', 'font-semibold');
+
+            typeFilter.value = link.getAttribute('data-type-filter') || '';
+            (window as any).fetchSuppliers();
+        });
+    }
+
     const clearAllShortcut = document.getElementById('clear-all-filters-shortcut') as HTMLButtonElement;
     if (clearAllShortcut) {
         clearAllShortcut.onclick = () => {
             if (searchInput) searchInput.value = '';
             if (typeFilter) typeFilter.value = '';
             if (statusFilter) statusFilter.value = '';
+            if (typeDropdown) {
+                typeDropdown.querySelectorAll('a').forEach((a, i) => {
+                    a.classList.remove('bg-gray-100', 'font-semibold');
+                    if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                });
+            }
             (window as any).fetchSuppliers();
         };
     }

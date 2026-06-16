@@ -765,13 +765,70 @@
             }
         });
 
-        document.getElementById('apply-filters-btn')?.addEventListener('click', () => {
-            ServiceState.filters.date = (document.getElementById('date-filter') as HTMLSelectElement).value as any;
-            ServiceState.filters.paymentStatus = (document.getElementById('payment-status-filter') as HTMLSelectElement).value as any;
-            ServiceState.filters.sort = (document.getElementById('sort-filter') as HTMLSelectElement).value as any;
-            document.getElementById('filter-popover')?.classList.add('hidden');
-            renderTabContent();
-        });
+        const dateFilter = document.getElementById('date-filter') as HTMLInputElement | null;
+        const paymentStatusFilter = document.getElementById('payment-status-filter') as HTMLInputElement | null;
+        const sortFilter = document.getElementById('sort-filter') as HTMLInputElement | null;
+
+        const dateDropdown = document.getElementById('dateFilterDropdown');
+        const paymentStatusDropdown = document.getElementById('paymentStatusFilterDropdown');
+        const sortDropdown = document.getElementById('sortFilterDropdown');
+
+        // Handle date filter clicks
+        if (dateDropdown && dateFilter) {
+            dateDropdown.addEventListener('click', (e: Event) => {
+                const target = e.target as HTMLElement;
+                const link = target.closest('a');
+                if (!link) return;
+
+                e.preventDefault();
+
+                dateDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+                link.classList.add('bg-gray-100', 'font-semibold');
+
+                const value = link.getAttribute('data-date-filter') || 'all';
+                ServiceState.filters.date = value as any;
+                dateFilter.value = value;
+                renderTabContent();
+            });
+        }
+
+        // Handle payment status filter clicks
+        if (paymentStatusDropdown && paymentStatusFilter) {
+            paymentStatusDropdown.addEventListener('click', (e: Event) => {
+                const target = e.target as HTMLElement;
+                const link = target.closest('a');
+                if (!link) return;
+
+                e.preventDefault();
+
+                paymentStatusDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+                link.classList.add('bg-gray-100', 'font-semibold');
+
+                const value = link.getAttribute('data-payment-status-filter') || 'all';
+                ServiceState.filters.paymentStatus = value as any;
+                paymentStatusFilter.value = value;
+                renderTabContent();
+            });
+        }
+
+        // Handle sort filter clicks
+        if (sortDropdown && sortFilter) {
+            sortDropdown.addEventListener('click', (e: Event) => {
+                const target = e.target as HTMLElement;
+                const link = target.closest('a');
+                if (!link) return;
+
+                e.preventDefault();
+
+                sortDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+                link.classList.add('bg-gray-100', 'font-semibold');
+
+                const value = link.getAttribute('data-sort-filter') || 'date-desc';
+                ServiceState.filters.sort = value as any;
+                sortFilter.value = value;
+                renderTabContent();
+            });
+        }
 
         document.getElementById('clear-filters-btn')?.addEventListener('click', () => {
             ServiceState.filters = { search: '', date: 'all', paymentStatus: 'all', sort: 'date-desc' };
@@ -780,9 +837,29 @@
                 if (el) el.value = val;
             };
             setVal('search-input', '');
-            setVal('date-filter', 'all');
-            setVal('payment-status-filter', 'all');
-            setVal('sort-filter', 'date-desc');
+            if (dateFilter) dateFilter.value = 'all';
+            if (paymentStatusFilter) paymentStatusFilter.value = 'all';
+            if (sortFilter) sortFilter.value = 'date-desc';
+
+            if (dateDropdown) {
+                dateDropdown.querySelectorAll('a').forEach((a, i) => {
+                    a.classList.remove('bg-gray-100', 'font-semibold');
+                    if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                });
+            }
+            if (paymentStatusDropdown) {
+                paymentStatusDropdown.querySelectorAll('a').forEach((a, i) => {
+                    a.classList.remove('bg-gray-100', 'font-semibold');
+                    if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                });
+            }
+            if (sortDropdown) {
+                sortDropdown.querySelectorAll('a').forEach((a, i) => {
+                    a.classList.remove('bg-gray-100', 'font-semibold');
+                    if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                });
+            }
+
             document.getElementById('filter-popover')?.classList.add('hidden');
             renderTabContent();
         });

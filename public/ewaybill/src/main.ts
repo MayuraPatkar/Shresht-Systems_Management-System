@@ -987,9 +987,18 @@
                 thDate.onclick = () => {
                     const nextSort = sortBy === 'date-desc' ? 'date-asc' : 'date-desc';
                     currentFilters.sortBy = nextSort;
-                    const sortFilter = document.getElementById('sort-filter') as HTMLSelectElement | null;
+                    const sortFilter = document.getElementById('sort-filter') as HTMLInputElement | null;
                     if (sortFilter) {
                         sortFilter.value = nextSort;
+                    }
+                    const sortDropdown = document.getElementById('sortFilterDropdown');
+                    if (sortDropdown) {
+                        sortDropdown.querySelectorAll('a').forEach(a => {
+                            a.classList.remove('bg-gray-100', 'font-semibold');
+                            if (a.getAttribute('data-sort-filter') === nextSort) {
+                                a.classList.add('bg-gray-100', 'font-semibold');
+                            }
+                        });
                     }
                     applyWayBillFilters();
                 };
@@ -1102,8 +1111,15 @@
                     currentFilters.dateFilter = 'all';
                     currentFilters.customStartDate = null;
                     currentFilters.customEndDate = null;
-                    const dateSelect = document.getElementById('date-filter') as HTMLSelectElement | null;
+                    const dateSelect = document.getElementById('date-filter') as HTMLInputElement | null;
                     if (dateSelect) dateSelect.value = 'all';
+                    const dateDropdown = document.getElementById('dateFilterDropdown');
+                    if (dateDropdown) {
+                        dateDropdown.querySelectorAll('a').forEach((a, i) => {
+                            a.classList.remove('bg-gray-100', 'font-semibold');
+                            if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                        });
+                    }
                     applyWayBillFilters();
                 }
             });
@@ -1119,8 +1135,15 @@
                 label: `Sort: ${sortLabels[currentFilters.sortBy] || currentFilters.sortBy}`,
                 clearFn: () => {
                     currentFilters.sortBy = 'date-desc';
-                    const sortSelect = document.getElementById('sort-filter') as HTMLSelectElement | null;
+                    const sortSelect = document.getElementById('sort-filter') as HTMLInputElement | null;
                     if (sortSelect) sortSelect.value = 'date-desc';
+                    const sortDropdown = document.getElementById('sortFilterDropdown');
+                    if (sortDropdown) {
+                        sortDropdown.querySelectorAll('a').forEach((a, i) => {
+                            a.classList.remove('bg-gray-100', 'font-semibold');
+                            if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                        });
+                    }
                     applyWayBillFilters();
                 }
             });
@@ -1152,12 +1175,14 @@
     function initWayBillFilters() {
         const filterBtn = document.getElementById('filter-btn') as HTMLButtonElement | null;
         const filterPopover = document.getElementById('filter-popover') as HTMLDivElement | null;
-        const dateFilter = document.getElementById('date-filter') as HTMLSelectElement | null;
-        const sortFilter = document.getElementById('sort-filter') as HTMLSelectElement | null;
+        const dateFilter = document.getElementById('date-filter') as HTMLInputElement | null;
+        const sortFilter = document.getElementById('sort-filter') as HTMLInputElement | null;
         const clearFiltersBtn = document.getElementById('clear-filters-btn') as HTMLButtonElement | null;
-        const applyFiltersBtn = document.getElementById('apply-filters-btn') as HTMLButtonElement | null;
         const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
         const clearAllShortcut = document.getElementById('clear-all-filters-shortcut') as HTMLButtonElement | null;
+
+        const dateDropdown = document.getElementById('dateFilterDropdown');
+        const sortDropdown = document.getElementById('sortFilterDropdown');
 
         // Toggle filter popover
         if (filterBtn && filterPopover) {
@@ -1182,8 +1207,8 @@
 
             // Close popover when clicking outside
             document.addEventListener('click', (e) => {
-                const target = e.target as Node | null;
-                if (target && !filterPopover.contains(target) && e.target !== filterBtn) {
+                const target = e.target as HTMLElement;
+                if (target && !filterPopover.contains(target) && e.target !== filterBtn && !target.closest('#custom-date-modal')) {
                     filterPopover.classList.add('hidden');
                 }
             });
@@ -1193,6 +1218,59 @@
         if (searchInput) {
             searchInput.addEventListener('input', () => {
                 updateActiveFiltersBar();
+            });
+        }
+
+        // Handle date filter custom options & clicks
+        if (dateDropdown && dateFilter) {
+            dateDropdown.addEventListener('click', (e: Event) => {
+                const target = e.target as HTMLElement;
+                const link = target.closest('a');
+                if (!link) return;
+
+                e.preventDefault();
+
+                const value = link.getAttribute('data-date-filter') || 'all';
+                if (value === 'custom') {
+                    showCustomDateModal((startDate: string, endDate: string) => {
+                        dateDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+                        link.classList.add('bg-gray-100', 'font-semibold');
+
+                        currentFilters.dateFilter = 'custom';
+                        currentFilters.customStartDate = startDate;
+                        currentFilters.customEndDate = endDate;
+                        dateFilter.value = 'custom';
+                        applyWayBillFilters();
+                    });
+                } else {
+                    dateDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+                    link.classList.add('bg-gray-100', 'font-semibold');
+
+                    currentFilters.dateFilter = value;
+                    currentFilters.customStartDate = null;
+                    currentFilters.customEndDate = null;
+                    dateFilter.value = value;
+                    applyWayBillFilters();
+                }
+            });
+        }
+
+        // Handle sort filter clicks
+        if (sortDropdown && sortFilter) {
+            sortDropdown.addEventListener('click', (e: Event) => {
+                const target = e.target as HTMLElement;
+                const link = target.closest('a');
+                if (!link) return;
+
+                e.preventDefault();
+
+                sortDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+                link.classList.add('bg-gray-100', 'font-semibold');
+
+                const value = link.getAttribute('data-sort-filter') || 'date-desc';
+                currentFilters.sortBy = value;
+                sortFilter.value = value;
+                applyWayBillFilters();
             });
         }
 
@@ -1212,6 +1290,19 @@
                 }
                 if (dateFilter) dateFilter.value = 'all';
                 if (sortFilter) sortFilter.value = 'date-desc';
+
+                if (dateDropdown) {
+                    dateDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
+                if (sortDropdown) {
+                    sortDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
                 
                 // Reset status tabs
                 const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
@@ -1223,36 +1314,6 @@
                     }
                 });
 
-                applyWayBillFilters();
-                if (filterPopover) filterPopover.classList.add('hidden');
-            });
-        }
-
-        // Handle date filter custom option
-        if (dateFilter) {
-            dateFilter.addEventListener('change', (e: Event) => {
-                const selectEl = e.target as HTMLSelectElement;
-                const value = selectEl.value;
-                if (value === 'custom') {
-                    showCustomDateModal((startDate: string, endDate: string) => {
-                        currentFilters.dateFilter = 'custom';
-                        currentFilters.customStartDate = startDate;
-                        currentFilters.customEndDate = endDate;
-                        applyWayBillFilters();
-                    });
-                }
-            });
-        }
-
-        // Apply filters button
-        if (applyFiltersBtn) {
-            applyFiltersBtn.addEventListener('click', () => {
-                if (dateFilter && dateFilter.value !== 'custom') {
-                    currentFilters.dateFilter = dateFilter.value;
-                    currentFilters.customStartDate = null;
-                    currentFilters.customEndDate = null;
-                }
-                if (sortFilter) currentFilters.sortBy = sortFilter.value;
                 applyWayBillFilters();
                 if (filterPopover) filterPopover.classList.add('hidden');
             });
@@ -1270,6 +1331,19 @@
                 };
                 if (dateFilter) dateFilter.value = 'all';
                 if (sortFilter) sortFilter.value = 'date-desc';
+
+                if (dateDropdown) {
+                    dateDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
+                if (sortDropdown) {
+                    sortDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
                 
                 // Reset status tabs
                 const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');

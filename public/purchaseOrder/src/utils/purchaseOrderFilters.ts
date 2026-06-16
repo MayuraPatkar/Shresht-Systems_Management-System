@@ -91,8 +91,15 @@
                     currentFilters.dateFilter = 'all';
                     currentFilters.customStartDate = null;
                     currentFilters.customEndDate = null;
-                    const dateSelect = document.getElementById('date-filter') as HTMLSelectElement | null;
+                    const dateSelect = document.getElementById('date-filter') as HTMLInputElement | null;
                     if (dateSelect) dateSelect.value = 'all';
+                    const dateDropdown = document.getElementById('dateFilterDropdown');
+                    if (dateDropdown) {
+                        dateDropdown.querySelectorAll('a').forEach((a, i) => {
+                            a.classList.remove('bg-gray-100', 'font-semibold');
+                            if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                        });
+                    }
                     applyPurchaseOrderFilters();
                 }
             });
@@ -110,8 +117,15 @@
                 label: `Sort: ${sortLabels[currentFilters.sortBy] || currentFilters.sortBy}`,
                 clearFn: () => {
                     currentFilters.sortBy = 'date-desc';
-                    const sortSelect = document.getElementById('sort-filter') as HTMLSelectElement | null;
+                    const sortSelect = document.getElementById('sort-filter') as HTMLInputElement | null;
                     if (sortSelect) sortSelect.value = 'date-desc';
+                    const sortDropdown = document.getElementById('sortFilterDropdown');
+                    if (sortDropdown) {
+                        sortDropdown.querySelectorAll('a').forEach((a, i) => {
+                            a.classList.remove('bg-gray-100', 'font-semibold');
+                            if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                        });
+                    }
                     applyPurchaseOrderFilters();
                 }
             });
@@ -143,12 +157,15 @@
     function initPurchaseOrderFilters() {
         const filterBtn = document.getElementById('filter-btn') as HTMLButtonElement;
         const filterPopover = document.getElementById('filter-popover') as HTMLElement;
-        const dateFilter = document.getElementById('date-filter') as HTMLSelectElement;
-        const sortFilter = document.getElementById('sort-filter') as HTMLSelectElement;
+        const dateFilter = document.getElementById('date-filter') as HTMLInputElement;
+        const sortFilter = document.getElementById('sort-filter') as HTMLInputElement;
         const clearFiltersBtn = document.getElementById('clear-filters-btn') as HTMLButtonElement;
         const applyFiltersBtn = document.getElementById('apply-filters-btn') as HTMLButtonElement;
         const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
         const clearAllShortcut = document.getElementById('clear-all-filters-shortcut') as HTMLButtonElement;
+
+        const dateDropdown = document.getElementById('dateFilterDropdown');
+        const sortDropdown = document.getElementById('sortFilterDropdown');
 
         // Toggle filter popover
         if (filterBtn && filterPopover) {
@@ -173,7 +190,8 @@
 
             // Close popover when clicking outside
             document.addEventListener('click', (e) => {
-                if (!filterPopover.contains(e.target as Node) && e.target !== filterBtn) {
+                const target = e.target as HTMLElement;
+                if (!filterPopover.contains(target) && target !== filterBtn && !target.closest('#custom-date-modal')) {
                     filterPopover.classList.add('hidden');
                 }
             });
@@ -201,36 +219,72 @@
                 }
                 if (dateFilter) dateFilter.value = 'all';
                 if (sortFilter) sortFilter.value = 'date-desc';
+                if (dateDropdown) {
+                    dateDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
+                if (sortDropdown) {
+                    sortDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
                 applyPurchaseOrderFilters();
             });
         }
 
-        // Handle date filter custom option
-        if (dateFilter) {
-            dateFilter.addEventListener('change', (e) => {
-                const value = (e.target as HTMLSelectElement).value;
+        // Handle date filter custom options & clicks
+        if (dateDropdown && dateFilter) {
+            dateDropdown.addEventListener('click', (e: Event) => {
+                const target = e.target as HTMLElement;
+                const link = target.closest('a');
+                if (!link) return;
+
+                e.preventDefault();
+
+                const value = link.getAttribute('data-date-filter') || 'all';
                 if (value === 'custom') {
                     (window as any).showCustomDateModal((startDate: string, endDate: string) => {
+                        dateDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+                        link.classList.add('bg-gray-100', 'font-semibold');
+
                         currentFilters.dateFilter = 'custom';
                         currentFilters.customStartDate = startDate;
                         currentFilters.customEndDate = endDate;
+                        dateFilter.value = 'custom';
                         applyPurchaseOrderFilters();
                     });
+                } else {
+                    dateDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+                    link.classList.add('bg-gray-100', 'font-semibold');
+
+                    currentFilters.dateFilter = value;
+                    currentFilters.customStartDate = null;
+                    currentFilters.customEndDate = null;
+                    dateFilter.value = value;
+                    applyPurchaseOrderFilters();
                 }
             });
         }
 
-        // Apply filters button
-        if (applyFiltersBtn) {
-            applyFiltersBtn.addEventListener('click', () => {
-                if (dateFilter && dateFilter.value !== 'custom') {
-                    currentFilters.dateFilter = dateFilter.value;
-                    currentFilters.customStartDate = null;
-                    currentFilters.customEndDate = null;
-                }
-                if (sortFilter) currentFilters.sortBy = sortFilter.value;
+        // Handle sort filter clicks
+        if (sortDropdown && sortFilter) {
+            sortDropdown.addEventListener('click', (e: Event) => {
+                const target = e.target as HTMLElement;
+                const link = target.closest('a');
+                if (!link) return;
+
+                e.preventDefault();
+
+                sortDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+                link.classList.add('bg-gray-100', 'font-semibold');
+
+                const value = link.getAttribute('data-sort-filter') || 'date-desc';
+                currentFilters.sortBy = value;
+                sortFilter.value = value;
                 applyPurchaseOrderFilters();
-                if (filterPopover) filterPopover.classList.add('hidden');
             });
         }
 
@@ -245,6 +299,18 @@
                 };
                 if (dateFilter) dateFilter.value = 'all';
                 if (sortFilter) sortFilter.value = 'date-desc';
+                if (dateDropdown) {
+                    dateDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
+                if (sortDropdown) {
+                    sortDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
                 applyPurchaseOrderFilters();
                 if (filterPopover) filterPopover.classList.add('hidden');
             });

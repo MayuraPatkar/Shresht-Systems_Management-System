@@ -674,14 +674,24 @@
                 SENT: 'Sent',
                 OVERDUE: 'Overdue',
                 PARTIALLY_PAID: 'Partially Paid',
-                PAID: 'Paid'
+                PAID: 'Paid',
+                CANCELLED: 'Cancelled',
+                REFUNDED: 'Refunded'
             };
             activeBadges.push({
                 label: `Status: ${statusLabels[currentFilters.status] || currentFilters.status}`,
                 clearFn: () => {
                     currentFilters.status = 'all';
-                    const statusFilterTop = document.getElementById('status-filter-top') as HTMLSelectElement | null;
-                    if (statusFilterTop) statusFilterTop.value = 'all';
+                    const statusFilter = document.getElementById('status-filter') as HTMLInputElement | null;
+                    if (statusFilter) statusFilter.value = 'all';
+                    
+                    const statusDropdown = document.getElementById('statusFilterDropdown');
+                    if (statusDropdown) {
+                        statusDropdown.querySelectorAll('a').forEach((a, i) => {
+                            a.classList.remove('bg-gray-100', 'font-semibold');
+                            if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                        });
+                    }
                     
                     const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
                     statusTabs.forEach(t => {
@@ -716,8 +726,15 @@
                     currentFilters.dateFilter = 'all';
                     currentFilters.customStartDate = null;
                     currentFilters.customEndDate = null;
-                    const dateSelect = document.getElementById('date-filter') as HTMLSelectElement | null;
+                    const dateSelect = document.getElementById('date-filter') as HTMLInputElement | null;
                     if (dateSelect) dateSelect.value = 'all';
+                    const dateDropdown = document.getElementById('dateFilterDropdown');
+                    if (dateDropdown) {
+                        dateDropdown.querySelectorAll('a').forEach((a, i) => {
+                            a.classList.remove('bg-gray-100', 'font-semibold');
+                            if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                        });
+                    }
                     applyInvoiceFilters();
                 }
             });
@@ -736,8 +753,15 @@
                 label: `Sort: ${sortLabels[currentFilters.sortBy] || currentFilters.sortBy}`,
                 clearFn: () => {
                     currentFilters.sortBy = 'date-desc';
-                    const sortSelect = document.getElementById('sort-filter') as HTMLSelectElement | null;
+                    const sortSelect = document.getElementById('sort-filter') as HTMLInputElement | null;
                     if (sortSelect) sortSelect.value = 'date-desc';
+                    const sortDropdown = document.getElementById('sortFilterDropdown');
+                    if (sortDropdown) {
+                        sortDropdown.querySelectorAll('a').forEach((a, i) => {
+                            a.classList.remove('bg-gray-100', 'font-semibold');
+                            if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                        });
+                    }
                     applyInvoiceFilters();
                 }
             });
@@ -768,12 +792,15 @@
     function initInvoiceFilters() {
         const filterBtn = document.getElementById('filter-btn');
         const filterPopover = document.getElementById('filter-popover');
-        const paymentFilter = document.getElementById('payment-status-filter') as HTMLSelectElement | null;
-        const dateFilter = document.getElementById('date-filter') as HTMLSelectElement | null;
-        const sortFilter = document.getElementById('sort-filter') as HTMLSelectElement | null;
+        const dateFilter = document.getElementById('date-filter') as HTMLInputElement | null;
+        const sortFilter = document.getElementById('sort-filter') as HTMLInputElement | null;
+        const statusFilter = document.getElementById('status-filter') as HTMLInputElement | null;
         const clearFiltersBtn = document.getElementById('clear-filters-btn');
         const applyFiltersBtn = document.getElementById('apply-filters-btn');
-        const statusFilterTop = document.getElementById('status-filter-top') as HTMLSelectElement | null;
+        
+        const dateDropdown = document.getElementById('dateFilterDropdown');
+        const sortDropdown = document.getElementById('sortFilterDropdown');
+        const statusDropdown = document.getElementById('statusFilterDropdown');
         
         if (filterBtn && filterPopover) {
             filterBtn.addEventListener('click', (e) => {
@@ -797,38 +824,92 @@
 
             document.addEventListener('click', (e) => {
                 const target = e.target as HTMLElement;
-                if (!filterPopover.contains(target) && target !== filterBtn) {
+                if (!filterPopover.contains(target) && target !== filterBtn && !target.closest('#custom-date-modal')) {
                     filterPopover.classList.add('hidden');
                 }
             });
         }
 
-        if (dateFilter) {
-            dateFilter.addEventListener('change', (e) => {
-                const value = (e.target as HTMLSelectElement).value;
+        // Handle date filter custom options & clicks
+        if (dateDropdown && dateFilter) {
+            dateDropdown.addEventListener('click', (e: Event) => {
+                const target = e.target as HTMLElement;
+                const link = target.closest('a');
+                if (!link) return;
+
+                e.preventDefault();
+
+                const value = link.getAttribute('data-date-filter') || 'all';
                 if (value === 'custom') {
                     showCustomDateModal((startDate: string, endDate: string) => {
+                        dateDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+                        link.classList.add('bg-gray-100', 'font-semibold');
+
                         currentFilters.dateFilter = 'custom';
                         currentFilters.customStartDate = startDate;
                         currentFilters.customEndDate = endDate;
+                        dateFilter.value = 'custom';
                         applyInvoiceFilters();
                     });
+                } else {
+                    dateDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+                    link.classList.add('bg-gray-100', 'font-semibold');
+
+                    currentFilters.dateFilter = value;
+                    currentFilters.customStartDate = null;
+                    currentFilters.customEndDate = null;
+                    dateFilter.value = value;
+                    applyInvoiceFilters();
                 }
             });
         }
 
-        if (applyFiltersBtn) {
-            applyFiltersBtn.addEventListener('click', () => {
-                if (paymentFilter) currentFilters.paymentStatus = paymentFilter.value;
-                if (statusFilterTop) currentFilters.status = statusFilterTop.value;
-                if (dateFilter && dateFilter.value !== 'custom') {
-                    currentFilters.dateFilter = dateFilter.value;
-                    currentFilters.customStartDate = null;
-                    currentFilters.customEndDate = null;
-                }
-                if (sortFilter) currentFilters.sortBy = sortFilter.value;
+        // Handle sort filter clicks
+        if (sortDropdown && sortFilter) {
+            sortDropdown.addEventListener('click', (e: Event) => {
+                const target = e.target as HTMLElement;
+                const link = target.closest('a');
+                if (!link) return;
+
+                e.preventDefault();
+
+                sortDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+                link.classList.add('bg-gray-100', 'font-semibold');
+
+                const value = link.getAttribute('data-sort-filter') || 'date-desc';
+                currentFilters.sortBy = value;
+                sortFilter.value = value;
                 applyInvoiceFilters();
-                if (filterPopover) filterPopover.classList.add('hidden');
+            });
+        }
+
+        // Handle status filter clicks
+        if (statusDropdown && statusFilter) {
+            statusDropdown.addEventListener('click', (e: Event) => {
+                const target = e.target as HTMLElement;
+                const link = target.closest('a');
+                if (!link) return;
+
+                e.preventDefault();
+
+                statusDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+                link.classList.add('bg-gray-100', 'font-semibold');
+
+                const value = link.getAttribute('data-status-filter') || 'all';
+                currentFilters.status = value;
+                statusFilter.value = value;
+
+                // Sync with top status tabs: highlight "All" tab if value is "all", otherwise clear active state
+                const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
+                statusTabs.forEach(t => {
+                    if (value === 'all' && t.getAttribute('data-status') === 'all') {
+                        t.classList.add('active');
+                    } else {
+                        t.classList.remove('active');
+                    }
+                });
+
+                applyInvoiceFilters();
             });
         }
 
@@ -842,10 +923,28 @@
                     customStartDate: null,
                     customEndDate: null
                 };
-                if (paymentFilter) paymentFilter.value = 'all';
                 if (dateFilter) dateFilter.value = 'all';
                 if (sortFilter) sortFilter.value = 'date-desc';
-                if (statusFilterTop) statusFilterTop.value = 'all';
+                if (statusFilter) statusFilter.value = 'all';
+                
+                if (dateDropdown) {
+                    dateDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
+                if (sortDropdown) {
+                    sortDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
+                if (statusDropdown) {
+                    statusDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
                 
                 // Reset status tabs
                 const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
@@ -868,7 +967,20 @@
             tab.addEventListener('click', () => {
                 statusTabs.forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
-                currentFilters.status = (tab as HTMLElement).dataset.status || 'all';
+                const status = (tab as HTMLElement).dataset.status || 'all';
+                currentFilters.status = status;
+                
+                if (statusFilter) {
+                    statusFilter.value = status;
+                }
+                
+                if (statusDropdown) {
+                    statusDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
+                
                 applyInvoiceFilters();
             });
         });
@@ -890,10 +1002,28 @@
                     searchInput.value = '';
                     searchInput.dispatchEvent(new Event('input'));
                 }
-                if (paymentFilter) paymentFilter.value = 'all';
                 if (dateFilter) dateFilter.value = 'all';
                 if (sortFilter) sortFilter.value = 'date-desc';
-                if (statusFilterTop) statusFilterTop.value = 'all';
+                if (statusFilter) statusFilter.value = 'all';
+                
+                if (dateDropdown) {
+                    dateDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
+                if (sortDropdown) {
+                    sortDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
+                if (statusDropdown) {
+                    statusDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
                 
                 // Reset status tabs
                 const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');

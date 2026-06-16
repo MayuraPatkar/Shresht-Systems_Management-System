@@ -107,7 +107,7 @@ interface Window {
         referenceType: '',
         amountMin: null as number | null,
         amountMax: null as number | null,
-        dateRange: 'month', // 'today', 'week', 'month', 'quarter', 'year', 'custom', 'all'
+        dateRange: 'all', // 'today', 'week', 'month', 'quarter', 'year', 'custom', 'all'
         startDate: '',
         endDate: ''
     };
@@ -129,12 +129,9 @@ interface Window {
     const $trendMoneyOut = document.getElementById('trend-money-out') as HTMLElement | null;
     const $netBalanceSub = document.getElementById('net-balance-sub') as HTMLElement | null;
     const $transactionsSub = document.getElementById('transactions-sub') as HTMLElement | null;
-    const $toggleRunningBalance = document.getElementById('toggle-running-balance') as HTMLInputElement;
     const $filterChipsContainer = document.getElementById('filter-chips-container') as HTMLDivElement;
     const $chipsList = document.getElementById('chips-list') as HTMLDivElement;
     const $clearAllChips = document.getElementById('clear-all-chips') as HTMLButtonElement;
-    const $exportBtn = document.getElementById('export-btn') as HTMLButtonElement;
-    const $exportMenu = document.getElementById('export-menu') as HTMLDivElement;
     const $searchSuggestions = document.getElementById('search-suggestions') as HTMLUListElement;
     const $paymentCardsMobile = document.getElementById('payment-cards-mobile') as HTMLDivElement;
 
@@ -326,43 +323,7 @@ interface Window {
         printWindow.document.close();
     }
 
-    function downloadBlob(content: string, fileName: string, mimeType: string): void {
-        const blob = new Blob([content], { type: mimeType });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }
 
-    function generatePaymentsCSV(): string {
-        const headers = ['Date', 'Transaction Type', 'Status', 'Party', 'Reference', 'Method', 'Amount', 'Running Balance', 'Created By'];
-        const showBalance = $toggleRunningBalance?.checked || false;
-        
-        const rows = filteredPayments.map(p => {
-            const date = p.payment_date ? p.payment_date.substring(0, 10) : '';
-            const type = getTransactionTypeLabel(p);
-            const status = p.status || 'Completed';
-            const party = (p as any).party_name || p.party_display_id || p.party_id || '-';
-            
-            const refLabel = p.reference_type 
-                ? (p.reference_id ? `${p.reference_type}: ${p.reference_id}` : p.reference_type) 
-                : '-';
-            const method = p.mode;
-            const amountStr = (p.direction === 'IN' ? '' : '-') + p.amount;
-            const balanceStr = showBalance && (p as any).running_balance !== undefined ? String((p as any).running_balance) : '';
-            const createdBy = p.createdBy || 'System Admin';
-            
-            return [date, type, status, party, refLabel, method, amountStr, balanceStr, createdBy]
-                .map(val => `"${String(val).replace(/"/g, '""')}"`)
-                .join(',');
-        });
-        
-        return [headers.join(','), ...rows].join('\n');
-    }
 
     function showSearchSuggestions(query: string) {
         if (!query) {
@@ -993,62 +954,58 @@ interface Window {
         });
 
         if ($filterCount) $filterCount.textContent = String(filteredPayments.length);
+        updateTabCounts();
         renderFilterChips();
         renderTable();
     }
 
     function renderTable(): void {
-        const showBalance = $toggleRunningBalance?.checked || false;
-
-        const tableContainer = $tbody?.closest('.hidden.md\\:block.overflow-y-auto') as HTMLElement | null;
-        if (tableContainer) {
-            if (showBalance) {
-                tableContainer.classList.add('show-balance-tab');
-                tableContainer.classList.remove('hide-balance-tab');
-            } else {
-                tableContainer.classList.add('hide-balance-tab');
-                tableContainer.classList.remove('show-balance-tab');
-            }
-        }
-
-        // Toggle balance headers in DOM
-        document.querySelectorAll('.running-balance-col').forEach(el => {
-            el.classList.toggle('hidden', !showBalance);
-        });
-
-        // Compute running balances if enabled
-        if (showBalance) {
-            let balance = 0;
-            const chronological = [...allPayments]
-                .filter(p => !p.deletion?.is_deleted)
-                .sort((a, b) => new Date(a.payment_date).getTime() - new Date(b.payment_date).getTime());
-            
-            const balMap = new Map<string, number>();
-            for (const p of chronological) {
-                if (p.direction === 'IN') {
-                    balance += p.amount || 0;
-                } else {
-                    balance -= p.amount || 0;
-                }
-                balMap.set(p._id, balance);
-            }
-            
-            filteredPayments.forEach(p => {
-                (p as any).running_balance = balMap.get(p._id) || 0;
-            });
-        }
-
         if (!paginationManager) {
             paginationManager = new (window as any).TablePaginationManager(
                 'payment-tbody',
-                (paginatedData: any[]) => renderPage(paginatedData, showBalance),
+                (paginatedData: any[]) => renderPage(paginatedData),
                 25
             );
         }
         paginationManager.setData(filteredPayments);
     }
 
-    function renderPage(paginatedPayments: IPaymentRecord[], showBalance: boolean): void {
+    function updateTabCounts(): void {
+        const refTabs = document.querySelectorAll('#reference-type-filters .filter-tab');
+        if (!refTabs.length) return;
+
+        const counts: Record<string, number> = {
+            all: allPayments.length,
+            Invoice: 0,
+            Purchase: 0,
+            Service: 0,
+            Adjustment: 0
+        };
+
+        allPayments.forEach(p => {
+            const refType = p.reference_type;
+            if (refType && refType in counts) {
+                counts[refType]++;
+            }
+        });
+
+        refTabs.forEach(tab => {
+            const refVal = (tab as HTMLElement).dataset.ref || 'all';
+            const count = counts[refVal] || 0;
+            
+            let badge = tab.querySelector('.tab-count-badge');
+            if (!badge) {
+                badge = document.createElement('span');
+                tab.appendChild(badge);
+            }
+            badge.className = tab.classList.contains('active')
+                ? 'tab-count-badge ml-1.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-blue-100 text-blue-600 transition-colors duration-150'
+                : 'tab-count-badge ml-1.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-slate-100 text-slate-500 transition-colors duration-150';
+            badge.textContent = count.toString();
+        });
+    }
+
+    function renderPage(paginatedPayments: IPaymentRecord[]): void {
         // Empty state check
         if (paginatedPayments.length === 0) {
             const emptyStateHTML = `
@@ -1090,16 +1047,11 @@ interface Window {
             const isReceived = p.direction === 'IN';
             const amountPrefix = isReceived ? '+ ' : '- ';
             const amountColor = isReceived ? 'text-emerald-600' : 'text-rose-600';
-            
-            const balanceCell = showBalance 
-                ? `<td class="px-4 py-3 text-right font-medium text-slate-850 running-balance-col">${formatCurrency((p as any).running_balance)}</td>`
-                : '';
 
             return `
             <tr class="payment-row border-b border-slate-100 hover:bg-slate-50 transition-all duration-150 group cursor-pointer" data-payment-id="${escapeHtml(p._id)}" tabindex="0">
                 <td class="px-4 py-3 text-slate-850 font-medium whitespace-nowrap text-xs">${formatDate(p.payment_date)}</td>
                 <td class="px-4 py-3 whitespace-nowrap">${typeBadge}</td>
-                <td class="px-4 py-3 whitespace-nowrap">${statusBadge}</td>
                 <td class="px-4 py-3 text-slate-700 text-xs font-semibold max-w-[150px] truncate" title="${escapeHtml((p as any).party_name || p.party_display_id || p.party_id || '-')}">
                     ${escapeHtml((p as any).party_name || p.party_display_id || p.party_id || '-')}
                 </td>
@@ -1119,7 +1071,6 @@ interface Window {
                 <td class="px-4 py-3 text-right font-bold text-xs whitespace-nowrap ${amountColor}">
                     ${amountPrefix}${formatCurrency(p.amount)}
                 </td>
-                ${balanceCell}
             </tr>`;
         }).join('');
 
@@ -1173,7 +1124,6 @@ interface Window {
         const searchWrapper = document.getElementById('search-input')?.parentElement?.parentElement;
         const newPaymentBtn = document.getElementById('new-payment-btn');
         const refreshBtn = document.getElementById('refresh-btn');
-        const exportWrapper = document.getElementById('export-dropdown-wrapper');
 
         if (showNew) {
             $homeSec.classList.add('hidden');
@@ -1183,7 +1133,6 @@ interface Window {
             if (searchWrapper) searchWrapper.style.display = 'none';
             if (newPaymentBtn) newPaymentBtn.style.display = 'none';
             if (refreshBtn) refreshBtn.style.display = 'none';
-            if (exportWrapper) exportWrapper.style.display = 'none';
         } else {
             $newSec.classList.add('hidden');
             $homeSec.classList.remove('hidden');
@@ -1192,7 +1141,6 @@ interface Window {
             if (searchWrapper) searchWrapper.style.display = 'flex';
             if (newPaymentBtn) newPaymentBtn.style.display = 'flex';
             if (refreshBtn) refreshBtn.style.display = 'flex';
-            if (exportWrapper) exportWrapper.style.display = 'inline-block';
         }
     }
 
@@ -1511,7 +1459,7 @@ interface Window {
             const rect = $filterBtn.getBoundingClientRect();
             $filterPopover.classList.remove('hidden');
             $filterPopover.style.top = `${rect.bottom + 8}px`;
-            const popoverWidth = 320;
+            const popoverWidth = 280;
             let leftPos = rect.right - popoverWidth;
             if (leftPos < 16) {
                 leftPos = 16;
@@ -1545,8 +1493,34 @@ interface Window {
                         key === 'party' ? 'party-filter' : 
                         key === 'mode' ? 'mode-filter' : 
                         'reference-filter'
-                    ) as HTMLInputElement | HTMLSelectElement;
+                    ) as HTMLInputElement;
                     if (el) el.value = '';
+
+                    // Reset dropdown highlights
+                    if (key === 'txType') {
+                        const dropdown = document.getElementById('txTypeFilterDropdown');
+                        dropdown?.querySelectorAll('a').forEach((a, i) => {
+                            a.classList.remove('bg-gray-100', 'font-semibold');
+                            if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                        });
+                    } else if (key === 'status') {
+                        const dropdown = document.getElementById('statusFilterDropdown');
+                        dropdown?.querySelectorAll('a').forEach((a, i) => {
+                            a.classList.remove('bg-gray-100', 'font-semibold');
+                            if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                        });
+                    } else if (key === 'mode') {
+                        const dropdown = document.getElementById('modeFilterDropdown');
+                        dropdown?.querySelectorAll('a').forEach((a, i) => {
+                            a.classList.remove('bg-gray-100', 'font-semibold');
+                            if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                        });
+                    } else if (key === 'referenceType') {
+                        document.querySelectorAll('#reference-type-filters .filter-tab').forEach(btn => {
+                            const r = (btn as HTMLElement).dataset.ref || '';
+                            setRefBtnActive(btn as HTMLElement, r === '');
+                        });
+                    }
                 }
                 applyFilter();
             });
@@ -1578,10 +1552,16 @@ interface Window {
             chip.innerHTML = `${label} <button class="hover:text-blue-900 ml-1 focus:outline-none" style="cursor: pointer;"><i class="fas fa-times"></i></button>`;
             chip.querySelector('button')?.addEventListener('click', () => {
                 advancedFilters.dateRange = 'all';
-                // Reset active class in period buttons (no buttons active)
-                document.querySelectorAll('.date-filter-btn').forEach(btn => {
-                    setDateBtnActive(btn as HTMLElement, false);
-                });
+                const dateFilter = document.getElementById('date-filter') as HTMLInputElement | null;
+                if (dateFilter) dateFilter.value = 'all';
+
+                const dateDropdown = document.getElementById('dateFilterDropdown');
+                if (dateDropdown) {
+                    dateDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
                 document.getElementById('custom-date-inputs')?.classList.add('hidden');
                 applyFilter();
             });
@@ -1592,11 +1572,11 @@ interface Window {
     }
 
     function applyAdvancedFilters(): void {
-        advancedFilters.txType = (document.getElementById('tx-type-filter') as HTMLSelectElement)?.value || '';
-        advancedFilters.status = (document.getElementById('status-filter') as HTMLSelectElement)?.value || '';
+        advancedFilters.txType = (document.getElementById('tx-type-filter') as HTMLInputElement)?.value || '';
+        advancedFilters.status = (document.getElementById('status-filter') as HTMLInputElement)?.value || '';
         advancedFilters.party = (document.getElementById('party-filter') as HTMLInputElement)?.value || '';
-        advancedFilters.mode = (document.getElementById('mode-filter') as HTMLSelectElement)?.value || '';
-        advancedFilters.referenceType = (document.getElementById('reference-filter') as HTMLSelectElement)?.value || '';
+        advancedFilters.mode = (document.getElementById('mode-filter') as HTMLInputElement)?.value || '';
+        advancedFilters.referenceType = (document.getElementById('reference-filter') as HTMLInputElement)?.value || '';
         
         const minVal = (document.getElementById('amount-min-filter') as HTMLInputElement)?.value;
         const maxVal = (document.getElementById('amount-max-filter') as HTMLInputElement)?.value;
@@ -1607,6 +1587,14 @@ interface Window {
         applyFilter();
     }
 
+    function setRefBtnActive(btn: HTMLElement, isActive: boolean): void {
+        if (isActive) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    }
+
     function resetAdvancedFilters(): void {
         advancedFilters.txType = '';
         advancedFilters.status = '';
@@ -1615,12 +1603,12 @@ interface Window {
         advancedFilters.referenceType = '';
         advancedFilters.amountMin = null;
         advancedFilters.amountMax = null;
-        advancedFilters.dateRange = 'month';
+        advancedFilters.dateRange = 'all';
         advancedFilters.startDate = '';
         advancedFilters.endDate = '';
 
         const setVal = (id: string, val: string) => {
-            const el = document.getElementById(id) as HTMLInputElement | HTMLSelectElement;
+            const el = document.getElementById(id) as HTMLInputElement;
             if (el) el.value = val;
         };
         setVal('tx-type-filter', '');
@@ -1628,17 +1616,41 @@ interface Window {
         setVal('party-filter', '');
         setVal('mode-filter', '');
         setVal('reference-filter', '');
+        setVal('date-filter', 'all');
         setVal('amount-min-filter', '');
         setVal('amount-max-filter', '');
         setVal('custom-start-date', '');
         setVal('custom-end-date', '');
 
-        document.querySelectorAll('.date-filter-btn').forEach(btn => {
-            const r = (btn as HTMLElement).dataset.range;
-            setDateBtnActive(btn as HTMLElement, r === 'month');
-        });
-        document.getElementById('custom-date-inputs')?.classList.add('hidden');
+        // Reset dropdown highlights
+        const resetDropdown = (id: string, defaultVal: string) => {
+            const dropdown = document.getElementById(id);
+            if (dropdown) {
+                dropdown.querySelectorAll('a').forEach(a => {
+                    a.classList.remove('bg-gray-100', 'font-semibold');
+                    const valAttr = a.getAttribute('data-date-filter') || 
+                                   a.getAttribute('data-tx-type-filter') ||
+                                   a.getAttribute('data-status-filter') ||
+                                   a.getAttribute('data-mode-filter') || '';
+                    if (valAttr === defaultVal) {
+                        a.classList.add('bg-gray-100', 'font-semibold');
+                    }
+                });
+            }
+        };
 
+        resetDropdown('dateFilterDropdown', 'all');
+        resetDropdown('txTypeFilterDropdown', '');
+        resetDropdown('statusFilterDropdown', '');
+        resetDropdown('modeFilterDropdown', '');
+
+        // Reset reference type buttons
+        document.querySelectorAll('#reference-type-filters .filter-tab').forEach(btn => {
+            const r = (btn as HTMLElement).dataset.ref || '';
+            setRefBtnActive(btn as HTMLElement, r === '');
+        });
+
+        document.getElementById('custom-date-inputs')?.classList.add('hidden');
         applyFilter();
     }
 
@@ -1944,12 +1956,12 @@ interface Window {
         });
     }
     $filterBtn?.addEventListener('click', toggleFilterPopover);
-    (document.getElementById('close-filter') as HTMLButtonElement)
-        .addEventListener('click', () => $filterPopover?.classList.add('hidden'));
-    (document.getElementById('apply-filters-btn') as HTMLButtonElement)
-        .addEventListener('click', applyAdvancedFilters);
-    (document.getElementById('reset-filters') as HTMLButtonElement)
-        .addEventListener('click', resetAdvancedFilters);
+    document.getElementById('close-filter')
+        ?.addEventListener('click', () => $filterPopover?.classList.add('hidden'));
+    document.getElementById('apply-filters-btn')
+        ?.addEventListener('click', applyAdvancedFilters);
+    document.getElementById('reset-filters')
+        ?.addEventListener('click', resetAdvancedFilters);
 
     // Close/Cancel Form actions
     const $homeBtnEl = document.getElementById('home-btn');
@@ -2035,123 +2047,158 @@ interface Window {
         applyFilter();
     });
 
-    // Date Range Filters Toolbar
-    document.querySelectorAll('.date-filter-btn').forEach(btn => {
+    // Reference Type Filters Toolbar (outside)
+    const refButtons = document.querySelectorAll('#reference-type-filters .filter-tab');
+    refButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             const isAlreadyActive = btn.classList.contains('active');
             
-            document.querySelectorAll('.date-filter-btn').forEach(b => {
-                setDateBtnActive(b as HTMLElement, false);
+            refButtons.forEach(b => {
+                setRefBtnActive(b as HTMLElement, false);
             });
             
-            const $customInputs = document.getElementById('custom-date-inputs');
-            
             if (isAlreadyActive) {
-                $customInputs?.classList.add('hidden');
-                advancedFilters.dateRange = 'all';
+                advancedFilters.referenceType = '';
+                const refFilterInput = document.getElementById('reference-filter') as HTMLInputElement | null;
+                if (refFilterInput) refFilterInput.value = '';
                 applyFilter();
             } else {
-                const range = (btn as HTMLElement).dataset.range || 'month';
-                setDateBtnActive(btn as HTMLElement, true);
-                
-                if (range === 'custom') {
-                    $customInputs?.classList.remove('hidden');
-                } else {
-                    $customInputs?.classList.add('hidden');
-                    advancedFilters.dateRange = range;
-                    applyFilter();
-                }
+                const refVal = (btn as HTMLElement).dataset.ref || '';
+                setRefBtnActive(btn as HTMLElement, true);
+                advancedFilters.referenceType = refVal;
+                const refFilterInput = document.getElementById('reference-filter') as HTMLInputElement | null;
+                if (refFilterInput) refFilterInput.value = refVal;
+                applyFilter();
             }
         });
     });
 
-    const $applyCustomDate = document.getElementById('apply-custom-date');
-    $applyCustomDate?.addEventListener('click', () => {
-        const startVal = (document.getElementById('custom-start-date') as HTMLInputElement)?.value;
-        const endVal = (document.getElementById('custom-end-date') as HTMLInputElement)?.value;
+    // Redesigned Popover dropdown listeners
+    const dateDropdown = document.getElementById('dateFilterDropdown');
+    const dateFilter = document.getElementById('date-filter') as HTMLInputElement | null;
+    const customDateInputs = document.getElementById('custom-date-inputs');
+
+    if (dateDropdown && dateFilter) {
+        dateDropdown.addEventListener('click', (e: Event) => {
+            const target = e.target as HTMLElement;
+            const link = target.closest('a');
+            if (!link) return;
+
+            e.preventDefault();
+
+            const range = link.getAttribute('data-date-filter') || 'all';
+            
+            dateDropdown.querySelectorAll('a').forEach(a => {
+                a.classList.remove('bg-gray-100', 'font-semibold');
+            });
+            link.classList.add('bg-gray-100', 'font-semibold');
+
+            if (range === 'custom') {
+                customDateInputs?.classList.remove('hidden');
+            } else {
+                customDateInputs?.classList.add('hidden');
+                advancedFilters.dateRange = range;
+                dateFilter.value = range;
+                applyFilter();
+            }
+        });
+    }
+
+    const applyCustomDateBtn = document.getElementById('apply-custom-date');
+    applyCustomDateBtn?.addEventListener('click', () => {
+        const startVal = (document.getElementById('custom-start-date') as HTMLInputElement)?.value || '';
+        const endVal = (document.getElementById('custom-end-date') as HTMLInputElement)?.value || '';
+        
         advancedFilters.dateRange = 'custom';
-        advancedFilters.startDate = startVal || '';
-        advancedFilters.endDate = endVal || '';
+        advancedFilters.startDate = startVal;
+        advancedFilters.endDate = endVal;
+        
+        if (dateFilter) dateFilter.value = 'custom';
         applyFilter();
     });
+
+    const txTypeDropdown = document.getElementById('txTypeFilterDropdown');
+    const txTypeFilter = document.getElementById('tx-type-filter') as HTMLInputElement | null;
+    if (txTypeDropdown && txTypeFilter) {
+        txTypeDropdown.addEventListener('click', (e: Event) => {
+            const target = e.target as HTMLElement;
+            const link = target.closest('a');
+            if (!link) return;
+
+            e.preventDefault();
+
+            txTypeDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+            link.classList.add('bg-gray-100', 'font-semibold');
+
+            const val = link.getAttribute('data-tx-type-filter') || '';
+            advancedFilters.txType = val;
+            txTypeFilter.value = val;
+            applyFilter();
+        });
+    }
+
+    const statusDropdown = document.getElementById('statusFilterDropdown');
+    const statusFilter = document.getElementById('status-filter') as HTMLInputElement | null;
+    if (statusDropdown && statusFilter) {
+        statusDropdown.addEventListener('click', (e: Event) => {
+            const target = e.target as HTMLElement;
+            const link = target.closest('a');
+            if (!link) return;
+
+            e.preventDefault();
+
+            statusDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+            link.classList.add('bg-gray-100', 'font-semibold');
+
+            const val = link.getAttribute('data-status-filter') || '';
+            advancedFilters.status = val;
+            statusFilter.value = val;
+            applyFilter();
+        });
+    }
+
+    const modeDropdown = document.getElementById('modeFilterDropdown');
+    const modeFilter = document.getElementById('mode-filter') as HTMLInputElement | null;
+    if (modeDropdown && modeFilter) {
+        modeDropdown.addEventListener('click', (e: Event) => {
+            const target = e.target as HTMLElement;
+            const link = target.closest('a');
+            if (!link) return;
+
+            e.preventDefault();
+
+            modeDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+            link.classList.add('bg-gray-100', 'font-semibold');
+
+            const val = link.getAttribute('data-mode-filter') || '';
+            advancedFilters.mode = val;
+            modeFilter.value = val;
+            applyFilter();
+        });
+    }
+
+    const amountMin = document.getElementById('amount-min-filter') as HTMLInputElement | null;
+    const amountMax = document.getElementById('amount-max-filter') as HTMLInputElement | null;
+    const handleAmountInput = () => {
+        const minVal = amountMin?.value;
+        const maxVal = amountMax?.value;
+        advancedFilters.amountMin = minVal ? Number(minVal) : null;
+        advancedFilters.amountMax = maxVal ? Number(maxVal) : null;
+        applyFilter();
+    };
+    amountMin?.addEventListener('input', handleAmountInput);
+    amountMax?.addEventListener('input', handleAmountInput);
 
     $clearAllChips?.addEventListener('click', () => {
-        advancedFilters.txType = '';
-        advancedFilters.status = '';
-        advancedFilters.party = '';
-        advancedFilters.mode = '';
-        advancedFilters.referenceType = '';
-        advancedFilters.amountMin = null;
-        advancedFilters.amountMax = null;
-        advancedFilters.dateRange = 'month';
-        advancedFilters.startDate = '';
-        advancedFilters.endDate = '';
-
-        const txType = document.getElementById('tx-type-filter') as HTMLSelectElement;
-        const status = document.getElementById('status-filter') as HTMLSelectElement;
-        const party = document.getElementById('party-filter') as HTMLInputElement;
-        const mode = document.getElementById('mode-filter') as HTMLSelectElement;
-        const ref = document.getElementById('reference-filter') as HTMLSelectElement;
-        const amountMin = document.getElementById('amount-min-filter') as HTMLInputElement;
-        const amountMax = document.getElementById('amount-max-filter') as HTMLInputElement;
-        const customStart = document.getElementById('custom-start-date') as HTMLInputElement;
-        const customEnd = document.getElementById('custom-end-date') as HTMLInputElement;
-
-        if (txType) txType.value = '';
-        if (status) status.value = '';
-        if (party) party.value = '';
-        if (mode) mode.value = '';
-        if (ref) ref.value = '';
-        if (amountMin) amountMin.value = '';
-        if (amountMax) amountMax.value = '';
-        if (customStart) customStart.value = '';
-        if (customEnd) customEnd.value = '';
-
-        document.querySelectorAll('.date-filter-btn').forEach(btn => {
-            const r = (btn as HTMLElement).dataset.range;
-            setDateBtnActive(btn as HTMLElement, r === 'month');
-        });
-        document.getElementById('custom-date-inputs')?.classList.add('hidden');
-
-        applyFilter();
+        resetAdvancedFilters();
     });
 
-    // Running Balance Toggle
-    $toggleRunningBalance?.addEventListener('change', () => {
-        renderTable();
-    });
 
-    // Export Dropdown Trigger
-    $exportBtn?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        $exportMenu?.classList.toggle('hidden');
-    });
 
     document.addEventListener('click', (e) => {
-        if ($exportMenu && !$exportMenu.classList.contains('hidden') && !$exportBtn.contains(e.target as Node)) {
-            $exportMenu.classList.add('hidden');
-        }
         if (e.target !== $searchInput && !$searchSuggestions.contains(e.target as Node)) {
             $searchSuggestions.classList.add('hidden');
         }
-    });
-
-    document.getElementById('export-csv')?.addEventListener('click', () => {
-        const csv = generatePaymentsCSV();
-        downloadBlob(csv, `payments_ledger_${todayISO()}.csv`, 'text/csv;charset=utf-8;');
-        $exportMenu?.classList.add('hidden');
-    });
-
-    document.getElementById('export-excel')?.addEventListener('click', () => {
-        const csv = generatePaymentsCSV();
-        const excelContent = '\uFEFF' + csv;
-        downloadBlob(excelContent, `payments_excel_${todayISO()}.csv`, 'text/csv;charset=utf-8;');
-        $exportMenu?.classList.add('hidden');
-    });
-
-    document.getElementById('print-report')?.addEventListener('click', () => {
-        $exportMenu?.classList.add('hidden');
-        window.print();
     });
 
     // Search

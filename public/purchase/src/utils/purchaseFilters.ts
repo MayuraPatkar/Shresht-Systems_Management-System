@@ -238,7 +238,8 @@
 
             // Close popover when clicking outside
             document.addEventListener('click', (e) => {
-                if (!filterPopover.contains(e.target as Node) && e.target !== filterBtn) {
+                const target = e.target as HTMLElement;
+                if (!filterPopover.contains(target) && target !== filterBtn && !target.closest('#custom-date-modal')) {
                     filterPopover.classList.add('hidden');
                 }
             });

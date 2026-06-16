@@ -129,8 +129,15 @@ function updateActiveFiltersBar() {
                 currentFilters.dateFilter = 'all';
                 currentFilters.customStartDate = null;
                 currentFilters.customEndDate = null;
-                const dateSelect = document.getElementById('date-filter') as HTMLSelectElement | null;
+                const dateSelect = document.getElementById('date-filter') as HTMLInputElement | null;
                 if (dateSelect) dateSelect.value = 'all';
+                const dateDropdown = document.getElementById('dateFilterDropdown');
+                if (dateDropdown) {
+                    dateDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
                 applyQuotationFilters();
             }
         });
@@ -148,8 +155,15 @@ function updateActiveFiltersBar() {
             label: `Sort: ${sortLabels[currentFilters.sortBy] || currentFilters.sortBy}`,
             clearFn: () => {
                 currentFilters.sortBy = 'date-desc';
-                const sortSelect = document.getElementById('sort-filter') as HTMLSelectElement | null;
+                const sortSelect = document.getElementById('sort-filter') as HTMLInputElement | null;
                 if (sortSelect) sortSelect.value = 'date-desc';
+                const sortDropdown = document.getElementById('sortFilterDropdown');
+                if (sortDropdown) {
+                    sortDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
                 applyQuotationFilters();
             }
         });
@@ -161,7 +175,7 @@ function updateActiveFiltersBar() {
             label: `Status: ${currentFilters.status}`,
             clearFn: () => {
                 currentFilters.status = 'all';
-                const statusSelect = document.getElementById('status-filter') as HTMLSelectElement | null;
+                const statusSelect = document.getElementById('status-filter') as HTMLInputElement | null;
                 if (statusSelect) statusSelect.value = 'all';
                 const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
                 statusTabs.forEach(t => {
@@ -171,6 +185,13 @@ function updateActiveFiltersBar() {
                         t.classList.remove('active');
                     }
                 });
+                const statusDropdown = document.getElementById('statusFilterDropdown');
+                if (statusDropdown) {
+                    statusDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
                 applyQuotationFilters();
             }
         });
@@ -212,9 +233,18 @@ function updateActiveFiltersBar() {
 // Helper to trigger sorting from header column clicks
 function triggerHeaderSort(sortBy: string) {
     currentFilters.sortBy = sortBy;
-    const sortSelect = document.getElementById('sort-filter') as HTMLSelectElement | null;
-    if (sortSelect) {
-        sortSelect.value = sortBy;
+    const sortFilter = document.getElementById('sort-filter') as HTMLInputElement | null;
+    if (sortFilter) {
+        sortFilter.value = sortBy;
+    }
+    const sortDropdown = document.getElementById('sortFilterDropdown');
+    if (sortDropdown) {
+        sortDropdown.querySelectorAll('a').forEach(a => {
+            a.classList.remove('bg-gray-100', 'font-semibold');
+            if (a.getAttribute('data-sort-filter') === sortBy) {
+                a.classList.add('bg-gray-100', 'font-semibold');
+            }
+        });
     }
     applyQuotationFilters();
 }
@@ -223,12 +253,16 @@ function triggerHeaderSort(sortBy: string) {
 function initQuotationFilters() {
     const filterBtn = document.getElementById('filter-btn') as HTMLButtonElement;
     const filterPopover = document.getElementById('filter-popover') as HTMLElement;
-    const dateFilter = document.getElementById('date-filter') as HTMLSelectElement;
-    const statusFilter = document.getElementById('status-filter') as HTMLSelectElement;
-    const sortFilter = document.getElementById('sort-filter') as HTMLSelectElement;
+    const dateFilter = document.getElementById('date-filter') as HTMLInputElement;
+    const statusFilter = document.getElementById('status-filter') as HTMLInputElement;
+    const sortFilter = document.getElementById('sort-filter') as HTMLInputElement;
     const clearFiltersBtn = document.getElementById('clear-filters-btn') as HTMLButtonElement;
     const applyFiltersBtn = document.getElementById('apply-filters-btn') as HTMLButtonElement;
     const clearAllShortcut = document.getElementById('clear-all-filters-shortcut') as HTMLButtonElement;
+
+    const dateDropdown = document.getElementById('dateFilterDropdown');
+    const sortDropdown = document.getElementById('sortFilterDropdown');
+    const statusDropdown = document.getElementById('statusFilterDropdown');
 
     const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
     statusTabs.forEach(tab => {
@@ -243,6 +277,13 @@ function initQuotationFilters() {
                 statusFilter.value = status;
             }
 
+            if (statusDropdown) {
+                statusDropdown.querySelectorAll('a').forEach((a, i) => {
+                    a.classList.remove('bg-gray-100', 'font-semibold');
+                    if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                });
+            }
+
             applyQuotationFilters();
         });
     });
@@ -252,7 +293,7 @@ function initQuotationFilters() {
         filterBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             const rect = filterBtn.getBoundingClientRect();
-            const popoverWidth = 340; 
+            const popoverWidth = 280; // matches redesigned popover width
             
             filterPopover.style.top = `${rect.bottom + 8}px`;
             
@@ -270,28 +311,96 @@ function initQuotationFilters() {
 
         // Close popover when clicking outside
         document.addEventListener('click', (e) => {
-            if (!filterPopover.contains(e.target as Node) && e.target !== filterBtn) {
+            const target = e.target as HTMLElement;
+            if (!filterPopover.contains(target) && target !== filterBtn && !target.closest('#custom-date-modal')) {
                 filterPopover.classList.add('hidden');
             }
         });
     }
 
-    // Handle date filter custom option
-    if (dateFilter) {
-        dateFilter.addEventListener('change', (e) => {
-            const value = (e.target as HTMLSelectElement).value;
+    // Handle date filter custom options & clicks
+    if (dateDropdown && dateFilter) {
+        dateDropdown.addEventListener('click', (e: Event) => {
+            const target = e.target as HTMLElement;
+            const link = target.closest('a');
+            if (!link) return;
+
+            e.preventDefault();
+
+            const value = link.getAttribute('data-date-filter') || 'all';
             if (value === 'custom') {
                 showCustomDateModal((startDate: string, endDate: string) => {
+                    dateDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+                    link.classList.add('bg-gray-100', 'font-semibold');
+
                     currentFilters.dateFilter = 'custom';
                     currentFilters.customStartDate = startDate;
                     currentFilters.customEndDate = endDate;
+                    dateFilter.value = 'custom';
                     applyQuotationFilters();
                 });
+            } else {
+                dateDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+                link.classList.add('bg-gray-100', 'font-semibold');
+
+                currentFilters.dateFilter = value;
+                currentFilters.customStartDate = null;
+                currentFilters.customEndDate = null;
+                dateFilter.value = value;
+                applyQuotationFilters();
             }
         });
     }
 
-    // Apply filters button
+    // Handle sort filter clicks
+    if (sortDropdown && sortFilter) {
+        sortDropdown.addEventListener('click', (e: Event) => {
+            const target = e.target as HTMLElement;
+            const link = target.closest('a');
+            if (!link) return;
+
+            e.preventDefault();
+
+            sortDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+            link.classList.add('bg-gray-100', 'font-semibold');
+
+            const value = link.getAttribute('data-sort-filter') || 'date-desc';
+            currentFilters.sortBy = value;
+            sortFilter.value = value;
+            applyQuotationFilters();
+        });
+    }
+
+    // Handle status filter clicks
+    if (statusDropdown && statusFilter) {
+        statusDropdown.addEventListener('click', (e: Event) => {
+            const target = e.target as HTMLElement;
+            const link = target.closest('a');
+            if (!link) return;
+
+            e.preventDefault();
+
+            statusDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+            link.classList.add('bg-gray-100', 'font-semibold');
+
+            const value = link.getAttribute('data-status-filter') || 'all';
+            currentFilters.status = value;
+            statusFilter.value = value;
+
+            // Update top tabs active state: activate "All" tab if value is "all", otherwise clear all top tabs
+            statusTabs.forEach(t => {
+                if (value === 'all' && t.getAttribute('data-status') === 'all') {
+                    t.classList.add('active');
+                } else {
+                    t.classList.remove('active');
+                }
+            });
+
+            applyQuotationFilters();
+        });
+    }
+
+    // Apply filters button (retained if somehow called, though mostly redundant)
     if (applyFiltersBtn) {
         applyFiltersBtn.addEventListener('click', () => {
             if (dateFilter && dateFilter.value !== 'custom') {
@@ -329,6 +438,25 @@ function initQuotationFilters() {
             if (statusFilter) statusFilter.value = 'all';
             if (sortFilter) sortFilter.value = 'date-desc';
             
+            if (dateDropdown) {
+                dateDropdown.querySelectorAll('a').forEach((a, i) => {
+                    a.classList.remove('bg-gray-100', 'font-semibold');
+                    if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                });
+            }
+            if (sortDropdown) {
+                sortDropdown.querySelectorAll('a').forEach((a, i) => {
+                    a.classList.remove('bg-gray-100', 'font-semibold');
+                    if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                });
+            }
+            if (statusDropdown) {
+                statusDropdown.querySelectorAll('a').forEach((a, i) => {
+                    a.classList.remove('bg-gray-100', 'font-semibold');
+                    if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                });
+            }
+
             statusTabs.forEach(t => {
                 if (t.getAttribute('data-status') === 'all') {
                     t.classList.add('active');
@@ -358,6 +486,25 @@ function initQuotationFilters() {
             
             const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
             if (searchInput) searchInput.value = '';
+
+            if (dateDropdown) {
+                dateDropdown.querySelectorAll('a').forEach((a, i) => {
+                    a.classList.remove('bg-gray-100', 'font-semibold');
+                    if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                });
+            }
+            if (sortDropdown) {
+                sortDropdown.querySelectorAll('a').forEach((a, i) => {
+                    a.classList.remove('bg-gray-100', 'font-semibold');
+                    if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                });
+            }
+            if (statusDropdown) {
+                statusDropdown.querySelectorAll('a').forEach((a, i) => {
+                    a.classList.remove('bg-gray-100', 'font-semibold');
+                    if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                });
+            }
 
             statusTabs.forEach(t => {
                 if (t.getAttribute('data-status') === 'all') {

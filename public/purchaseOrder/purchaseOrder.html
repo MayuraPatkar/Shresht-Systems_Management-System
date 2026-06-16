@@ -323,39 +323,40 @@
     </main>
     </div>
 
+    <!-- Hidden input filters to store active states -->
+    <input type="hidden" id="date-filter" value="all">
+    <input type="hidden" id="status-filter" value="all">
+    <input type="hidden" id="sort-filter" value="date-desc">
+
     <!-- Filter Popover -->
-    <div id="filter-popover" class="fixed bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-40 hidden"
-        style="width: 280px;">
-        <h3 class="font-semibold text-gray-800 mb-3">Filter & Sort</h3>
-        <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
-            <select id="date-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                <option value="all">All Dates</option>
-                <option value="today">Today</option>
-                <option value="week">This Week</option>
-                <option value="month">This Month</option>
-                <option value="custom">Custom Range</option>
-            </select>
+    <div id="filter-popover" class="fixed bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-40 hidden" style="width: 280px;">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold text-gray-800">Filter & Sort</h3>
+            <button id="clear-filters-btn" class="text-xs text-blue-600 hover:text-blue-800 font-semibold cursor-pointer">Clear All</button>
         </div>
+
+        <!-- Date Range Section -->
         <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
-            <select id="sort-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                <option value="date-desc">Latest First</option>
-                <option value="date-asc">Oldest First</option>
-                <option value="amount-desc">Amount: High to Low</option>
-                <option value="amount-asc">Amount: Low to High</option>
-                <option value="name-asc">Name A-Z</option>
-            </select>
+            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Date Range</label>
+            <div id="dateFilterDropdown" class="flex flex-col gap-1">
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md bg-gray-100 font-semibold" data-date-filter="all">All Dates</a>
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-date-filter="today">Today</a>
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-date-filter="week">This Week</a>
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-date-filter="month">This Month</a>
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-date-filter="custom">Custom Range</a>
+            </div>
         </div>
-        <div class="flex gap-2">
-            <button id="clear-filters-btn"
-                class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium text-sm">
-                Clear
-            </button>
-            <button id="apply-filters-btn"
-                class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm">
-                Apply
-            </button>
+
+        <!-- Sort By Section -->
+        <div class="mb-2">
+            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Sort By</label>
+            <div id="sortFilterDropdown" class="flex flex-col gap-1">
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md bg-gray-100 font-semibold" data-sort-filter="date-desc">Latest First</a>
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-sort-filter="date-asc">Oldest First</a>
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-sort-filter="amount-desc">Amount: High to Low</a>
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-sort-filter="amount-asc">Amount: Low to High</a>
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-sort-filter="name-asc">Name A-Z</a>
+            </div>
         </div>
     </div>
 
