@@ -146,6 +146,10 @@ router.post("/change-password", async (req: Request, res: Response) => {
             return res.status(404).json({ message: "Admin not found" });
         }
 
+        if (oldPassword === newPassword) {
+            return res.status(400).json({ message: "New password must be different from old password" });
+        }
+
         // Verify old password using bcrypt
         const isValidOldPassword = await bcrypt.compare(oldPassword, admin.password);
         if (!isValidOldPassword) {

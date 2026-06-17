@@ -373,6 +373,11 @@ class SettingsAdmin {
             return;
         }
 
+        if (oldPassword === newPassword) {
+            (window as any).electronAPI.showAlert1("New password must be different from old password.");
+            return;
+        }
+
         // Basic password strength validation
         if (newPassword.length < 4) {
             (window as any).electronAPI.showAlert1("New password must be at least 4 characters long.");
