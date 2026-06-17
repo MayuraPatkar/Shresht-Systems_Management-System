@@ -20,14 +20,19 @@ router.post('/login', async (req: Request, res: Response) => {
             // Fallback to the main admin account to track failed attempts and prevent username enumeration
             const fallbackUser = await AdminModel.findOne({ role: 'admin' }) || await AdminModel.findOne();
             if (fallbackUser) {
-                if (fallbackUser.lockUntil && fallbackUser.lockUntil > new Date(Date.now())) {
-                    const remainingTime = Math.ceil((fallbackUser.lockUntil.getTime() - Date.now()) / 60000);
-                    return res.status(423).json({
-                        success: false,
-                        message: `Account is locked. Try again in ${remainingTime} minute(s).`,
-                        locked: true,
-                        remainingTime
-                    });
+                if (fallbackUser.lockUntil) {
+                    if (fallbackUser.lockUntil > new Date(Date.now())) {
+                        const remainingTime = Math.ceil((fallbackUser.lockUntil.getTime() - Date.now()) / 60000);
+                        return res.status(423).json({
+                            success: false,
+                            message: `Account is locked. Try again in ${remainingTime} minute(s).`,
+                            locked: true,
+                            remainingTime
+                        });
+                    } else {
+                        fallbackUser.loginAttempts = 0;
+                        fallbackUser.lockUntil = undefined;
+                    }
                 }
 
                 fallbackUser.loginAttempts = (fallbackUser.loginAttempts || 0) + 1;
@@ -68,20 +73,25 @@ router.post('/login', async (req: Request, res: Response) => {
         }
 
         // Check if account is locked
-        if (user.lockUntil && user.lockUntil > new Date(Date.now())) {
-            const remainingTime = Math.ceil((user.lockUntil.getTime() - Date.now()) / 60000);
-            logger.warn('Login attempt on locked account', {
-                service: "auth",
-                event: "login_blocked",
-                username: user.username,
-                remainingMinutes: remainingTime
-            });
-            return res.status(423).json({
-                success: false,
-                message: `Account is locked. Try again in ${remainingTime} minute(s).`,
-                locked: true,
-                remainingTime
-            });
+        if (user.lockUntil) {
+            if (user.lockUntil > new Date(Date.now())) {
+                const remainingTime = Math.ceil((user.lockUntil.getTime() - Date.now()) / 60000);
+                logger.warn('Login attempt on locked account', {
+                    service: "auth",
+                    event: "login_blocked",
+                    username: user.username,
+                    remainingMinutes: remainingTime
+                });
+                return res.status(423).json({
+                    success: false,
+                    message: `Account is locked. Try again in ${remainingTime} minute(s).`,
+                    locked: true,
+                    remainingTime
+                });
+            } else {
+                user.loginAttempts = 0;
+                user.lockUntil = undefined;
+            }
         }
 
         // Use bcrypt to compare hashed passwords
