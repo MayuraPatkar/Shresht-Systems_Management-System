@@ -327,6 +327,12 @@ class SettingsAdmin {
             return;
         }
 
+        // Check if the username is identical to the current one
+        if (this.originalAdminData && this.originalAdminData.username === username) {
+            (window as any).electronAPI.showAlert1("New username must be different from current username.");
+            return;
+        }
+
         const changeButton = document.getElementById("change-username-button") as HTMLButtonElement;
         if (!changeButton) return;
         const originalContent = changeButton.innerHTML;
@@ -336,10 +342,15 @@ class SettingsAdmin {
         settingsApi.changeUsername(username)
             .then((data: { success: boolean; message: string }) => {
                 (window as any).electronAPI.showAlert1(data.message);
+                if (this.originalAdminData) {
+                    this.originalAdminData.username = username;
+                }
+                const usernameInput = document.getElementById("username") as HTMLInputElement;
+                if (usernameInput) usernameInput.value = "";
             })
             .catch((error: any) => {
                 console.error("Error changing username:", error);
-                (window as any).electronAPI.showAlert1("Failed to change username. Please try again.");
+                (window as any).electronAPI.showAlert1(error.message || "Failed to change username. Please try again.");
             })
             .finally(() => {
                 changeButton.disabled = false;
@@ -385,7 +396,7 @@ class SettingsAdmin {
             })
             .catch((error: any) => {
                 console.error("Error changing password:", error);
-                (window as any).electronAPI.showAlert1("Failed to change password. Please try again.");
+                (window as any).electronAPI.showAlert1(error.message || "Failed to change password. Please try again.");
             })
             .finally(() => {
                 changeButton.disabled = false;

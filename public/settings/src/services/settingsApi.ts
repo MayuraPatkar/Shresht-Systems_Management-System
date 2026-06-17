@@ -6,7 +6,16 @@ class SettingsApi {
     private async request(url: string, options: RequestInit = {}): Promise<any> {
         const response = await fetch(url, options);
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            let errorMsg = `HTTP error! status: ${response.status}`;
+            try {
+                const errData = await response.json();
+                if (errData && errData.message) {
+                    errorMsg = errData.message;
+                }
+            } catch (e) {
+                // Ignore parsing errors on non-json error responses
+            }
+            throw new Error(errorMsg);
         }
         return response.json();
     }

@@ -26,6 +26,7 @@ interface BankDetails {
 
 interface AdminData {
     company_name: string;
+    username?: string;
     address: AdminAddress | string;
     state?: string;
     phone: AdminPhone;

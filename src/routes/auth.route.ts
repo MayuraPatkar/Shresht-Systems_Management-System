@@ -125,6 +125,9 @@ router.post("/change-username", async (req: Request, res: Response) => {
         if (!admin) {
             return res.status(404).json({ message: "Admin not found" });
         }
+        if (admin.username === username) {
+            return res.status(400).json({ message: "New username must be different from current username" });
+        }
         admin.username = username;
         await admin.save();
         res.json({ message: "Username updated successfully" });
