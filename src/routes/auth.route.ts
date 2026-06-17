@@ -193,6 +193,11 @@ router.post("/change-username", async (req: Request, res: Response) => {
         if (admin.username === username) {
             return res.status(400).json({ message: "New username must be different from current username" });
         }
+        // Check if the username is already taken by another account
+        const existingUser = await AdminModel.findOne({ username });
+        if (existingUser && existingUser._id.toString() !== admin._id.toString()) {
+            return res.status(400).json({ message: "Username is already taken" });
+        }
         admin.username = username;
         await admin.save();
         res.json({ message: "Username updated successfully" });
