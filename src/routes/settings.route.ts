@@ -391,12 +391,18 @@ router.patch('/preferences/cloudinary', asyncHandler(async (req: Request, res: R
 router.put("/company-info", asyncHandler(async (req: Request, res: Response) => {
     try {
         const updates = req.body;
-        const admin = await AdminModel.findOne() as any;
-        if (!admin) return res.status(404).json({ success: false, message: 'Admin record not found' });
+        const currentUsername = req.headers['x-username'] as string;
+        const admins = await AdminModel.find();
+        if (!admins || admins.length === 0) return res.status(404).json({ success: false, message: 'Admin records not found' });
+        
         const allowedFields = ['company_name', 'address', 'phone', 'email', 'website', 'gstin', 'bank_details'];
-        allowedFields.forEach(field => { if (updates[field] !== undefined) admin[field] = updates[field]; });
-        await admin.save();
-        res.json({ success: true, message: 'Company information updated successfully', admin });
+        for (const admin of admins) {
+            allowedFields.forEach(field => { if (updates[field] !== undefined) (admin as any)[field] = updates[field]; });
+            await admin.save();
+        }
+        
+        const currentUser = await AdminModel.findOne(currentUsername ? { username: currentUsername } : {}) || admins[0];
+        res.json({ success: true, message: 'Company information updated successfully', admin: currentUser });
     } catch (error: unknown) { res.status(500).json({ success: false, message: 'Failed to update company information', error: (error as Error).message }); }
 }));
 

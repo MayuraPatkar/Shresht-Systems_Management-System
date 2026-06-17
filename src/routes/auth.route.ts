@@ -152,14 +152,18 @@ router.post('/login', async (req: Request, res: Response) => {
 });
 
 router.get("/admin-info", async (req: Request, res: Response) => {
+    const currentUsername = req.headers['x-username'] as string;
+    if (!currentUsername) {
+        return res.status(400).json({ message: "Username header is required" });
+    }
     try {
-        const admin = await AdminModel.findOne();
+        const admin = await AdminModel.findOne({ username: currentUsername });
         if (!admin) {
-            return res.status(404).json({ message: "Admin data not found" });
+            return res.status(404).json({ message: "User data not found" });
         }
         res.json(admin);
     } catch (error: unknown) {
-        logger.error("Error fetching admin info:", error);
+        logger.error("Error fetching user info:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
@@ -167,10 +171,14 @@ router.get("/admin-info", async (req: Request, res: Response) => {
 // Change Username
 router.post("/change-username", async (req: Request, res: Response) => {
     const { username } = req.body;
+    const currentUsername = req.headers['x-username'] as string;
+    if (!currentUsername) {
+        return res.status(400).json({ message: "Username header is required" });
+    }
     try {
-        const admin = await AdminModel.findOne();
+        const admin = await AdminModel.findOne({ username: currentUsername });
         if (!admin) {
-            return res.status(404).json({ message: "Admin not found" });
+            return res.status(404).json({ message: "User not found" });
         }
         if (admin.username === username) {
             return res.status(400).json({ message: "New username must be different from current username" });
@@ -187,10 +195,14 @@ router.post("/change-username", async (req: Request, res: Response) => {
 // Change Password
 router.post("/change-password", async (req: Request, res: Response) => {
     const { oldPassword, newPassword } = req.body;
+    const currentUsername = req.headers['x-username'] as string;
+    if (!currentUsername) {
+        return res.status(400).json({ message: "Username header is required" });
+    }
     try {
-        const admin = await AdminModel.findOne();
+        const admin = await AdminModel.findOne({ username: currentUsername });
         if (!admin) {
-            return res.status(404).json({ message: "Admin not found" });
+            return res.status(404).json({ message: "User not found" });
         }
 
         if (oldPassword === newPassword) {
@@ -217,10 +229,14 @@ router.post("/change-password", async (req: Request, res: Response) => {
 // Export Data
 router.get("/export-data", async (req: Request, res: Response) => {
     const { format } = req.query;
+    const currentUsername = req.headers['x-username'] as string;
+    if (!currentUsername) {
+        return res.status(400).json({ message: "Username header is required" });
+    }
     try {
-        const admin = await AdminModel.findOne();
+        const admin = await AdminModel.findOne({ username: currentUsername });
         if (!admin) {
-            return res.status(404).json({ message: "Admin data not found" });
+            return res.status(404).json({ message: "User data not found" });
         }
 
         const addr = (admin as any).address || {};
@@ -238,7 +254,7 @@ router.get("/export-data", async (req: Request, res: Response) => {
             res.setHeader("Content-Type", "application/json");
         }
 
-        res.setHeader("Content-Disposition", `attachment; filename=admin_data.${format}`);
+        res.setHeader("Content-Disposition", `attachment; filename=user_data.${format}`);
         res.send(data);
     } catch (error: unknown) {
         logger.error("Error exporting data:", error);

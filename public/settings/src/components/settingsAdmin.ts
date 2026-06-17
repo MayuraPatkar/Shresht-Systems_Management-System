@@ -355,6 +355,7 @@ class SettingsAdmin {
         settingsApi.changeUsername(username)
             .then((data: { success: boolean; message: string }) => {
                 (window as any).electronAPI.showAlert1(data.message);
+                sessionStorage.setItem('username', username);
                 if (this.originalAdminData) {
                     this.originalAdminData.username = username;
                 }
