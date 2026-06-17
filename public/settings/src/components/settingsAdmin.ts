@@ -34,6 +34,16 @@ class SettingsAdmin {
             });
         });
 
+        // Clear username validation errors on typing
+        const usernameInput = document.getElementById("username") as HTMLInputElement;
+        usernameInput?.addEventListener("input", () => this.clearFieldError(usernameInput));
+
+        // Clear password validation errors on typing
+        passwordFields.forEach(id => {
+            const input = document.getElementById(id) as HTMLInputElement;
+            input?.addEventListener("input", () => this.clearFieldError(input));
+        });
+
         // Interactive password toggles
         document.querySelectorAll(".password-toggle-btn").forEach(btn => {
             btn.addEventListener("click", (e) => {
@@ -313,23 +323,26 @@ class SettingsAdmin {
     }
 
     private handleChangeUsername(): void {
-        const username = (document.getElementById("username") as HTMLInputElement).value.trim();
+        const usernameInput = document.getElementById("username") as HTMLInputElement;
+        const username = usernameInput.value.trim();
+
+        this.clearFieldError(usernameInput);
 
         if (!username) {
-            (window as any).electronAPI.showAlert1("Username cannot be empty.");
+            this.showFieldError(usernameInput, "Username cannot be empty.");
             return;
         }
 
         // Validate username (alphanumeric and underscore only, 3-20 chars)
         const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
         if (!usernameRegex.test(username)) {
-            (window as any).electronAPI.showAlert1("Username must be 3-20 characters and contain only letters, numbers, and underscores.");
+            this.showFieldError(usernameInput, "Username must be 3-20 characters and contain only letters, numbers, and underscores.");
             return;
         }
 
         // Check if the username is identical to the current one
         if (this.originalAdminData && this.originalAdminData.username === username) {
-            (window as any).electronAPI.showAlert1("New username must be different from current username.");
+            this.showFieldError(usernameInput, "New username must be different from current username.");
             return;
         }
 
@@ -345,12 +358,16 @@ class SettingsAdmin {
                 if (this.originalAdminData) {
                     this.originalAdminData.username = username;
                 }
-                const usernameInput = document.getElementById("username") as HTMLInputElement;
-                if (usernameInput) usernameInput.value = "";
+                usernameInput.value = "";
             })
             .catch((error: any) => {
                 console.error("Error changing username:", error);
-                (window as any).electronAPI.showAlert1(error.message || "Failed to change username. Please try again.");
+                const msg = error.message || "Failed to change username. Please try again.";
+                if (msg.toLowerCase().includes("different") || msg.toLowerCase().includes("username")) {
+                    this.showFieldError(usernameInput, msg);
+                } else {
+                    (window as any).electronAPI.showAlert1(msg);
+                }
             })
             .finally(() => {
                 changeButton.disabled = false;
@@ -359,28 +376,46 @@ class SettingsAdmin {
     }
 
     private handleChangePassword(): void {
-        const oldPassword = (document.getElementById("old-password") as HTMLInputElement).value.trim();
-        const newPassword = (document.getElementById("new-password") as HTMLInputElement).value.trim();
-        const confirmPassword = (document.getElementById("confirm-password") as HTMLInputElement).value.trim();
+        const oldPasswordInput = document.getElementById("old-password") as HTMLInputElement;
+        const newPasswordInput = document.getElementById("new-password") as HTMLInputElement;
+        const confirmPasswordInput = document.getElementById("confirm-password") as HTMLInputElement;
 
-        if (!oldPassword || !newPassword || !confirmPassword) {
-            (window as any).electronAPI.showAlert1("All password fields are required.");
-            return;
+        const oldPassword = oldPasswordInput.value.trim();
+        const newPassword = newPasswordInput.value.trim();
+        const confirmPassword = confirmPasswordInput.value.trim();
+
+        this.clearFieldError(oldPasswordInput);
+        this.clearFieldError(newPasswordInput);
+        this.clearFieldError(confirmPasswordInput);
+
+        let hasError = false;
+        if (!oldPassword) {
+            this.showFieldError(oldPasswordInput, "Old password is required.");
+            hasError = true;
         }
+        if (!newPassword) {
+            this.showFieldError(newPasswordInput, "New password is required.");
+            hasError = true;
+        }
+        if (!confirmPassword) {
+            this.showFieldError(confirmPasswordInput, "Confirm password is required.");
+            hasError = true;
+        }
+        if (hasError) return;
 
         if (newPassword !== confirmPassword) {
-            (window as any).electronAPI.showAlert1("New password and confirm password do not match.");
+            this.showFieldError(confirmPasswordInput, "New password and confirm password do not match.");
             return;
         }
 
         if (oldPassword === newPassword) {
-            (window as any).electronAPI.showAlert1("New password must be different from old password.");
+            this.showFieldError(newPasswordInput, "New password must be different from old password.");
             return;
         }
 
         // Basic password strength validation
         if (newPassword.length < 4) {
-            (window as any).electronAPI.showAlert1("New password must be at least 4 characters long.");
+            this.showFieldError(newPasswordInput, "New password must be at least 4 characters long.");
             return;
         }
 
@@ -394,19 +429,65 @@ class SettingsAdmin {
             .then((data: { success: boolean; message: string }) => {
                 (window as any).electronAPI.showAlert1(data.message);
                 if (data.message.includes("success")) {
-                    (document.getElementById("old-password") as HTMLInputElement).value = "";
-                    (document.getElementById("new-password") as HTMLInputElement).value = "";
-                    (document.getElementById("confirm-password") as HTMLInputElement).value = "";
+                    oldPasswordInput.value = "";
+                    newPasswordInput.value = "";
+                    confirmPasswordInput.value = "";
                 }
             })
             .catch((error: any) => {
                 console.error("Error changing password:", error);
-                (window as any).electronAPI.showAlert1(error.message || "Failed to change password. Please try again.");
+                const msg = error.message || "Failed to change password. Please try again.";
+                if (msg.toLowerCase().includes("invalid old password")) {
+                    this.showFieldError(oldPasswordInput, msg);
+                } else if (msg.toLowerCase().includes("different")) {
+                    this.showFieldError(newPasswordInput, msg);
+                } else {
+                    (window as any).electronAPI.showAlert1(msg);
+                }
             })
             .finally(() => {
                 changeButton.disabled = false;
                 changeButton.innerHTML = originalContent;
             });
+    }
+
+    private showFieldError(input: HTMLInputElement, message: string): void {
+        this.clearFieldError(input);
+
+        // Apply error borders and focus ring classes
+        input.classList.add('border-red-500', 'focus:border-red-550', 'focus:ring-red-500/20');
+        input.style.borderColor = '#ef4444';
+        input.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
+
+        // Accessibility attributes
+        input.setAttribute('aria-invalid', 'true');
+        const errorId = `${input.id}-error`;
+        input.setAttribute('aria-describedby', errorId);
+
+        // Create error message node
+        const errorMsg = document.createElement('div');
+        errorMsg.id = errorId;
+        errorMsg.className = 'text-[11px] font-semibold text-red-655 mt-1 transition-all duration-200 ease-in-out error-message-inline';
+        errorMsg.textContent = message;
+
+        const parent = input.parentElement;
+        if (parent) {
+            parent.appendChild(errorMsg);
+        }
+    }
+
+    private clearFieldError(input: HTMLInputElement): void {
+        input.classList.remove('border-red-500', 'focus:border-red-550', 'focus:ring-red-500/20');
+        input.style.borderColor = '';
+        input.style.boxShadow = '';
+        input.removeAttribute('aria-invalid');
+        input.removeAttribute('aria-describedby');
+
+        const errorId = `${input.id}-error`;
+        const errorMsg = document.getElementById(errorId);
+        if (errorMsg) {
+            errorMsg.remove();
+        }
     }
 
     private handleLogout(): void {
