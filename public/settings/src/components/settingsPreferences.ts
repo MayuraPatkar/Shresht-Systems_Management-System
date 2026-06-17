@@ -8,6 +8,7 @@ class SettingsPreferences {
     init(): void {
         document.getElementById("save-preferences-button")?.addEventListener("click", () => this.savePreferences());
         document.getElementById("save-security-button")?.addEventListener("click", () => this.saveSecuritySettings());
+        document.getElementById("restore-security-defaults-button")?.addEventListener("click", () => this.restoreSecurityDefaults());
         document.getElementById("save-whatsapp-button")?.addEventListener("click", () => this.saveWhatsAppSettings());
         document.getElementById("save-cloudinary-button")?.addEventListener("click", () => this.saveCloudinarySettings());
 
@@ -280,6 +281,62 @@ class SettingsPreferences {
             .finally(() => {
                 saveButton.disabled = false;
                 saveButton.innerHTML = originalContent;
+            });
+    }
+
+    private restoreSecurityDefaults(): void {
+        const sessionTimeoutInput = document.getElementById("security-session-timeout") as HTMLInputElement;
+        const maxAttemptsInput = document.getElementById("security-max-attempts") as HTMLInputElement;
+        const lockoutDurationInput = document.getElementById("security-lockout-duration") as HTMLInputElement;
+
+        if (sessionTimeoutInput) {
+            sessionTimeoutInput.value = "30";
+            this.clearFieldError(sessionTimeoutInput);
+        }
+        if (maxAttemptsInput) {
+            maxAttemptsInput.value = "5";
+            this.clearFieldError(maxAttemptsInput);
+        }
+        if (lockoutDurationInput) {
+            lockoutDurationInput.value = "15";
+            this.clearFieldError(lockoutDurationInput);
+        }
+
+        const restoreButton = document.getElementById("restore-security-defaults-button") as HTMLButtonElement;
+        if (!restoreButton) return;
+        const originalContent = restoreButton.innerHTML;
+        restoreButton.disabled = true;
+        restoreButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Restoring...';
+
+        const security = {
+            security: {
+                session_timeout: 30,
+                max_login_attempts: 5,
+                lockout_duration: 15
+            }
+        };
+
+        settingsApi.savePreferences(security)
+            .then((data: { success: boolean; message?: string }) => {
+                if (data.success) {
+                    sessionStorage.setItem('sessionTimeout', "30");
+
+                    if (typeof (window as any).startSessionMonitor === 'function') {
+                        (window as any).startSessionMonitor();
+                    }
+
+                    (window as any).electronAPI.showAlert1("Security settings restored to defaults successfully!");
+                } else {
+                    (window as any).electronAPI.showAlert1(`Failed to restore defaults: ${data.message}`);
+                }
+            })
+            .catch((err: any) => {
+                console.error('Failed to restore defaults:', err);
+                (window as any).electronAPI.showAlert1("Failed to restore default security settings. Please try again.");
+            })
+            .finally(() => {
+                restoreButton.disabled = false;
+                restoreButton.innerHTML = originalContent;
             });
     }
 
