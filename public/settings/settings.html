@@ -1206,7 +1206,7 @@
                                         <div class="flex flex-wrap items-start gap-6 pt-2">                        <div class="flex flex-col gap-1.5 w-40">
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Session Timeout</label>
                             <div class="relative flex items-center">
-                                <input type="number" id="security-session-timeout" min="5" max="1440"
+                                <input type="text" id="security-session-timeout" min="5" max="1440"
                                     class="w-full pl-4 pr-12 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition duration-150 font-semibold text-slate-800">
                                 <span class="absolute right-3 text-[10px] font-extrabold text-slate-455 tracking-wider pointer-events-none">MINS</span>
                             </div>
@@ -1214,14 +1214,14 @@
                         
                         <div class="flex flex-col gap-1.5 w-32">
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Max Attempts</label>
-                            <input type="number" id="security-max-attempts" min="1" max="10"
+                            <input type="text" id="security-max-attempts" min="1" max="10"
                                 class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition duration-150 font-semibold text-slate-800">
                         </div>
                         
                         <div class="flex flex-col gap-1.5 w-40">
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Lockout Duration</label>
                             <div class="relative flex items-center">
-                                <input type="number" id="security-lockout-duration" min="1" max="60"
+                                <input type="text" id="security-lockout-duration" min="1" max="60"
                                     class="w-full pl-4 pr-12 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition duration-150 font-semibold text-slate-800">
                                 <span class="absolute right-3 text-[10px] font-extrabold text-slate-455 tracking-wider pointer-events-none">MINS</span>
                             </div>
@@ -1440,6 +1440,7 @@
     <script src="../../dist/public/ts/shared/core/ipc.js"></script>
     <script src="../../dist/public/ts/shared/core/keyboardNavigation.js"></script>
     <script src="../../dist/public/ts/shared/core/globalScript.js"></script>
+    <script src="../../dist/public/ts/shared/core/validation.js"></script>
 
     <!-- Settings module scripts (load in order, compiled from TypeScript) -->
     <script src="../../dist/public/settings/src/types/settings.types.js"></script>

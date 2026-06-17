@@ -51,6 +51,17 @@ class SettingsPreferences {
             const input = document.getElementById(id) as HTMLInputElement;
             input?.addEventListener("input", () => this.clearFieldError(input));
         });
+
+        // Restrict security inputs to numeric digits only
+        const timeoutInput = document.getElementById("security-session-timeout") as HTMLInputElement;
+        const attemptsInput = document.getElementById("security-max-attempts") as HTMLInputElement;
+        const durationInput = document.getElementById("security-lockout-duration") as HTMLInputElement;
+
+        if ((window as any).setupNumericInput) {
+            if (timeoutInput) (window as any).setupNumericInput(timeoutInput, 4);
+            if (attemptsInput) (window as any).setupNumericInput(attemptsInput, 2);
+            if (durationInput) (window as any).setupNumericInput(durationInput, 2);
+        }
     }
 
     private updateAutoBackupFieldsState(): void {
