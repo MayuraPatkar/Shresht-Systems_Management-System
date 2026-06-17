@@ -455,7 +455,7 @@ class SettingsAdmin {
         this.clearFieldError(input);
 
         // Apply error borders and focus ring classes
-        input.classList.add('border-red-500', 'focus:border-red-550', 'focus:ring-red-500/20');
+        input.classList.add('border-red-500', 'focus:border-red-555', 'focus:ring-red-500/20');
         input.style.borderColor = '#ef4444';
         input.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
 
@@ -472,7 +472,11 @@ class SettingsAdmin {
 
         const parent = input.parentElement;
         if (parent) {
-            parent.appendChild(errorMsg);
+            if (parent.classList.contains('relative')) {
+                parent.parentElement?.appendChild(errorMsg);
+            } else {
+                parent.appendChild(errorMsg);
+            }
         }
     }
 

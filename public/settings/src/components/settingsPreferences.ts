@@ -44,6 +44,13 @@ class SettingsPreferences {
                 input.addEventListener('input', clearIfMasked);
             }
         });
+
+        // Clear security settings validation errors on typing
+        const securityFields = ["security-session-timeout", "security-max-attempts", "security-lockout-duration"];
+        securityFields.forEach(id => {
+            const input = document.getElementById(id) as HTMLInputElement;
+            input?.addEventListener("input", () => this.clearFieldError(input));
+        });
     }
 
     private updateAutoBackupFieldsState(): void {
@@ -197,11 +204,45 @@ class SettingsPreferences {
         saveButton.disabled = true;
         saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
+        const sessionTimeoutInput = document.getElementById("security-session-timeout") as HTMLInputElement;
+        const maxAttemptsInput = document.getElementById("security-max-attempts") as HTMLInputElement;
+        const lockoutDurationInput = document.getElementById("security-lockout-duration") as HTMLInputElement;
+
+        this.clearFieldError(sessionTimeoutInput);
+        this.clearFieldError(maxAttemptsInput);
+        this.clearFieldError(lockoutDurationInput);
+
+        const sessionTimeout = parseInt(sessionTimeoutInput.value);
+        const maxAttempts = parseInt(maxAttemptsInput.value);
+        const lockoutDuration = parseInt(lockoutDurationInput.value);
+
+        let hasError = false;
+        if (isNaN(sessionTimeout) || sessionTimeout < 5 || sessionTimeout > 1440) {
+            this.showFieldError(sessionTimeoutInput, "Session Timeout must be a number between 5 and 1440 minutes.");
+            hasError = true;
+        }
+
+        if (isNaN(maxAttempts) || maxAttempts < 1 || maxAttempts > 10) {
+            this.showFieldError(maxAttemptsInput, "Max Attempts must be a number between 1 and 10.");
+            hasError = true;
+        }
+
+        if (isNaN(lockoutDuration) || lockoutDuration < 1 || lockoutDuration > 60) {
+            this.showFieldError(lockoutDurationInput, "Lockout Duration must be a number between 1 and 60 minutes.");
+            hasError = true;
+        }
+
+        if (hasError) {
+            saveButton.disabled = false;
+            saveButton.innerHTML = originalContent;
+            return;
+        }
+
         const security = {
             security: {
-                session_timeout: parseInt((document.getElementById("security-session-timeout") as HTMLInputElement).value),
-                max_login_attempts: parseInt((document.getElementById("security-max-attempts") as HTMLInputElement).value),
-                lockout_duration: parseInt((document.getElementById("security-lockout-duration") as HTMLInputElement).value)
+                session_timeout: sessionTimeout,
+                max_login_attempts: maxAttempts,
+                lockout_duration: lockoutDuration
             }
         };
 
@@ -222,7 +263,8 @@ class SettingsPreferences {
             })
             .catch((err: any) => {
                 console.error('Failed to save security settings:', err);
-                (window as any).electronAPI.showAlert1("Failed to save security settings. Please try again.");
+                const msg = err.message || "Failed to save security settings. Please try again.";
+                (window as any).electronAPI.showAlert1(msg);
             })
             .finally(() => {
                 saveButton.disabled = false;
@@ -414,6 +456,49 @@ class SettingsPreferences {
                 saveButton.disabled = false;
                 saveButton.innerHTML = originalContent;
             });
+    }
+
+    private showFieldError(input: HTMLInputElement, message: string): void {
+        this.clearFieldError(input);
+
+        // Apply error borders and focus ring classes
+        input.classList.add('border-red-500', 'focus:border-red-550', 'focus:ring-red-500/20');
+        input.style.borderColor = '#ef4444';
+        input.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
+
+        // Accessibility attributes
+        input.setAttribute('aria-invalid', 'true');
+        const errorId = `${input.id}-error`;
+        input.setAttribute('aria-describedby', errorId);
+
+        // Create error message node
+        const errorMsg = document.createElement('div');
+        errorMsg.id = errorId;
+        errorMsg.className = 'text-[11px] font-semibold text-red-650 mt-1 transition-all duration-200 ease-in-out error-message-inline';
+        errorMsg.textContent = message;
+
+        const parent = input.parentElement;
+        if (parent) {
+            if (parent.classList.contains('relative')) {
+                parent.parentElement?.appendChild(errorMsg);
+            } else {
+                parent.appendChild(errorMsg);
+            }
+        }
+    }
+
+    private clearFieldError(input: HTMLInputElement): void {
+        input.classList.remove('border-red-500', 'focus:border-red-500', 'focus:ring-red-500/20');
+        input.style.borderColor = '';
+        input.style.boxShadow = '';
+        input.removeAttribute('aria-invalid');
+        input.removeAttribute('aria-describedby');
+
+        const errorId = `${input.id}-error`;
+        const errorMsg = document.getElementById(errorId);
+        if (errorMsg) {
+            errorMsg.remove();
+        }
     }
 }
 
