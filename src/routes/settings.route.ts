@@ -401,33 +401,167 @@ router.put("/company-info", asyncHandler(async (req: Request, res: Response) => 
 }));
 
 router.get("/company-info/export", asyncHandler(async (req: Request, res: Response) => {
+    let browser: any = null;
     try {
         const admin = await AdminModel.findOne() as any;
         if (!admin) return res.status(404).json({ success: false, message: 'Company information not found' });
+
         const timestamp = new Date().toISOString().split("T")[0];
         const result = await showDialog('show-save-dialog', {
             title: "Export Company Details",
-            defaultPath: `company-details-${timestamp}.json`,
-            filters: [{ name: "JSON Files", extensions: ["json"] }]
+            defaultPath: `company-details-${timestamp}.pdf`,
+            filters: [{ name: "PDF Files", extensions: ["pdf"] }]
         });
         if (result.canceled) { return res.json({ success: true, message: "Export cancelled by user" }); }
         const filePath = result.filePath;
         if (!filePath || typeof filePath !== 'string') throw new Error('Invalid file path selected');
         await fsp.mkdir(path.dirname(filePath), { recursive: true });
-        const exportData = {
-            company_name: admin.company_name,
-            address: admin.address,
-            phone: admin.phone,
-            email: admin.email,
-            website: admin.website,
-            gstin: admin.gstin,
-            bank_details: admin.bank_details
-        };
-        await fsp.writeFile(filePath, JSON.stringify(exportData, null, 2), 'utf8');
+
+        // Build address string
+        const addr = admin.address || {};
+        const addressLines = [addr.line1, addr.line2, addr.city, addr.state, addr.pincode, addr.country]
+            .filter(Boolean).join(', ');
+
+        // Build phone string
+        const ph = admin.phone || {};
+        const phoneStr = [ph.ph1, ph.ph2].filter(Boolean).join(' / ');
+
+        // Build bank details rows
+        const bd = admin.bank_details || {};
+        const bankRows = [
+            ['Bank Name', bd.bank_name],
+            ['Account Holder', bd.account_holder_name],
+            ['Account Number', bd.account_number],
+            ['Account Type', bd.type],
+            ['IFSC Code', bd.ifsc_code],
+            ['Branch', bd.branch],
+        ].filter(([, v]) => v).map(([label, value]) => `
+            <tr>
+                <td class="label">${label}</td>
+                <td class="value">${value}</td>
+            </tr>`).join('');
+
+        const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f4f6fb;
+    color: #1e293b;
+    padding: 40px;
+  }
+  .card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+    padding: 40px 48px;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+  .header {
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 24px;
+    margin-bottom: 32px;
+  }
+  .company-name {
+    font-size: 26px;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.5px;
+  }
+  .doc-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #64748b;
+    margin-top: 4px;
+  }
+  .export-date {
+    font-size: 10px;
+    color: #94a3b8;
+    margin-top: 6px;
+  }
+  .section {
+    margin-bottom: 28px;
+  }
+  .section-title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #64748b;
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  td { padding: 8px 0; vertical-align: top; font-size: 13px; }
+  td.label {
+    width: 40%;
+    color: #64748b;
+    font-weight: 500;
+    padding-right: 16px;
+  }
+  td.value {
+    color: #1e293b;
+    font-weight: 400;
+  }
+  .footer {
+    margin-top: 36px;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+    font-size: 10px;
+    color: #94a3b8;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="header">
+    <div class="company-name">${admin.company_name || 'Company'}</div>
+    <div class="doc-title">Company Details</div>
+    <div class="export-date">Exported on ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">General Information</div>
+    <table>
+      <tr><td class="label">GSTIN</td><td class="value">${admin.gstin || '—'}</td></tr>
+      <tr><td class="label">Email</td><td class="value">${admin.email || '—'}</td></tr>
+      <tr><td class="label">Website</td><td class="value">${admin.website || '—'}</td></tr>
+      <tr><td class="label">Phone</td><td class="value">${phoneStr || '—'}</td></tr>
+      <tr><td class="label">Address</td><td class="value">${addressLines || '—'}</td></tr>
+    </table>
+  </div>
+
+  ${bankRows ? `<div class="section">
+    <div class="section-title">Bank Details</div>
+    <table>${bankRows}</table>
+  </div>` : ''}
+
+  <div class="footer">This document was auto-generated by SSMS &bull; ${timestamp}</div>
+</div>
+</body>
+</html>`;
+
+        // Generate PDF using Puppeteer
+        const puppeteer = require('puppeteer');
+        browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+        const page = await browser.newPage();
+        await page.setContent(html, { waitUntil: 'networkidle0' });
+        await page.pdf({ path: filePath, format: 'A4', printBackground: true, margin: { top: '20mm', bottom: '20mm', left: '15mm', right: '15mm' } });
+
         return res.json({ success: true, message: `Successfully exported company details to ${path.basename(filePath)}` });
     } catch (error: unknown) {
         logger.error("Company details export error", { service: "settings", error: (error as Error).message });
         return res.status(500).json({ success: false, message: "Export failed", error: (error as Error).message });
+    } finally {
+        if (browser) { try { await browser.close(); } catch { /* ignore */ } }
     }
 }));
 

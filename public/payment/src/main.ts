@@ -1961,6 +1961,15 @@ interface Window {
     document.getElementById('reset-filters')
         ?.addEventListener('click', resetAdvancedFilters);
 
+    // Close filter popover when clicking outside of it
+    document.addEventListener('mousedown', (e: MouseEvent) => {
+        if (!$filterPopover || $filterPopover.classList.contains('hidden')) return;
+        const target = e.target as Node;
+        if (!$filterPopover.contains(target) && !$filterBtn?.contains(target)) {
+            $filterPopover.classList.add('hidden');
+        }
+    });
+
     // Close/Cancel Form actions
     const $homeBtnEl = document.getElementById('home-btn');
     if ($homeBtnEl) $homeBtnEl.addEventListener('click', () => {

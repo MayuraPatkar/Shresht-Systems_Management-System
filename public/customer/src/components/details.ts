@@ -215,6 +215,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         csvContent += `"${p.payment_id}","${formatDate(p.payment_date)}","${p.payment_mode}","${p.amount}"\n`;
                     });
 
+                    csvContent += "\nVOUCHERS\n";
+                    csvContent += "Voucher No,Date,Amount,Method,Paid Towards\n";
+                    (data.vouchers || []).forEach((v: any) => {
+                        csvContent += `"${v.voucherNumber}","${formatDate(v.date)}","${v.amount}","${v.paymentMethod}","${v.paidTowards || ''}"\n`;
+                    });
+
                     const encodedUri = encodeURI(csvContent);
                     const downloadAnchor = document.createElement('a');
                     downloadAnchor.setAttribute("href", encodedUri);
@@ -666,7 +672,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function populateData(data: any) {
-        const { customer, stats, quotations, invoices, services, payments } = data;
+        const { customer, stats, quotations, invoices, services, payments, vouchers } = data;
 
         // Header info
         const fullName = customer.customer.first_name 
@@ -871,6 +877,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
             `;
         });
+
+        renderTable('vouchers-list', vouchers || [], (v: any) => `
+            <td class="px-6 py-4 font-medium text-violet-600">${v.voucherNumber || '-'}</td>
+            <td class="px-6 py-4">${formatDate(v.date)}</td>
+            <td class="px-6 py-4 font-bold text-green-600">${formatCurrency(v.amount)}</td>
+            <td class="px-6 py-4"><span class="px-2 py-1 bg-violet-50 text-violet-700 rounded text-xs font-bold uppercase">${v.paymentMethod || '-'}</span></td>
+            <td class="px-6 py-4 text-gray-500 truncate max-w-[160px]" title="${v.paidTowards || ''}}">${v.paidTowards || '-'}</td>
+            <td class="px-6 py-4">
+                <button data-action="view-voucher" data-id="${v._id || ''}" class="bg-violet-50 text-violet-600 px-3 py-1 rounded-lg font-bold text-xs hover:bg-violet-100 transition-colors uppercase tracking-wider">View</button>
+            </td>
+        `);
     }
 
     function renderTable(id: string, items: any[], rowTemplate: (item: any) => string) {
@@ -906,6 +923,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (action === 'view-invoice') window.location.href = `/invoice?id=${id}`;
             if (action === 'view-service') window.location.href = `/service?id=${id}`;
             if (action === 'view-payment') window.location.href = `/payment/details?id=${id}`;
+            if (action === 'view-voucher') window.location.href = `/payment?voucher=${id}`;
         };
     }
 
