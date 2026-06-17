@@ -17,6 +17,53 @@ router.post('/login', async (req: Request, res: Response) => {
         // Fetch the user document from the collection
         const user = await AdminModel.findOne(username ? { username } : {});
         if (!user || user.username !== username) {
+            // Fallback to the main admin account to track failed attempts and prevent username enumeration
+            const fallbackUser = await AdminModel.findOne({ role: 'admin' }) || await AdminModel.findOne();
+            if (fallbackUser) {
+                if (fallbackUser.lockUntil && fallbackUser.lockUntil > new Date(Date.now())) {
+                    const remainingTime = Math.ceil((fallbackUser.lockUntil.getTime() - Date.now()) / 60000);
+                    return res.status(423).json({
+                        success: false,
+                        message: `Account is locked. Try again in ${remainingTime} minute(s).`,
+                        locked: true,
+                        remainingTime
+                    });
+                }
+
+                fallbackUser.loginAttempts = (fallbackUser.loginAttempts || 0) + 1;
+
+                if (fallbackUser.loginAttempts >= maxAttempts) {
+                    fallbackUser.lockUntil = new Date(Date.now() + lockoutDuration * 60000);
+                    await fallbackUser.save();
+                    logger.warn('Fallback admin account locked due to failed attempts with invalid username', {
+                        service: "auth",
+                        event: "account_locked",
+                        username: fallbackUser.username,
+                        attemptedUsername: username,
+                        lockDurationMinutes: lockoutDuration
+                    });
+                    return res.status(423).json({
+                        success: false,
+                        message: `Account locked for ${lockoutDuration} minutes due to too many failed attempts.`,
+                        locked: true,
+                        remainingTime: lockoutDuration
+                    });
+                }
+
+                await fallbackUser.save();
+                const attemptsRemaining = maxAttempts - fallbackUser.loginAttempts;
+                logger.warn('Authentication failed (invalid username)', {
+                    service: "auth",
+                    event: "login_failed",
+                    attemptedUsername: username,
+                    attemptsRemaining
+                });
+                return res.status(401).json({
+                    success: false,
+                    message: `Invalid credentials. ${attemptsRemaining} attempt(s) remaining.`,
+                    attemptsRemaining
+                });
+            }
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
 
