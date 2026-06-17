@@ -602,6 +602,11 @@
                     data-tab="payments">
                     <i class="fas fa-money-bill-wave text-xs"></i> Payments
                 </button>
+                <button
+                    class="tab-btn px-5 py-3 font-semibold text-xs uppercase tracking-wider text-slate-600 hover:text-blue-600 transition-all flex items-center gap-1.5"
+                    data-tab="vouchers">
+                    <i class="fas fa-receipt text-xs"></i> Vouchers
+                </button>
             </div>
 
             <!-- Tab Contents -->
@@ -743,6 +748,27 @@
                                 </tr>
                             </thead>
                             <tbody id="payments-list" class="divide-y divide-gray-100">
+                                <!-- Data populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Vouchers Tab -->
+                <div id="vouchers" class="tab-content">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 text-gray-500 uppercase text-xs font-bold tracking-wider">
+                                <tr>
+                                    <th class="px-6 py-4">Voucher No</th>
+                                    <th class="px-6 py-4">Date</th>
+                                    <th class="px-6 py-4">Amount</th>
+                                    <th class="px-6 py-4">Method</th>
+                                    <th class="px-6 py-4">Paid Towards</th>
+                                    <th class="px-6 py-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vouchers-list" class="divide-y divide-gray-100">
                                 <!-- Data populated via JS -->
                             </tbody>
                         </table>

@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { CustomerModel, InvoiceModel, QuotationModel, PaymentModel, ServiceModel } from '../models';
+import { CustomerModel, InvoiceModel, QuotationModel, PaymentModel, ServiceModel, VoucherModel } from '../models';
 import logger from '../utils/logger';
 import { Types } from 'mongoose';
 import { generateNextId } from '../utils/idGenerator';
@@ -368,6 +368,16 @@ router.get('/:id/full-details', async (req: Request, res: Response) => {
             ? await ServiceModel.find({ ...serviceQuery, $or: serviceLinks }).sort({ service_date: -1 })
             : [];
 
+        // Fetch vouchers linked to this customer by name (partyType=Customer)
+        const customerDisplayName = buildCustomerDisplayName(customer.customer as any);
+        const vouchers = customerDisplayName
+            ? await VoucherModel.find({
+                partyType: 'Customer',
+                partyName: { $regex: new RegExp(`^${escapeRegex(customerDisplayName)}$`, 'i') },
+                is_deleted: { $ne: true }
+              }).sort({ date: -1 }).lean()
+            : [];
+
         // Calculate statistics
         const stats = {
             totalQuotations: quotations.length,
@@ -385,12 +395,16 @@ router.get('/:id/full-details', async (req: Request, res: Response) => {
         };
         (stats as any).pendingBalance = stats.totalInvoicedAmount - stats.totalPaidAmount;
 
+        (stats as any).totalVouchers = vouchers.length;
+        (stats as any).totalVoucherAmount = vouchers.reduce((sum: number, v: any) => sum + (v.amount || 0), 0);
+
         res.json({
             customer,
             quotations,
             invoices,
             services,
             payments,
+            vouchers,
             stats
         });
     } catch (err: unknown) {

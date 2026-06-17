@@ -284,11 +284,11 @@ class QuotationTable {
                     <i class="fas fa-copy text-[10px] ml-1 opacity-50"></i>
                 </span>
             </td>
-            <td class="px-4 py-3 text-slate-900 font-semibold text-xs max-w-[150px] truncate" title="${quotation.project_name || '-'}">
+            <td class="px-4 py-3 text-slate-900 font-semibold text-xs truncate" title="${quotation.project_name || '-'}">
                 ${quotation.project_name || '-'}
             </td>
-            <td class="px-4 py-3 text-xs max-w-[180px] truncate">
-                <div class="font-medium text-slate-800" title="${customerName}">${customerName}</div>
+            <td class="px-4 py-3 text-xs truncate">
+                <div class="font-medium text-slate-800 truncate" title="${customerName}">${customerName}</div>
                 <div class="text-[10px] text-slate-400 truncate" title="${customerAddress}">${customerAddress}</div>
             </td>
             <td class="px-4 py-3 whitespace-nowrap">
@@ -358,10 +358,10 @@ class QuotationTable {
         card.innerHTML = `
             <td class="px-4 py-3 text-slate-850 font-medium whitespace-nowrap text-xs">${formattedDate}</td>
             <td class="px-4 py-3 text-slate-600 font-bold whitespace-nowrap text-xs">${quotationId}</td>
-            <td class="px-4 py-3 text-slate-900 font-semibold text-xs max-w-[150px] truncate" title="${quotation.project_name || '-'}">
+            <td class="px-4 py-3 text-slate-900 font-semibold text-xs truncate" title="${quotation.project_name || '-'}">
                 ${quotation.project_name || '-'}
             </td>
-            <td class="px-4 py-3 text-slate-700 text-xs max-w-[180px] truncate" title="${customerName}">${customerName}</td>
+            <td class="px-4 py-3 text-slate-700 text-xs truncate" title="${customerName}">${customerName}</td>
             <td class="px-4 py-3 whitespace-nowrap">${this.getStatusBadge(status)}</td>
             <td class="px-4 py-3 text-right font-bold text-xs whitespace-nowrap text-red-500">
                 ₹${formatIndian(totalAmountTax, 2)}
