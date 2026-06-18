@@ -44,6 +44,53 @@ class SettingsAdmin {
             input?.addEventListener("input", () => this.clearFieldError(input));
         });
 
+        // Clear company details validation errors on typing
+        const companyFields = [
+            "edit-address-line1", "edit-address-line2", "edit-address-city", 
+            "edit-address-pincode", "edit-state", "edit-gstin", 
+            "edit-phone1", "edit-phone2", "edit-email", "edit-website", 
+            "edit-bank-name", "edit-account-holder", "edit-account-number", 
+            "edit-ifsc", "edit-branch"
+        ];
+        companyFields.forEach(id => {
+            const input = document.getElementById(id) as HTMLInputElement;
+            input?.addEventListener("input", () => this.clearFieldError(input));
+        });
+
+        // Restrict to numeric input with length constraints
+        const numericInputs = [
+            { id: "edit-address-pincode", max: 6 },
+            { id: "edit-phone1", max: 10 },
+            { id: "edit-phone2", max: 10 },
+            { id: "edit-account-number", max: undefined }
+        ];
+        numericInputs.forEach(item => {
+            const input = document.getElementById(item.id) as HTMLInputElement;
+            if (input && (window as any).setupNumericInput) {
+                (window as any).setupNumericInput(input, item.max);
+            }
+        });
+
+        // Restrict State, Bank Name, and Account Holder to alphabetic characters and spaces only
+        const alphaFields = ["edit-state", "edit-bank-name", "edit-account-holder"];
+        alphaFields.forEach(id => {
+            const input = document.getElementById(id) as HTMLInputElement;
+            input?.addEventListener("input", () => {
+                input.value = input.value.replace(/[^a-zA-Z\s]/g, "");
+            });
+        });
+
+        // Auto-uppercase GSTIN and IFSC inputs, and cap GSTIN at 15 characters
+        const gstinInput = document.getElementById("edit-gstin") as HTMLInputElement;
+        gstinInput?.addEventListener("input", () => {
+            gstinInput.value = gstinInput.value.toUpperCase().slice(0, 15);
+        });
+
+        const ifscInput = document.getElementById("edit-ifsc") as HTMLInputElement;
+        ifscInput?.addEventListener("input", () => {
+            ifscInput.value = ifscInput.value.toUpperCase();
+        });
+
         // Interactive password toggles
         document.querySelectorAll(".password-toggle-btn").forEach(btn => {
             btn.addEventListener("click", (e) => {
@@ -284,18 +331,143 @@ class SettingsAdmin {
             }
         };
 
-        // Validate required fields
-        if (!updatedData.company_name || !line1Input || !cityInput || !stateInput || !pincodeInput || !updatedData.phone?.ph1 || !updatedData.email) {
-            (window as any).electronAPI.showAlert1("Please fill in all required fields (Company Name, Address Line 1, City, State, Pincode, Phone 1, Email)");
-            saveButton.disabled = false;
-            saveButton.innerHTML = originalContent;
-            return;
+        // Validate fields
+        let hasError = false;
+
+        const line1El = document.getElementById("edit-address-line1") as HTMLInputElement;
+        if (!line1Input) {
+            this.showFieldError(line1El, "Address Line 1 is required.");
+            hasError = true;
         }
 
-        // Validate email format
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(updatedData.email)) {
-            (window as any).electronAPI.showAlert1("Please enter a valid email address");
+        const line2El = document.getElementById("edit-address-line2") as HTMLInputElement;
+        if (!line2Input) {
+            this.showFieldError(line2El, "Address Line 2 is required.");
+            hasError = true;
+        }
+
+        const cityEl = document.getElementById("edit-address-city") as HTMLInputElement;
+        if (!cityInput) {
+            this.showFieldError(cityEl, "City is required.");
+            hasError = true;
+        }
+
+        const stateEl = document.getElementById("edit-state") as HTMLInputElement;
+        if (!stateInput) {
+            this.showFieldError(stateEl, "State is required.");
+            hasError = true;
+        } else if (!/^[a-zA-Z\s]+$/.test(stateInput)) {
+            this.showFieldError(stateEl, "State must contain only letters and spaces.");
+            hasError = true;
+        }
+
+        const pincodeEl = document.getElementById("edit-address-pincode") as HTMLInputElement;
+        if (!pincodeInput) {
+            this.showFieldError(pincodeEl, "Pincode is required.");
+            hasError = true;
+        } else if (pincodeInput.length !== 6) {
+            this.showFieldError(pincodeEl, "Pincode must be exactly 6 digits.");
+            hasError = true;
+        }
+
+        const phone1El = document.getElementById("edit-phone1") as HTMLInputElement;
+        const phone1Val = updatedData.phone?.ph1 || "";
+        if (!phone1Val) {
+            this.showFieldError(phone1El, "Phone 1 is required.");
+            hasError = true;
+        } else if (phone1Val.length !== 10) {
+            this.showFieldError(phone1El, "Phone 1 must be exactly 10 digits.");
+            hasError = true;
+        }
+
+        const phone2El = document.getElementById("edit-phone2") as HTMLInputElement;
+        const phone2Val = updatedData.phone?.ph2 || "";
+        if (!phone2Val) {
+            this.showFieldError(phone2El, "Phone 2 is required.");
+            hasError = true;
+        } else if (phone2Val.length !== 10) {
+            this.showFieldError(phone2El, "Phone 2 must be exactly 10 digits.");
+            hasError = true;
+        }
+
+        const emailEl = document.getElementById("edit-email") as HTMLInputElement;
+        const emailVal = updatedData.email || "";
+        if (!emailVal) {
+            this.showFieldError(emailEl, "Email is required.");
+            hasError = true;
+        } else {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(emailVal)) {
+                this.showFieldError(emailEl, "Please enter a valid email address.");
+                hasError = true;
+            }
+        }
+
+        const gstinEl = document.getElementById("edit-gstin") as HTMLInputElement;
+        const gstinVal = updatedData.gstin || "";
+        if (!gstinVal) {
+            this.showFieldError(gstinEl, "GSTIN is required.");
+            hasError = true;
+        } else if (gstinVal.length !== 15) {
+            this.showFieldError(gstinEl, "GSTIN must be exactly 15 characters.");
+            hasError = true;
+        }
+
+        const websiteEl = document.getElementById("edit-website") as HTMLInputElement;
+        const websiteVal = updatedData.website || "";
+        if (!websiteVal) {
+            this.showFieldError(websiteEl, "Website URL is required.");
+            hasError = true;
+        } else {
+            const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/i;
+            if (!urlPattern.test(websiteVal)) {
+                this.showFieldError(websiteEl, "Please enter a valid website URL.");
+                hasError = true;
+            }
+        }
+
+        const bankNameEl = document.getElementById("edit-bank-name") as HTMLInputElement;
+        const bankNameVal = updatedData.bank_details?.bank_name || "";
+        if (!bankNameVal) {
+            this.showFieldError(bankNameEl, "Bank name is required.");
+            hasError = true;
+        } else if (!/^[a-zA-Z\s]+$/.test(bankNameVal)) {
+            this.showFieldError(bankNameEl, "Bank name must contain only letters and spaces.");
+            hasError = true;
+        }
+
+        const accHolderEl = document.getElementById("edit-account-holder") as HTMLInputElement;
+        const accHolderVal = updatedData.bank_details?.account_holder_name || "";
+        if (!accHolderVal) {
+            this.showFieldError(accHolderEl, "Account holder is required.");
+            hasError = true;
+        } else if (!/^[a-zA-Z\s]+$/.test(accHolderVal)) {
+            this.showFieldError(accHolderEl, "Account holder name must contain only letters and spaces.");
+            hasError = true;
+        }
+
+        const accNoEl = document.getElementById("edit-account-number") as HTMLInputElement;
+        const accNoVal = updatedData.bank_details?.account_number || "";
+        if (!accNoVal) {
+            this.showFieldError(accNoEl, "Account number is required.");
+            hasError = true;
+        }
+
+        const ifscEl = document.getElementById("edit-ifsc") as HTMLInputElement;
+        const ifscVal = updatedData.bank_details?.ifsc_code || "";
+        if (!ifscVal) {
+            this.showFieldError(ifscEl, "IFSC Code is required.");
+            hasError = true;
+        }
+
+        const branchEl = document.getElementById("edit-branch") as HTMLInputElement;
+        const branchVal = updatedData.bank_details?.branch || "";
+        if (!branchVal) {
+            this.showFieldError(branchEl, "Branch is required.");
+            hasError = true;
+        }
+
+        if (hasError) {
             saveButton.disabled = false;
             saveButton.innerHTML = originalContent;
             return;
