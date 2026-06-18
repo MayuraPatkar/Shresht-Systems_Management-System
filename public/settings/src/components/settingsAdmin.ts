@@ -682,18 +682,18 @@ class SettingsAdmin {
         if (!btn) return;
         const originalHTML = btn.innerHTML;
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
         settingsApi.exportCompanyInfo()
             .then((data: any) => {
                 if (data.success) {
-                    (window as any).electronAPI.showAlert1(data.message || "Company details exported successfully!");
+                    (window as any).electronAPI.showAlert1(data.message || "Company details downloaded successfully!");
                 } else {
-                    (window as any).electronAPI.showAlert1("Failed to export company details: " + (data.message || "Unknown error"));
+                    (window as any).electronAPI.showAlert1("Failed to download company details: " + (data.message || "Unknown error"));
                 }
             })
             .catch((error: any) => {
-                console.error("Error exporting company details:", error);
-                (window as any).electronAPI.showAlert1("Failed to export company details. Please try again.");
+                console.error("Error downloading company details:", error);
+                (window as any).electronAPI.showAlert1("Failed to download company details. Please try again.");
             })
             .finally(() => {
                 btn.disabled = false;

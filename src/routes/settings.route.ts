@@ -408,32 +408,29 @@ router.put("/company-info", asyncHandler(async (req: Request, res: Response) => 
 
 router.get("/company-info/export", asyncHandler(async (req: Request, res: Response) => {
     try {
+        const { generateCompanyProfilePDF } = require('../utils/pdfGenerator');
         const admin = await AdminModel.findOne() as any;
         if (!admin) return res.status(404).json({ success: false, message: 'Company information not found' });
         const timestamp = new Date().toISOString().split("T")[0];
         const result = await showDialog('show-save-dialog', {
-            title: "Export Company Details",
-            defaultPath: `company-details-${timestamp}.json`,
-            filters: [{ name: "JSON Files", extensions: ["json"] }]
+            title: "Download Company Details",
+            defaultPath: `company-details-${timestamp}.pdf`,
+            filters: [{ name: "PDF Files", extensions: ["pdf"] }]
         });
-        if (result.canceled) { return res.json({ success: true, message: "Export cancelled by user" }); }
+        if (result.canceled) { return res.json({ success: true, message: "Download cancelled by user" }); }
         const filePath = result.filePath;
         if (!filePath || typeof filePath !== 'string') throw new Error('Invalid file path selected');
         await fsp.mkdir(path.dirname(filePath), { recursive: true });
-        const exportData = {
-            company_name: admin.company_name,
-            address: admin.address,
-            phone: admin.phone,
-            email: admin.email,
-            website: admin.website,
-            gstin: admin.gstin,
-            bank_details: admin.bank_details
-        };
-        await fsp.writeFile(filePath, JSON.stringify(exportData, null, 2), 'utf8');
-        return res.json({ success: true, message: `Successfully exported company details to ${path.basename(filePath)}` });
+
+        const pdfResult = await generateCompanyProfilePDF(admin, filePath);
+        if (!pdfResult.success) {
+            throw new Error(pdfResult.error || 'Failed to generate PDF');
+        }
+
+        return res.json({ success: true, message: `Successfully downloaded company details as PDF: ${path.basename(filePath)}` });
     } catch (error: unknown) {
-        logger.error("Company details export error", { service: "settings", error: (error as Error).message });
-        return res.status(500).json({ success: false, message: "Export failed", error: (error as Error).message });
+        logger.error("Company details download error", { service: "settings", error: (error as Error).message });
+        return res.status(500).json({ success: false, message: "Download failed", error: (error as Error).message });
     }
 }));
 
