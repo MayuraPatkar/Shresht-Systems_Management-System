@@ -410,7 +410,7 @@ router.get("/:quotationId", async (req: Request, res: Response) => {
 
         await expireStaleQuotations();
         const quotation = await QuotationModel.findOne({ $or: [{ quotation_no: quotationId }, { quotation_id: quotationId }] } as any);
-        if (!quotation || (quotation as any).is_deleted || quotation.deletion?.is_deleted) {
+        if (!quotation) {
             return res.status(404).json({ message: 'Quotation not found' });
         }
 

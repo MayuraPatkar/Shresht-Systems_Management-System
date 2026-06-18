@@ -1946,7 +1946,6 @@ async function sendToServer(data, shouldPrint) {
 const saveBtn = document.getElementById("save-btn");
 if (saveBtn) {
     saveBtn.addEventListener("click", async () => {
-        const wasNewQuotation = sessionStorage.getItem('currentTab-status') !== 'update';
         const quotationData = collectFormData();
         const ok = await sendToServer(quotationData, false);
         if (ok) {
@@ -1954,13 +1953,10 @@ if (saveBtn) {
                 (window as any).markQuotationFormClean();
             }
             window.electronAPI.showAlert1("Quotation saved successfully!");
-            // Redirect to Home after saving a new quotation/clone, or to details page if editing
+            // Redirect to the quotation details view page after saving
             sessionStorage.removeItem('currentTab-status');
-            if (wasNewQuotation) {
-                window.location.href = '/quotation';
-            } else {
-                window.location.href = `/quotation/details?id=${encodeURIComponent(quotationData.quotation_id)}`;
-            }
+            const targetId = ok.quotation_id || quotationData.quotation_id;
+            window.location.href = `/quotation/details?id=${encodeURIComponent(targetId)}`;
         }
     });
 }

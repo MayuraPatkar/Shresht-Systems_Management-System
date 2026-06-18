@@ -404,6 +404,10 @@ class QuotationTable {
             });
         });
 
+        card.addEventListener('click', () => {
+            window.location.href = '/quotation/details?id=' + encodeURIComponent(quotationId);
+        });
+
         return card;
     }
 }

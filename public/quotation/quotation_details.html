@@ -282,46 +282,53 @@
             <div class="flex items-center gap-3">
                 <!-- Action buttons -->
                 <button type="button" id="editQuotationBtnView"
-                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-purple-300 bg-white px-4 py-2 text-sm font-semibold text-purple-700 transition-all hover:border-purple-500 hover:bg-purple-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-purple-200 cursor-pointer"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-purple-300 bg-white px-4 h-10 text-sm font-semibold text-purple-700 transition-all hover:border-purple-500 hover:bg-purple-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-purple-200 cursor-pointer shadow-sm"
                     style="display: none;"
                     title="Edit Quotation (Ctrl+E)">
                     <i class="fas fa-edit"></i>
                     Edit Quotation
                 </button>
                 <button type="button" id="duplicateQuotationBtnView"
-                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-indigo-300 bg-white px-4 py-2 text-sm font-semibold text-indigo-700 transition-all hover:border-indigo-500 hover:bg-indigo-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-indigo-200 cursor-pointer"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-indigo-300 bg-white px-4 h-10 text-sm font-semibold text-indigo-700 transition-all hover:border-indigo-500 hover:bg-indigo-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-indigo-200 cursor-pointer shadow-sm"
                     style="display: none;"
                     title="Duplicate (Ctrl+D)">
                     <i class="fas fa-copy"></i>
                     Clone
                 </button>
                 <button type="button" id="convertToInvoiceBtn"
-                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-blue-300 bg-white px-4 py-2 text-sm font-semibold text-blue-700 transition-all hover:border-blue-500 hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-200 cursor-pointer"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-blue-300 bg-white px-4 h-10 text-sm font-semibold text-blue-700 transition-all hover:border-blue-500 hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-200 cursor-pointer shadow-sm"
                     style="display: none;"
                     title="Convert to Invoice">
                     <i class="fas fa-file-invoice-dollar"></i>
                     Convert to Invoice
                 </button>
                 <button type="button" id="sendWhatsAppBtn"
-                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-300 bg-white px-4 py-2 text-sm font-semibold text-emerald-700 transition-all hover:border-emerald-500 hover:bg-emerald-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-emerald-200 cursor-pointer"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-300 bg-white px-4 h-10 text-sm font-semibold text-emerald-700 transition-all hover:border-emerald-500 hover:bg-emerald-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-emerald-200 cursor-pointer shadow-sm"
                     style="display: none;"
                     title="Send via WhatsApp">
                     <i class="fab fa-whatsapp"></i>
                     Send via WhatsApp
                 </button>
+                <button type="button" id="restoreQuotationBtnView"
+                    class="bg-emerald-600 text-white px-4 h-10 rounded-lg hover:bg-emerald-700 flex items-center gap-2 font-semibold text-sm transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    style="display: none;"
+                    title="Restore Quotation">
+                    <i class="fas fa-trash-restore"></i>
+                    Restore
+                </button>
                 <button id="home-btn"
-                    class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium"
+                    class="bg-gray-600 text-white px-4 h-10 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium text-sm transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
                     title="Back to Quotations (Esc)">
                     <i class="fas fa-home"></i>
                     Home
                 </button>
                 <button id="refresh-btn"
-                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 p-2.5 rounded-lg flex items-center justify-center gap-2 font-semibold w-10 h-10 transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
                     title="Refresh List (Ctrl+R)">
                     <i class="fas fa-sync-alt"></i>
                 </button>
                 <button id="shortcuts-btn"
-                    class="bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 p-2.5 rounded-lg flex items-center justify-center gap-2 font-semibold w-10 h-10 transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    class="bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
                     title="Keyboard Shortcuts (?)">
                     <i class="fas fa-keyboard"></i>
                 </button>
@@ -706,7 +713,7 @@
                                 These actions are destructive. Please proceed with caution.
                             </p>
 
-                            <div class="grid grid-cols-1 gap-4 py-5 border-b border-red-100/50 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                            <div id="danger-zone-reject-row" class="grid grid-cols-1 gap-4 py-5 border-b border-red-100/50 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                                 <div class="min-w-0">
                                     <p class="text-sm font-semibold text-slate-900">Eject / Reject Quotation</p>
                                     <p class="mt-1 text-sm text-slate-600">Flag this quotation as rejected by the client.</p>
@@ -720,7 +727,7 @@
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-1 gap-4 py-5 border-b border-red-100/50 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                            <div id="danger-zone-archive-row" class="grid grid-cols-1 gap-4 py-5 border-b border-red-100/50 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                                 <div class="min-w-0">
                                     <p class="text-sm font-semibold text-slate-900">Archive Quotation</p>
                                     <p class="mt-1 text-sm text-slate-600">Move this record out of the active workflow while keeping it recoverable.</p>
@@ -734,10 +741,10 @@
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-1 gap-4 py-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                            <div id="danger-zone-delete-row" class="grid grid-cols-1 gap-4 py-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                                 <div class="min-w-0">
-                                    <p class="text-sm font-semibold text-slate-900">Delete Permanently</p>
-                                    <p class="mt-1 text-sm text-slate-600">Irreversibly remove this quotation from the system.</p>
+                                    <p id="danger-zone-delete-title" class="text-sm font-semibold text-slate-900">Delete Quotation</p>
+                                    <p id="danger-zone-delete-desc" class="mt-1 text-sm text-slate-600">Move this quotation to the trash folder.</p>
                                 </div>
                                 <div class="sm:justify-self-end">
                                     <button type="button" id="deleteQuotationBtn"
@@ -916,7 +923,7 @@
                     throw new Error('viewQuotation not loaded');
                 }
 
-                await window.viewQuotation(quotationId, 1);
+                const quotation = await window.viewQuotation(quotationId, 1);
 
                 // Show the view, hide loading
                 document.getElementById('details-loading').style.display = 'none';
@@ -931,15 +938,58 @@
                     document.title = `Quotation ${qIdEl.textContent} - Details`;
                 }
 
-                // Show header action buttons
+                // Show header action buttons based on is_deleted
                 const editBtn = document.getElementById('editQuotationBtnView');
                 const duplicateBtn = document.getElementById('duplicateQuotationBtnView');
                 const convertBtn = document.getElementById('convertToInvoiceBtn');
                 const sendWhatsAppBtn = document.getElementById('sendWhatsAppBtn');
-                if (editBtn) editBtn.style.display = 'flex';
-                if (duplicateBtn) duplicateBtn.style.display = 'flex';
-                if (convertBtn) convertBtn.style.display = 'flex';
-                if (sendWhatsAppBtn) sendWhatsAppBtn.style.display = 'flex';
+                const restoreBtnView = document.getElementById('restoreQuotationBtnView');
+
+                if (quotation && (quotation.is_deleted || quotation.deletion?.is_deleted)) {
+                    if (editBtn) editBtn.style.display = 'none';
+                    if (duplicateBtn) duplicateBtn.style.display = 'none';
+                    if (convertBtn) convertBtn.style.display = 'none';
+                    if (sendWhatsAppBtn) sendWhatsAppBtn.style.display = 'none';
+                    
+                    if (restoreBtnView) restoreBtnView.style.display = 'flex';
+                } else {
+                    if (editBtn) editBtn.style.display = 'flex';
+                    if (duplicateBtn) duplicateBtn.style.display = 'flex';
+                    if (convertBtn) convertBtn.style.display = 'flex';
+                    if (sendWhatsAppBtn) sendWhatsAppBtn.style.display = 'flex';
+                    
+                    if (restoreBtnView) restoreBtnView.style.display = 'none';
+                }
+
+                // Attach click handlers for restore and delete permanent buttons in header
+                if (restoreBtnView) {
+                    restoreBtnView.addEventListener('click', async () => {
+                        const message = `Are you sure you want to restore Quotation "${quotationId}"?`;
+                        const executeRestore = async () => {
+                            try {
+                                const res = await fetch(`/quotation/${encodeURIComponent(quotationId)}/restore`, { method: 'POST' });
+                                if (!res.ok) throw new Error('Failed to restore');
+                                showToast(`Quotation ${quotationId} restored`);
+                                window.location.href = '/quotation';
+                            } catch (e) {
+                                if (window.electronAPI?.showAlert1) {
+                                    window.electronAPI.showAlert1('Failed to restore quotation.');
+                                } else {
+                                    alert('Failed to restore quotation.');
+                                }
+                            }
+                        };
+
+                        if (window.electronAPI?.showAlert2 && window.electronAPI?.receiveAlertResponse) {
+                            window.electronAPI.showAlert2(message);
+                            window.electronAPI.receiveAlertResponse((response) => {
+                                if (response === 'Yes') executeRestore();
+                            });
+                        } else if (confirm(message)) {
+                            await executeRestore();
+                        }
+                    });
+                }
 
             } catch (err) {
                 console.error('Failed to load quotation details:', err);

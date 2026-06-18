@@ -1,7 +1,7 @@
 // @ts-nocheck
 
 const isMac = navigator.userAgent.toLowerCase().includes('mac');
-const isDetailsPage = typeof window !== 'undefined' && (window.location.pathname.includes('/details') || !!document.getElementById('header-quotation-title'));
+const isDetailsPage = typeof window !== 'undefined' && window.location.pathname.includes('/details');
 
 const SHORTCUT_GROUPS = [
     {
@@ -436,11 +436,9 @@ function handleQuotationKeyboardShortcuts(event: KeyboardEvent) {
             case 's': {
                 const saveBtn = document.getElementById('save-btn') as HTMLButtonElement;
                 if (saveBtn && isFormActive()) {
-                    if (isExistingDocument() || isPreviewStepActive()) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        runOnPreviewStep(() => saveBtn.click());
-                    }
+                    event.preventDefault();
+                    event.stopPropagation();
+                    runOnPreviewStep(() => saveBtn.click());
                 }
                 break;
             }
@@ -592,8 +590,8 @@ function handleQuotationKeyboardShortcuts(event: KeyboardEvent) {
 // Auto-initialize if loaded on details page or if main.js is not loaded
 if (typeof document !== 'undefined') {
     document.addEventListener('DOMContentLoaded', () => {
-        const isDetails = window.location.pathname.includes('/details') || !!document.getElementById('header-quotation-title');
-        if (isDetails) {
+        const isDetailsOrForm = window.location.pathname.includes('/details') || window.location.pathname.includes('/form');
+        if (isDetailsOrForm) {
             initShortcutsModal();
             document.addEventListener('keydown', handleQuotationKeyboardShortcuts, true);
         }
