@@ -421,6 +421,37 @@
         const formatIndian = (window as any).formatIndian || ((n, f) => n.toFixed(f));
 
         // Fill Project Details
+        const viewPOId = document.getElementById('view-purchase-order-no');
+        if (viewPOId) {
+            viewPOId.textContent = purchaseOrder.purchase_order_no || '-';
+        }
+
+        const copyBtn = document.getElementById('copy-purchase-order-id-btn');
+        if (copyBtn) {
+            const newCopyBtn = copyBtn.cloneNode(true) as HTMLButtonElement;
+            copyBtn.parentNode?.replaceChild(newCopyBtn, copyBtn);
+            newCopyBtn.addEventListener('click', async () => {
+                const poId = purchaseOrder.purchase_order_no || '';
+                if (poId && poId !== '-') {
+                    try {
+                        await navigator.clipboard.writeText(poId);
+                        const icon = newCopyBtn.querySelector('i');
+                        if (icon) {
+                            icon.className = 'fas fa-check text-green-500 text-lg';
+                            const originalTitle = newCopyBtn.title;
+                            newCopyBtn.title = 'Copied!';
+                            setTimeout(() => {
+                                icon.className = 'far fa-copy text-lg';
+                                newCopyBtn.title = originalTitle;
+                            }, 2000);
+                        }
+                    } catch (err) {
+                        console.error('Failed to copy ID: ', err);
+                    }
+                }
+            });
+        }
+
         const viewDate = document.getElementById('view-purchase-date');
         if (viewDate) {
             viewDate.textContent = (window as any).formatDateDisplay ? 
@@ -604,10 +635,10 @@
 
             if (purchaseOrder.is_archived) {
                 newArchiveBtn.innerHTML = '<i class="fas fa-box-open"></i> Restore from Archive';
-                newArchiveBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors cursor-pointer";
+                newArchiveBtn.className = "inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-300 bg-white px-5 py-2.5 text-sm font-semibold text-emerald-700 transition-all hover:border-emerald-500 hover:bg-emerald-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-emerald-200 cursor-pointer";
             } else {
                 newArchiveBtn.innerHTML = '<i class="fas fa-archive"></i> Archive Purchase Order';
-                newArchiveBtn.className = "bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors cursor-pointer";
+                newArchiveBtn.className = "inline-flex items-center justify-center gap-2 rounded-lg border border-orange-300 bg-white px-5 py-2.5 text-sm font-semibold text-orange-700 transition-all hover:border-orange-500 hover:bg-orange-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-orange-200 cursor-pointer";
             }
 
             newArchiveBtn.addEventListener('click', () => {

@@ -300,6 +300,21 @@
                         <h2 class="text-xl font-semibold text-gray-800">Supplier Details</h2>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="bg-gray-50 p-4 rounded-lg flex items-center justify-between">
+                            <div>
+                                <span class="block text-sm font-medium text-gray-600 mb-1">Purchase Order No</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-gray-900 font-semibold view-field" id="view-purchase-order-no">-</span>
+                                    <span class="text-xs text-gray-400 bg-gray-200 px-1.5 py-0.5 rounded font-normal"
+                                        title="Generated automatically">System ID</span>
+                                </div>
+                            </div>
+                            <button type="button" id="copy-purchase-order-id-btn"
+                                class="text-gray-400 hover:text-blue-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                                title="Copy Purchase Order No">
+                                <i class="far fa-copy text-lg"></i>
+                            </button>
+                        </div>
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <span class="block text-sm font-medium text-gray-600 mb-1">Purchase Date</span>
                             <span class="text-gray-900 font-semibold view-field" id="view-purchase-date">-</span>
@@ -482,21 +497,37 @@
                         <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
                         <h2 class="text-xl font-semibold text-red-800">Danger Zone</h2>
                     </div>
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <p class="text-sm text-red-700 font-medium">
-                            These actions are destructive or affect status. Please proceed with caution.
+                    <div class="space-y-0">
+                        <p class="mb-4 text-sm font-medium text-red-700">
+                            These actions are destructive. Please proceed with caution.
                         </p>
-                        <div class="flex flex-wrap gap-4 justify-end">
-                            <button type="button" id="archivePurchaseOrderBtn"
-                                class="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors cursor-pointer">
-                                <i class="fas fa-archive"></i>
-                                Archive Purchase Order
-                            </button>
-                            <button type="button" id="deletePurchaseOrderBtn"
-                                class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors cursor-pointer">
-                                <i class="fas fa-trash-alt"></i>
-                                Delete Purchase Order
-                            </button>
+
+                        <div id="danger-zone-archive-row" class="grid grid-cols-1 gap-4 py-5 border-b border-red-100/50 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                            <div class="min-w-0">
+                                <p class="text-sm font-semibold text-slate-900">Archive Purchase Order</p>
+                                <p class="mt-1 text-sm text-slate-600">Move this record out of the active workflow while keeping it recoverable.</p>
+                            </div>
+                            <div class="sm:justify-self-end">
+                                <button type="button" id="archivePurchaseOrderBtn"
+                                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-orange-300 bg-white px-5 py-2.5 text-sm font-semibold text-orange-700 transition-all hover:border-orange-500 hover:bg-orange-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-orange-200 cursor-pointer">
+                                    <i class="fas fa-archive"></i>
+                                    Archive Purchase Order
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="danger-zone-delete-row" class="grid grid-cols-1 gap-4 py-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                            <div class="min-w-0">
+                                <p id="danger-zone-delete-title" class="text-sm font-semibold text-slate-900">Delete Purchase Order</p>
+                                <p id="danger-zone-delete-desc" class="mt-1 text-sm text-slate-600">Irreversibly remove this purchase order from the system.</p>
+                            </div>
+                            <div class="sm:justify-self-end">
+                                <button type="button" id="deletePurchaseOrderBtn"
+                                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-red-300 bg-white px-5 py-2.5 text-sm font-semibold text-red-700 transition-all hover:border-red-500 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-200 cursor-pointer">
+                                    <i class="fas fa-trash-alt"></i>
+                                    Delete Purchase Order
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </section>

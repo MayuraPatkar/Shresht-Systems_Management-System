@@ -1585,6 +1585,11 @@
                 const today = new Date().toISOString().split('T')[0];
                 purchaseDateInput.value = today;
             }
+
+            // Add one default empty item row
+            if (typeof addPurchaseOrderItem === 'function') {
+                addPurchaseOrderItem();
+            }
             
             // Focus on first input
             setTimeout(() => {
