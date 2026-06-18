@@ -438,7 +438,7 @@ function setupIPCHandlers(): void {
             const result = await shell.openPath(folderPath);
             // shell.openPath returns '' on success, or an error string on failure
             if (typeof result === 'string' && result.length > 0) {
-                logger.error('Failed to open backup folder:', result);
+                logger.error(`Failed to open backup folder: ${result}`);
                 return { success: false, message: result };
             }
             return { success: true, path: folderPath };
@@ -459,12 +459,12 @@ function setupIPCHandlers(): void {
 
             // Only allow http and https URLs
             if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                logger.warn('Blocked non-http URL:', url);
+                logger.warn(`Blocked non-http URL: ${url}`);
                 return { success: false, message: 'Only HTTP(S) URLs are allowed' };
             }
 
             await shell.openExternal(url);
-            logger.info('Opened external URL:', url);
+            logger.info(`Opened external URL: ${url}`);
             return { success: true, url };
         } catch (error) {
             logger.error('Error opening external URL:', error);
@@ -669,14 +669,14 @@ async function createWindow(): Promise<void> {
             // Only allow navigation to localhost with the correct port
             if (parsedUrl.origin !== allowedOrigin) {
                 event.preventDefault();
-                logger.warn('Blocked navigation to:', navigationUrl);
+                logger.warn(`Blocked navigation to: ${navigationUrl}`);
             }
         });
 
         // Handle new window requests
         mainWindow.webContents.setWindowOpenHandler(({ url }) => {
             // Block popup windows for security
-            logger.warn('Blocked popup window:', url);
+            logger.warn(`Blocked popup window: ${url}`);
             return { action: 'deny' };
         });
 
