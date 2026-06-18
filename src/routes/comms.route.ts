@@ -7,6 +7,7 @@ import config from '../config/config';
 import logger from '../utils/logger';
 import secureStore from '../utils/secureStore';
 import { formatDateReadable as formatDateForTemplate } from '../utils/dateUtils';
+import { quotationPrintHandler } from '../utils/quotationPrintHandler';
 
 // Lazy-loaded utilities (may not be available in all environments)
 let pdfGenerator: any;
@@ -539,16 +540,41 @@ router.post('/send-quotation', async (req: Request, res: Response) => {
         let isCloudUploaded = false;
 
         if (!documentUrl && pdfGenerator) {
-            const companyInfo = await getCompanyInfo();
-            const pdfResult = htmlContent
-                ? await pdfGenerator.generateQuotationPDFFromHTML(htmlContent, quotationId)
-                : await pdfGenerator.generateQuotationPDF(quotation, companyInfo);
+            let pdfResult;
+            if (htmlContent) {
+                // Use the same native Electron-based PDF generation as PDF save
+                try {
+                    const tempFilename = `${quotationId}.pdf`;
+                    const outputPath = path.join(pdfGenerator.UPLOADS_DIR, tempFilename);
+                    const printResult = await quotationPrintHandler.generatePDF(htmlContent, outputPath);
+                    if (printResult.success) {
+                        pdfResult = {
+                            success: true,
+                            path: outputPath,
+                            filename: tempFilename
+                        };
+                    } else {
+                        pdfResult = {
+                            success: false,
+                            error: printResult.error
+                        };
+                    }
+                } catch (e: any) {
+                    pdfResult = {
+                        success: false,
+                        error: e.message
+                    };
+                }
+            } else {
+                const companyInfo = await getCompanyInfo();
+                pdfResult = await pdfGenerator.generateQuotationPDF(quotation, companyInfo);
+            }
 
-            if (!pdfResult.success) {
-                logger.error('Quotation PDF generation failed', { service: "messaging", error: pdfResult.error, quotationId });
+            if (!pdfResult || !pdfResult.success) {
+                logger.error('Quotation PDF generation failed', { service: "messaging", error: pdfResult?.error, quotationId });
                 return res.status(500).json({
                     message: 'Failed to generate PDF.',
-                    error: pdfResult.error
+                    error: pdfResult?.error
                 });
             }
 
