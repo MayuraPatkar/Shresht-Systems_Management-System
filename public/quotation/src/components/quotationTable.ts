@@ -265,13 +265,6 @@ class QuotationTable {
         // Map fields from backend structure
         const quotationId = quotation.quotation_no || quotation.quotation_id || 'N/A';
         const customerName = quotation.customer_snapshot?.name || quotation.customer_name || '-';
-        const customerAddress = (() => {
-            const b = quotation.customer_snapshot?.billing_address;
-            if (!b) return quotation.customer_address || '-';
-            if (typeof b === 'string') return b;
-            const parts = [b.line1, b.line2, b.city, b.state, b.pincode, b.country].filter(p => p && typeof p === 'string' && p.trim() !== '');
-            return parts.length > 0 ? parts.join(', ') : (quotation.customer_address || '-');
-        })();
         const totalAmountTax = quotation.totals?.grand_total || quotation.total_amount_tax || 0;
         const status = quotation.quotation_status || 'Draft';
         const isConverted = status === 'Converted' || !!quotation.converted_invoice_id;
@@ -287,9 +280,8 @@ class QuotationTable {
             <td class="px-4 py-3 text-slate-900 font-semibold text-xs truncate" title="${quotation.project_name || '-'}">
                 ${quotation.project_name || '-'}
             </td>
-            <td class="px-4 py-3 text-xs truncate">
-                <div class="font-medium text-slate-800 truncate" title="${customerName}">${customerName}</div>
-                <div class="text-[10px] text-slate-400 truncate" title="${customerAddress}">${customerAddress}</div>
+            <td class="px-4 py-3 text-slate-700 text-xs truncate" title="${customerName}">
+                ${customerName}
             </td>
             <td class="px-4 py-3 whitespace-nowrap">
                 ${isArchived ? '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border bg-slate-100 text-slate-600 border-slate-200">ARCHIVED</span>' : this.getStatusBadge(status)}
