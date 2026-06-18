@@ -321,6 +321,18 @@
                             <input type="date" id="edit-purchase-date" class="edit-field hidden w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div class="bg-gray-50 p-4 rounded-lg">
+                            <span class="block text-sm font-medium text-gray-600 mb-1">Status</span>
+                            <span class="view-field" id="view-po-status">-</span>
+                            <select id="edit-po-status" class="edit-field hidden w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                                <option value="Draft">Draft</option>
+                                <option value="Issued/Sent">Issued/Sent</option>
+                                <option value="Acknowledged/Accepted">Acknowledged/Accepted</option>
+                                <option value="Rejected">Rejected</option>
+                                <option value="Shipped">Shipped</option>
+                                <option value="Invoiced">Invoiced</option>
+                            </select>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
                             <span class="block text-sm font-medium text-gray-600 mb-1">Supplier Name</span>
                             <span class="text-gray-900 font-semibold view-field" id="view-supplier-name">-</span>
                             <input type="text" id="edit-supplier-name" class="edit-field hidden w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">

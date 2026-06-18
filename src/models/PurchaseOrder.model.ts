@@ -72,6 +72,7 @@ export interface IPurchaseOrder extends Document {
     due_date?: Date;
 
     purchase_status: "Draft" | "Ordered" | "Received" | "Cancelled" | "Expired";
+    status?: "Draft" | "Issued/Sent" | "Acknowledged/Accepted" | "Rejected" | "Shipped" | "Invoiced";
     purchase_type?: "Local" | "Interstate" | "Import";
 
     supplier_id?: Types.ObjectId;
@@ -204,6 +205,13 @@ const purchaseOrderSchema = new Schema<IPurchaseOrder>(
         purchase_status: {
             type: String,
             enum: ["Draft", "Ordered", "Received", "Cancelled", "Expired"],
+            default: "Draft",
+            index: true,
+        },
+
+        status: {
+            type: String,
+            enum: ["Draft", "Issued/Sent", "Acknowledged/Accepted", "Rejected", "Shipped", "Invoiced"],
             default: "Draft",
             index: true,
         },

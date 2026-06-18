@@ -664,6 +664,7 @@
                 }
                 const today = (window as any).getTodayForInput ? (window as any).getTodayForInput() : new Date().toISOString().split('T')[0];
                 (document.getElementById("purchase-date") as HTMLInputElement).value = today;
+                (document.getElementById("po-status") as HTMLSelectElement).value = "Draft";
             } else {
                 (document.getElementById("id") as HTMLInputElement).value = purchaseOrder.purchase_order_no || "";
                 purchaseOrderId = purchaseOrder.purchase_order_no;
@@ -673,6 +674,7 @@
                     (window as any).formatDateInput(purchaseDateStr) :
                     new Date(purchaseDateStr).toISOString().split('T')[0];
                 (document.getElementById("purchase-date") as HTMLInputElement).value = formattedPurchaseDate;
+                (document.getElementById("po-status") as HTMLSelectElement).value = purchaseOrder.status || "Draft";
             }
 
             const snapshot = purchaseOrder.supplier_snapshot || {};
@@ -1001,6 +1003,7 @@
             purchase_order_no: (document.getElementById("id") as HTMLInputElement)?.value || "",
             purchase_invoice_no: "",
             purchase_date: (document.getElementById("purchase-date") as HTMLInputElement)?.value || "",
+            status: (document.getElementById("po-status") as HTMLSelectElement)?.value || "Draft",
             supplier_id: (document.getElementById("supplier-id") as HTMLInputElement)?.value || "",
             supplier_snapshot: {
                 name: (document.getElementById("supplier-name") as HTMLInputElement)?.value || "",
