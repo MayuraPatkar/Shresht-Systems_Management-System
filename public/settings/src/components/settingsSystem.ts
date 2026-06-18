@@ -27,6 +27,15 @@ class SettingsSystem {
 
         // Set up log downloads
         this.setupLogDownloads();
+
+        // Set up What's New button and modal dismissal in Settings
+        document.getElementById("show-whats-new-btn")?.addEventListener("click", () => this.showWhatsNewModal());
+        document.getElementById("close-changelog-modal")?.addEventListener("click", () => {
+            document.getElementById("changelog-modal")?.classList.add("hidden");
+        });
+        document.getElementById("dismiss-changelog")?.addEventListener("click", () => {
+            document.getElementById("changelog-modal")?.classList.add("hidden");
+        });
     }
 
     cleanup(): void {
@@ -440,6 +449,94 @@ class SettingsSystem {
 
     private downloadLogs(type: string): void {
         window.location.href = `/settings/download-logs?type=${type}`;
+    }
+
+    async showWhatsNewModal(): Promise<void> {
+        const modal = document.getElementById('changelog-modal');
+        const content = document.getElementById('changelog-modal-content');
+        const versionText = document.getElementById('changelog-version-text');
+
+        if (!modal || !content) return;
+
+        try {
+            const result = await (window as any).electronAPI.getChangelog();
+
+            if (!result.success || !result.changelog || !result.changelog.versions || result.changelog.versions.length === 0) {
+                content.innerHTML = `
+                    <div class="text-center py-12">
+                        <i class="fas fa-info-circle text-gray-300 text-4xl mb-3"></i>
+                        <p class="text-gray-500">No changelog available</p>
+                    </div>
+                `;
+                modal.classList.remove('hidden');
+                return;
+            }
+
+            const versions = result.changelog.versions;
+            const latestVersion = versions[0];
+
+            if (versionText) {
+                versionText.textContent = `Version ${latestVersion.version} • ${settingsUtils.formatChangelogDate(latestVersion.date)}`;
+            }
+
+            let html = '<div class="space-y-8">';
+
+            versions.forEach((version: any, index: number) => {
+                const isLatest = index === 0;
+                
+                html += `
+                    <div class="${isLatest ? '' : 'pt-8 border-t border-gray-200'}">
+                        <div class="flex items-center gap-3 mb-4">
+                            ${isLatest ? '<span class="px-2 py-0.5 bg-blue-600 text-white text-xs font-bold rounded">LATEST</span>' : ''}
+                            <h3 class="text-xl font-bold text-gray-800">v${version.version}</h3>
+                            <span class="text-gray-400">•</span>
+                            <span class="text-gray-600 font-medium">${version.title || 'Release'}</span>
+                            <span class="text-gray-400 text-sm ml-auto">${settingsUtils.formatChangelogDate(version.date)}</span>
+                        </div>
+                        <ul class="space-y-3 pl-1">
+                `;
+
+                version.changes.forEach((change: any) => {
+                    const typeConfig: Record<string, any> = {
+                        'feature': { bg: 'bg-green-100', text: 'text-green-700', icon: 'fa-plus', label: 'New' },
+                        'improvement': { bg: 'bg-blue-100', text: 'text-blue-700', icon: 'fa-arrow-up', label: 'Improved' },
+                        'bugfix': { bg: 'bg-red-100', text: 'text-red-700', icon: 'fa-bug', label: 'Fixed' },
+                        'security': { bg: 'bg-purple-100', text: 'text-purple-700', icon: 'fa-shield-alt', label: 'Security' },
+                        'breaking': { bg: 'bg-orange-100', text: 'text-orange-700', icon: 'fa-exclamation', label: 'Breaking' }
+                    };
+                    const config = typeConfig[change.type] || { bg: 'bg-gray-100', text: 'text-gray-700', icon: 'fa-circle', label: 'Update' };
+
+                    html += `
+                        <li class="flex items-start gap-3">
+                            <span class="flex-shrink-0 w-20 px-2 py-1 ${config.bg} ${config.text} text-xs font-semibold rounded text-center">
+                                <i class="fas ${config.icon} mr-1"></i>${config.label}
+                            </span>
+                            <span class="text-gray-750 leading-relaxed">${change.description}</span>
+                        </li>
+                    `;
+                });
+
+                html += `
+                        </ul>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            content.innerHTML = html;
+            modal.classList.remove('hidden');
+
+        } catch (error: any) {
+            console.error('Failed to show changelog modal:', error);
+            content.innerHTML = `
+                <div class="text-center py-12">
+                    <i class="fas fa-exclamation-triangle text-red-400 text-4xl mb-3"></i>
+                    <p class="text-gray-700 font-medium">Error loading changelog</p>
+                    <p class="text-gray-500 text-sm mt-1">${error.message}</p>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+        }
     }
 }
 
