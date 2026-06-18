@@ -12,6 +12,29 @@
     <link rel="stylesheet" href="../css/shared/documentStyles.css">
     <link rel="stylesheet" href="../css/shared/cardTableStyles.css">
     <link rel="stylesheet" href="../css/purchaseOrder.css">
+    <style>
+        /* Supplier suggestions dropdown — constrained scrollable, no overflow beyond viewport */
+        #supplier-suggestions {
+            max-height: min(15rem, 50vh);
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        /* Thin scrollbar inside the dropdown */
+        #supplier-suggestions::-webkit-scrollbar {
+            width: 5px;
+        }
+        #supplier-suggestions::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #supplier-suggestions::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 9999px;
+        }
+        #supplier-suggestions::-webkit-scrollbar-thumb:hover {
+            background: #cbd5e1;
+        }
+    </style>
     <title>Purchase Bill</title>
 </head>
 
@@ -166,7 +189,7 @@
                                 <input type="hidden" id="supplier-id" value="">
                                 <input type="text" id="supplier-search-input" name="supplier-search-input" autocomplete="off" placeholder="Search by name, phone, email, or GSTIN..."
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                                <ul id="supplier-suggestions" class="suggestions hidden absolute z-50 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-60 overflow-y-auto overflow-hidden isolate" style="display: none;"></ul>
+                                <ul id="supplier-suggestions" class="suggestions absolute z-50 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-60 overflow-y-auto" style="display: none;"></ul>
                             </div>
                             
                             <!-- Profile Visualization Card Container -->

@@ -368,9 +368,30 @@
                 filterPopover.classList.add('hidden');
                 return;
             }
-            
-            if (isFormActive() && typeof (window as any).closeAllSuggestions === 'function') {
-                (window as any).closeAllSuggestions();
+
+            // If any suggestion dropdown is currently visible, close it and stop — 
+            // do NOT proceed to the unsaved changes guard (avoids false modal on Esc in search).
+            if (isFormActive()) {
+                const suggestions = Array.from(document.querySelectorAll('.suggestions')) as HTMLElement[];
+                const supplierSuggestions = document.getElementById('supplier-suggestions') as HTMLElement | null;
+                const hasVisibleSuggestions =
+                    suggestions.some(s => s.style.display === 'block') ||
+                    (supplierSuggestions && supplierSuggestions.style.display === 'block');
+
+                if (hasVisibleSuggestions) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (typeof (window as any).closeAllSuggestions === 'function') {
+                        (window as any).closeAllSuggestions();
+                    }
+                    if (supplierSuggestions) supplierSuggestions.style.display = 'none';
+                    return;
+                }
+
+                // No suggestions open — close any stragglers and proceed
+                if (typeof (window as any).closeAllSuggestions === 'function') {
+                    (window as any).closeAllSuggestions();
+                }
             }
             
             // If unsaved changes modal is open, let it handle Escape
@@ -533,6 +554,15 @@
 
     // Set up document-level keydown listener
     document.addEventListener('keydown', handlePurchaseOrderKeyboardShortcuts, true);
+
+    // Auto-initialize the shortcuts modal on all purchase order pages.
+    // main.ts also calls this on the list page, but on the form and details pages
+    // main.ts bails early and never calls it — so we do it here automatically.
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initShortcutsModal);
+    } else {
+        initShortcutsModal();
+    }
 
     (window as any).initPurchaseOrderShortcutsModal = initShortcutsModal;
 })();

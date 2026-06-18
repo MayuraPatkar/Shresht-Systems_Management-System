@@ -293,6 +293,12 @@
                 }
 
                 suggestionsList.style.display = 'block';
+
+                // Clamp the dropdown height so it never extends past the viewport bottom
+                const inputRect = input.getBoundingClientRect();
+                const spaceBelow = window.innerHeight - inputRect.bottom - 12; // 12px margin
+                const maxAllowed = Math.max(spaceBelow, 120); // min 120px so it's still useful
+                suggestionsList.style.maxHeight = `${Math.min(maxAllowed, 240)}px`;
                 
                 currentSuppliers.forEach((supplier, index) => {
                     const li = document.createElement('li');
@@ -401,6 +407,11 @@
 
             // Render profile card
             renderSupplierProfileCard();
+
+            // Mark form dirty — supplier was explicitly selected
+            if (typeof (window as any).markPurchaseOrderFormDirty === 'function') {
+                (window as any).markPurchaseOrderFormDirty();
+            }
         }
     }
 
@@ -1605,6 +1616,10 @@
         const homeBtn = document.getElementById("home-btn");
         if (homeBtn) {
             homeBtn.addEventListener("click", () => {
+                const guardNavigation = (window as any).guardPurchaseOrderNavigation;
+                if (typeof guardNavigation === 'function' && guardNavigation('/purchaseorder')) {
+                    return; // blocked by unsaved changes modal
+                }
                 window.location.href = '/purchaseorder';
             });
         }
