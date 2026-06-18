@@ -672,7 +672,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function populateData(data: any) {
-        const { customer, stats, quotations, invoices, services, payments, vouchers } = data;
+        const { customer, stats, quotations, invoices, services, payments, vouchers, communications } = data;
 
         // Header info
         const fullName = customer.customer.first_name 
@@ -888,9 +888,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button data-action="view-voucher" data-id="${v._id || ''}" class="bg-violet-50 text-violet-600 px-3 py-1 rounded-lg font-bold text-xs hover:bg-violet-100 transition-colors uppercase tracking-wider">View</button>
             </td>
         `);
+
+        renderTable('communications-list', communications || [], (c: any) => {
+            const dateStr = c.sentAt ? formatDate(c.sentAt) + ' ' + new Date(c.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-';
+            const statusClass = c.status === 'Success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700';
+            const contentDisplay = c.status === 'Failed' && c.errorMessage ? `${c.content || ''} (Error: ${c.errorMessage})` : (c.content || '');
+            const pdfButton = c.documentUrl 
+                ? `<button data-action="view-doc" data-url="${c.documentUrl}" class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg font-bold text-xs hover:bg-blue-100 transition-colors uppercase tracking-wider">View PDF</button>` 
+                : '-';
+
+            return `
+                <td class="px-6 py-4 text-xs text-gray-500">${dateStr}</td>
+                <td class="px-6 py-4 text-xs font-semibold text-slate-800">${c.recipient || '-'}</td>
+                <td class="px-6 py-4 text-xs"><span class="px-2 py-1 bg-slate-100 text-slate-700 rounded text-[10px] font-bold uppercase">${c.messageType || '-'}</span></td>
+                <td class="px-6 py-4 text-xs font-medium text-slate-600">${c.referenceId || '-'}</td>
+                <td class="px-6 py-4 text-xs"><span class="px-2 py-1 ${statusClass} rounded text-[10px] font-bold uppercase">${c.status || '-'}</span></td>
+                <td class="px-6 py-4 text-xs text-gray-500 truncate max-w-[200px]" title="${contentDisplay.replace(/"/g, '&quot;')}">${contentDisplay}</td>
+                <td class="px-6 py-4 text-xs">${pdfButton}</td>
+            `;
+        }, 7);
     }
 
-    function renderTable(id: string, items: any[], rowTemplate: (item: any) => string) {
+    function renderTable(id: string, items: any[], rowTemplate: (item: any) => string, colspan = 5) {
         const tbody = document.getElementById(id);
         if (!tbody) return;
         
@@ -898,7 +917,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const type = id.split('-')[0].charAt(0).toUpperCase() + id.split('-')[0].slice(1);
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="5" class="px-6 py-12 text-center">
+                    <td colspan="${colspan}" class="px-6 py-12 text-center">
                         <div class="flex flex-col items-center justify-center text-gray-400">
                             <i class="fas fa-folder-open text-4xl mb-3 opacity-30"></i>
                             <p class="text-lg font-medium italic">No ${type} found for this customer</p>
@@ -924,6 +943,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (action === 'view-service') window.location.href = `/service?id=${id}`;
             if (action === 'view-payment') window.location.href = `/payment/details?id=${id}`;
             if (action === 'view-voucher') window.location.href = `/payment?voucher=${id}`;
+            if (action === 'view-doc') {
+                const url = btn.getAttribute('data-url');
+                if (url) window.open(url, '_blank');
+            }
         };
     }
 

@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { CustomerModel, InvoiceModel, QuotationModel, PaymentModel, ServiceModel, VoucherModel } from '../models';
+import { CustomerModel, InvoiceModel, QuotationModel, PaymentModel, ServiceModel, VoucherModel, CommunicationModel } from '../models';
 import logger from '../utils/logger';
 import { Types } from 'mongoose';
 import { generateNextId } from '../utils/idGenerator';
@@ -398,6 +398,26 @@ router.get('/:id/full-details', async (req: Request, res: Response) => {
         (stats as any).totalVouchers = vouchers.length;
         (stats as any).totalVoucherAmount = vouchers.reduce((sum: number, v: any) => sum + (v.amount || 0), 0);
 
+        // Fetch communications linked to this customer
+        const recipientList: string[] = [];
+        if (customer.customer?.phone) recipientList.push(customer.customer.phone);
+        if (customer.customer?.alternate_phone) recipientList.push(customer.customer.alternate_phone);
+        if (customer.customer?.email) recipientList.push(customer.customer.email.toLowerCase());
+
+        const commQuery: any[] = [];
+        recipientList.forEach(r => {
+            commQuery.push({ recipient: r });
+            const digits = r.replace(/[^0-9]/g, '');
+            if (digits.length >= 10) {
+                const last10 = digits.slice(-10);
+                commQuery.push({ recipient: { $regex: new RegExp(last10 + '$') } });
+            }
+        });
+
+        const communications = commQuery.length > 0
+            ? await CommunicationModel.find({ $or: commQuery }).sort({ sentAt: -1 }).limit(100)
+            : [];
+
         res.json({
             customer,
             quotations,
@@ -405,6 +425,7 @@ router.get('/:id/full-details', async (req: Request, res: Response) => {
             services,
             payments,
             vouchers,
+            communications,
             stats
         });
     } catch (err: unknown) {
