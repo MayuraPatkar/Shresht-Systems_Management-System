@@ -294,7 +294,7 @@ class StockReportComponent {
                         ${quantityPrefix}${Math.abs(movement.quantity_change)}
                     </td>
                     <td class="px-4 py-3 border-b text-gray-600">
-                        ${movement.reference_type ? `${movement.reference_type}: ${movement.reference_id || ''}` : '-'}
+                        ${movement.reference_type ? (movement.reference_type.toLowerCase() === 'manual' ? 'Manual' : `${movement.reference_type}: ${movement.reference_id || ''}`) : '-'}
                     </td>
                     <td class="px-4 py-3 border-b text-gray-500">${movement.notes || '-'}</td>
                 </tr>
@@ -356,7 +356,7 @@ class StockReportComponent {
                     <td>${movement.item_name}</td>
                     <td>${movement.movement_type.charAt(0).toUpperCase() + movement.movement_type.slice(1)}</td>
                     <td class="text-right">${quantityPrefix}${Math.abs(movement.quantity_change)}</td>
-                    <td>${movement.reference_type ? `${movement.reference_type}: ${movement.reference_id || ''}` : '-'}</td>
+                    <td>${movement.reference_type ? (movement.reference_type.toLowerCase() === 'manual' ? 'Manual' : `${movement.reference_type}: ${movement.reference_id || ''}`) : '-'}</td>
                     <td>${movement.notes || '-'}</td>
                 </tr>
             `;
