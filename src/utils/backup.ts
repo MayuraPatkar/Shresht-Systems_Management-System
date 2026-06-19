@@ -65,7 +65,8 @@ function createBackup(customPath?: string): Promise<BackupResult> {
                     const full = path.join(backupDir, f);
                     try {
                         const stat = fs.statSync(full);
-                        if (stat.isFile() && stat.mtimeMs < cutoff) {
+                        const isBackupFile = f.startsWith("backup-") && (f.endsWith(".gz") || f.endsWith(".zip") || f.endsWith(".bson"));
+                        if (stat.isFile() && isBackupFile && stat.mtimeMs < cutoff) {
                             fs.unlinkSync(full);
                             logger.info("Old backup removed", { service: "backup", file: full });
                         }
