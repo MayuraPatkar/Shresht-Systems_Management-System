@@ -121,7 +121,7 @@ const numberingSchema = new Schema<INumbering>(
     {
         invoice_prefix: { type: String, default: "INV", uppercase: true, minlength: 1, maxlength: 5 },
         quotation_prefix: { type: String, default: "QUO", uppercase: true, minlength: 1, maxlength: 5 },
-        purchase_prefix: { type: String, default: "PO", uppercase: true, minlength: 1, maxlength: 5 },
+        purchase_prefix: { type: String, default: "PUR", uppercase: true, minlength: 1, maxlength: 5 },
         service_prefix: { type: String, default: "SRV", uppercase: true, minlength: 1, maxlength: 5 },
     },
     { _id: false }

@@ -107,7 +107,7 @@ class SettingsPreferences {
                     if (quotationPrefInput) quotationPrefInput.value = s.numbering?.quotation_prefix || 'QUO';
  
                     const purchasePrefInput = document.getElementById("pref-purchase-prefix") as HTMLInputElement;
-                    if (purchasePrefInput) purchasePrefInput.value = s.numbering?.purchase_prefix || 'PO';
+                    if (purchasePrefInput) purchasePrefInput.value = s.numbering?.purchase_prefix || 'PUR';
  
                     const servicePrefInput = document.getElementById("pref-service-prefix") as HTMLInputElement;
                     if (servicePrefInput) servicePrefInput.value = s.numbering?.service_prefix || 'SRV';
