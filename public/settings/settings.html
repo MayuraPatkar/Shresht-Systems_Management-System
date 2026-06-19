@@ -1061,29 +1061,32 @@
                         </div>
                     </div>
                     
-                    <div class="flex flex-wrap items-start gap-6 pt-2">
-                        <div class="flex flex-col gap-1.5 w-64">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Inactivity Duration (Months)</label>
-                            <input type="number" id="pref-stock-inactive-months" min="1" max="24"
-                                class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition duration-150 font-medium text-slate-800">
-                            <p class="text-[11px] text-slate-500 mt-1 flex items-center gap-1.5">
-                                <i class="fas fa-info-circle text-slate-400"></i>
-                                <span>Items with no stock movement for this duration are marked as Inactive.</span>
-                            </p>
+                    <div class="space-y-4 pt-2">
+                        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                            <div class="flex flex-col gap-1.5 flex-1 max-w-md">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Inactivity Duration (Months)</label>
+                                <input type="number" id="pref-stock-inactive-months" min="1" max="24"
+                                    class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition duration-150 font-medium text-slate-800">
+                            </div>
+
+                            <div class="flex items-center gap-3">
+                                <button type="button" id="restore-stock-defaults-button"
+                                    class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-700 rounded-lg font-semibold transition text-xs cursor-pointer flex items-center gap-2 h-[42px] border border-slate-200">
+                                    <i class="fas fa-undo text-xs"></i>
+                                    <span>Restore Defaults</span>
+                                </button>
+                                <button type="button" id="save-stock-button"
+                                    class="px-5 py-2.5 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 active:scale-[0.98] transition shadow-sm hover:shadow-purple-500/20 text-xs cursor-pointer flex items-center gap-2 h-[42px]">
+                                    <i class="fas fa-save text-xs"></i>
+                                    <span>Save Stock Settings</span>
+                                </button>
+                            </div>
                         </div>
 
-                        <div class="flex-1 flex justify-start lg:justify-end mt-[21px] gap-3">
-                            <button type="button" id="restore-stock-defaults-button"
-                                class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-700 rounded-lg font-semibold transition text-xs cursor-pointer flex items-center gap-2 h-[42px] border border-slate-200">
-                                <i class="fas fa-undo text-xs"></i>
-                                <span>Restore Defaults</span>
-                            </button>
-                            <button type="button" id="save-stock-button"
-                                class="px-5 py-2.5 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 active:scale-[0.98] transition shadow-sm hover:shadow-purple-500/20 text-xs cursor-pointer flex items-center gap-2 h-[42px]">
-                                <i class="fas fa-save text-xs"></i>
-                                <span>Save Stock Settings</span>
-                            </button>
-                        </div>
+                        <p class="text-[11px] text-slate-500 flex items-center gap-1.5">
+                            <i class="fas fa-info-circle text-slate-400"></i>
+                            <span>Items with no stock movement for this duration are marked as Inactive.</span>
+                        </p>
                     </div>
                 </div>
 
