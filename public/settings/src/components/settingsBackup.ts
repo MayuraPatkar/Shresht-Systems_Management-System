@@ -280,12 +280,21 @@ class SettingsBackup {
         const manualButton = document.getElementById("manual-backup-button") as HTMLButtonElement;
         if (!manualButton) return;
 
+        const backupLocationInput = document.getElementById("backup-location") as HTMLInputElement;
+        const currentInputValue = backupLocationInput ? backupLocationInput.value.trim() : "";
+
         settingsApi.getPreferences()
             .then((data: { success: boolean; settings: SystemPreferences }) => {
-                const location = data.settings?.backup?.backup_location;
+                const savedLocation = data.settings?.backup?.backup_location || "";
+                const normalizedSaved = (savedLocation === './backups' || savedLocation === '.\\backups') ? "" : savedLocation.trim();
 
-                if (!location || !location.trim() || location === './backups' || location === '.\\backups') {
+                if (!currentInputValue) {
                     (window as any).electronAPI.showAlert1("Please configure a backup location before creating a backup.");
+                    return;
+                }
+
+                if (currentInputValue !== normalizedSaved) {
+                    (window as any).electronAPI.showAlert1("Please save your backup location before creating a backup.");
                     return;
                 }
 
@@ -328,12 +337,21 @@ class SettingsBackup {
             return;
         }
 
+        const backupLocationInput = document.getElementById("backup-location") as HTMLInputElement;
+        const currentInputValue = backupLocationInput ? backupLocationInput.value.trim() : "";
+
         settingsApi.getPreferences()
             .then((data: { success: boolean; settings: SystemPreferences }) => {
-                const location = data.settings?.backup?.backup_location;
+                const savedLocation = data.settings?.backup?.backup_location || "";
+                const normalizedSaved = (savedLocation === './backups' || savedLocation === '.\\backups') ? "" : savedLocation.trim();
 
-                if (!location || !location.trim() || location === './backups' || location === '.\\backups') {
+                if (!currentInputValue) {
                     (window as any).electronAPI.showAlert1("Please configure a backup location before opening backup folder.");
+                    return;
+                }
+
+                if (currentInputValue !== normalizedSaved) {
+                    (window as any).electronAPI.showAlert1("Please save your backup location before opening backup folder.");
                     return;
                 }
 

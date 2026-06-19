@@ -5,6 +5,8 @@
 declare var settingsApi: any;
 
 class SettingsPreferences {
+    private savedBackupLocation: string = "";
+
     init(): void {
         document.getElementById("save-security-button")?.addEventListener("click", () => this.saveSecuritySettings());
         document.getElementById("restore-security-defaults-button")?.addEventListener("click", () => this.restoreSecurityDefaults());
@@ -35,7 +37,7 @@ class SettingsPreferences {
         // Add auto backup toggle visual dimming behavior
         const autoBackupCheckbox = document.getElementById("backup-auto-enabled") as HTMLInputElement;
         if (autoBackupCheckbox) {
-            autoBackupCheckbox.addEventListener("change", () => this.updateAutoBackupFieldsState());
+            autoBackupCheckbox.addEventListener("change", () => this.updateAutoBackupFieldsState(true));
         }
 
         // Add clearing behavior for masked values on focus or input
@@ -80,11 +82,27 @@ class SettingsPreferences {
         }
     }
 
-    private updateAutoBackupFieldsState(): void {
+    private updateAutoBackupFieldsState(isUserEvent: boolean = false): void {
         const autoBackupCheckbox = document.getElementById("backup-auto-enabled") as HTMLInputElement;
         if (!autoBackupCheckbox) return;
 
         const isEnabled = autoBackupCheckbox.checked;
+
+        if (isUserEvent && isEnabled) {
+            const backupLocationInput = document.getElementById("backup-location") as HTMLInputElement;
+            const backupLocation = backupLocationInput ? backupLocationInput.value.trim() : "";
+            if (!backupLocation || backupLocation === './backups' || backupLocation === '.\\backups') {
+                (window as any).electronAPI.showAlert1("Please configure a backup location before enabling auto backup.");
+                autoBackupCheckbox.checked = false;
+                return;
+            }
+            if (backupLocation !== this.savedBackupLocation.trim()) {
+                (window as any).electronAPI.showAlert1("Please save your backup location before enabling auto backup.");
+                autoBackupCheckbox.checked = false;
+                return;
+            }
+        }
+
         const fieldsToToggle = [
             "backup-frequency",
             "backup-retention"
@@ -140,6 +158,7 @@ class SettingsPreferences {
                     if (location === './backups' || location === '.\\backups') {
                         location = '';
                     }
+                    this.savedBackupLocation = location;
                     const backupLocationInput = document.getElementById("backup-location") as HTMLInputElement;
                     if (backupLocationInput) backupLocationInput.value = location;
                 }
@@ -557,6 +576,7 @@ class SettingsPreferences {
         settingsApi.savePreferences(locationSettings)
             .then((data: { success: boolean; message?: string }) => {
                 if (data.success) {
+                    this.savedBackupLocation = backupLocation;
                     (window as any).electronAPI.showAlert1("Backup location saved successfully!");
                 } else {
                     (window as any).electronAPI.showAlert1(`Failed to save: ${data.message}`);
@@ -602,6 +622,7 @@ class SettingsPreferences {
         settingsApi.savePreferences(locationSettings)
             .then((data: { success: boolean; message?: string }) => {
                 if (data.success) {
+                    this.savedBackupLocation = "";
                     (window as any).electronAPI.showAlert1("Backup location restored to default successfully!");
                 } else {
                     (window as any).electronAPI.showAlert1(`Failed to restore default: ${data.message}`);
@@ -644,13 +665,22 @@ class SettingsPreferences {
             hasError = true;
         }
 
-        if (autoBackupEnabled && !backupLocation.trim()) {
-            if (backupLocationInput) {
-                this.showFieldError(backupLocationInput, "Please select a backup location before enabling auto backup.");
-            } else {
-                (window as any).electronAPI.showAlert1("Please configure a backup location first.");
+        if (autoBackupEnabled) {
+            if (!backupLocation.trim()) {
+                if (backupLocationInput) {
+                    this.showFieldError(backupLocationInput, "Please select a backup location before enabling auto backup.");
+                } else {
+                    (window as any).electronAPI.showAlert1("Please configure a backup location first.");
+                }
+                hasError = true;
+            } else if (backupLocation.trim() !== this.savedBackupLocation.trim()) {
+                if (backupLocationInput) {
+                    this.showFieldError(backupLocationInput, "Please save your backup location before enabling auto backup.");
+                } else {
+                    (window as any).electronAPI.showAlert1("Please save your backup location first.");
+                }
+                hasError = true;
             }
-            hasError = true;
         }
 
         if (hasError) {
