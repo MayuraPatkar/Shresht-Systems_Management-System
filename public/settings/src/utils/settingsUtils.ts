@@ -12,6 +12,12 @@ class SettingsUtils {
             "integrations-section"
         ];
 
+        // Reset scroll position of the main container to the top
+        const mainContainer = document.querySelector('main.content-section');
+        if (mainContainer) {
+            mainContainer.scrollTop = 0;
+        }
+
         const sectionToButtonMap: Record<string, string> = {
             "admin-info-section": "admin-info-button",
             "data-backup-section": "data-control-button",
