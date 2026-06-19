@@ -55,7 +55,13 @@
         .hidden.md\:block.overflow-y-auto thead {
             display: block;
             flex-shrink: 0;
+            overflow-y: scroll;
+            scrollbar-width: none; /* Firefox */
             scrollbar-gutter: stable;
+        }
+
+        .hidden.md\:block.overflow-y-auto thead::-webkit-scrollbar {
+            display: none; /* Safari and Chrome */
         }
 
         .hidden.md\:block.overflow-y-auto tbody {
@@ -78,13 +84,22 @@
             align-items: center;
         }
 
-        .hidden.md\:block.overflow-y-auto th:nth-child(1), .hidden.md\:block.overflow-y-auto td:nth-child(1) { flex: 1.0; }
-        .hidden.md\:block.overflow-y-auto th:nth-child(2), .hidden.md\:block.overflow-y-auto td:nth-child(2) { flex: 1.2; }
-        .hidden.md\:block.overflow-y-auto th:nth-child(3), .hidden.md\:block.overflow-y-auto td:nth-child(3) { flex: 1.8; }
-        .hidden.md\:block.overflow-y-auto th:nth-child(4), .hidden.md\:block.overflow-y-auto td:nth-child(4) { flex: 1.8; }
-        .hidden.md\:block.overflow-y-auto th:nth-child(5), .hidden.md\:block.overflow-y-auto td:nth-child(5) { flex: 1.0; }
-        .hidden.md\:block.overflow-y-auto th:nth-child(6), .hidden.md\:block.overflow-y-auto td:nth-child(6) { flex: 1.2; justify-content: flex-end; text-align: right; }
-        .hidden.md\:block.overflow-y-auto th:nth-child(7), .hidden.md\:block.overflow-y-auto td:nth-child(7) { flex: 1.5; }
+        /* Active View (6 columns) */
+        .active-view th:nth-child(1), .active-view td:nth-child(1) { flex: 1.0; }
+        .active-view th:nth-child(2), .active-view td:nth-child(2) { flex: 1.2; }
+        .active-view th:nth-child(3), .active-view td:nth-child(3) { flex: 1.8; }
+        .active-view th:nth-child(4), .active-view td:nth-child(4) { flex: 1.8; }
+        .active-view th:nth-child(5), .active-view td:nth-child(5) { flex: 1.0; }
+        .active-view th:nth-child(6), .active-view td:nth-child(6) { flex: 1.2; justify-content: flex-end; text-align: right; }
+
+        /* Trash View (7 columns) */
+        .trash-view th:nth-child(1), .trash-view td:nth-child(1) { flex: 1.0; }
+        .trash-view th:nth-child(2), .trash-view td:nth-child(2) { flex: 1.2; }
+        .trash-view th:nth-child(3), .trash-view td:nth-child(3) { flex: 1.8; }
+        .trash-view th:nth-child(4), .trash-view td:nth-child(4) { flex: 1.8; }
+        .trash-view th:nth-child(5), .trash-view td:nth-child(5) { flex: 1.2; }
+        .trash-view th:nth-child(6), .trash-view td:nth-child(6) { flex: 1.0; justify-content: flex-end; text-align: right; }
+        .trash-view th:nth-child(7), .trash-view td:nth-child(7) { flex: 1.5; justify-content: flex-end; text-align: right; }
     </style>
 </head>
 
@@ -309,7 +324,7 @@
                     </button>
                 </div>
 
-                <div class="hidden md:block overflow-x-auto overflow-y-auto flex-1 min-h-0">
+                <div class="hidden md:block overflow-x-auto overflow-y-auto flex-1 min-h-0 active-view">
                     <table class="w-full text-sm border-collapse">
                         <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
                             <tr id="table-header-row" class="text-slate-700 border-b border-slate-200">
@@ -390,8 +405,8 @@
     </div>
 
     <div id="shortcuts-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-[999] flex items-center justify-center hidden opacity-0 transition-opacity duration-200" role="dialog" aria-modal="true" aria-label="Keyboard Shortcuts">
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl max-w-xl w-full mx-4 max-h-[85vh] overflow-y-auto overflow-hidden isolate shortcuts-panel">
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-10">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl max-w-xl w-full mx-4 max-h-[85vh] overflow-hidden isolate shortcuts-panel flex flex-col">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-white/95 backdrop-blur-md z-10">
                 <div class="flex items-center gap-3">
                     <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
                         <i class="fas fa-keyboard text-lg"></i>
@@ -402,7 +417,7 @@
                     <i class="fas fa-times text-sm"></i>
                 </button>
             </div>
-            <div id="shortcuts-content" class="p-6 space-y-5"></div>
+            <div id="shortcuts-content" class="p-6 space-y-5 overflow-y-auto flex-1"></div>
         </div>
     </div>
 

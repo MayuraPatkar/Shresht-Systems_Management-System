@@ -325,12 +325,12 @@
     }
 
     // Print handlers
-    const initializeView = () => {
+    const initializeView = async () => {
         const urlParams = new URLSearchParams(window.location.search);
         const id = urlParams.get('id');
         const hasView = document.getElementById('project-details-view');
         if (id && hasView) {
-            viewPurchaseOrder(id);
+            await viewPurchaseOrder(id);
         }
 
         const printBtn = document.getElementById('print-project');
@@ -371,6 +371,28 @@
     } else {
         initializeView();
     }
+
+    // Setup Header Buttons
+        const homeBtn = document.getElementById("home-btn");
+        if (homeBtn) {
+            homeBtn.addEventListener("click", () => {
+                window.location.href = '/purchaseorder';
+            });
+        }
+
+        // Refresh button
+        const refreshBtn = document.getElementById('refresh-btn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => {
+                const icon = refreshBtn.querySelector('i');
+                if (icon) icon.classList.add('animate-spin');
+                initializeView().finally(() => {
+                    setTimeout(() => {
+                        if (icon) icon.classList.remove('animate-spin');
+                    }, 500);
+                });
+            });
+        }
 
     let currentPurchaseOrder: any = null;
     let isEditingInline = false;

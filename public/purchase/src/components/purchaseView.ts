@@ -600,37 +600,58 @@
     }
 
     function handleDelete(id: string) {
-        if ((window as any).deleteDocument) {
-            (window as any).deleteDocument('purchase', id, 'Purchase', async () => {
-                isEditingInline = false;
-                const viewSection = document.getElementById('view');
-                if (viewSection) viewSection.style.display = 'none';
-                
-                const home = document.getElementById('home');
-                if (home) home.style.display = 'block';
-
-                if (typeof (window as any).updateHeaderVisibility === 'function') {
-                    (window as any).updateHeaderVisibility();
-                }
-
-                if ((window as any).purchaseApi) {
-                    try {
-                        const data = await (window as any).purchaseApi.fetchRecentPurchases();
-                        if ((window as any).allPurchases) {
-                            (window as any).allPurchases = data.purchases;
-                        }
-                        if ((window as any).applyPurchaseFilters) {
-                            (window as any).applyPurchaseFilters();
-                        } else if ((window as any).purchaseTable && (window as any).purchaseTable.renderPurchases) {
-                            (window as any).purchaseTable.renderPurchases(data.purchases);
-                        }
-                    } catch (err) {
-                        console.error("Error refreshing after delete", err);
+        const proceedWithDeletion = () => {
+            if ((window as any).deleteDocument) {
+                (window as any).deleteDocument('purchase', id, 'Purchase', async () => {
+                    if (window.location.pathname.includes('details') || !document.getElementById('home')) {
+                        window.location.href = '/purchase';
+                        return;
                     }
+
+                    isEditingInline = false;
+                    const viewSection = document.getElementById('view');
+                    if (viewSection) viewSection.style.display = 'none';
+                    
+                    const home = document.getElementById('home');
+                    if (home) home.style.display = 'block';
+
+                    if (typeof (window as any).updateHeaderVisibility === 'function') {
+                        (window as any).updateHeaderVisibility();
+                    }
+
+                    if ((window as any).purchaseApi) {
+                        try {
+                            const data = await (window as any).purchaseApi.fetchRecentPurchases();
+                            if ((window as any).allPurchases) {
+                                (window as any).allPurchases = data.purchases;
+                            }
+                            if ((window as any).applyPurchaseFilters) {
+                                (window as any).applyPurchaseFilters();
+                            } else if ((window as any).purchaseTable && (window as any).purchaseTable.renderPurchases) {
+                                (window as any).purchaseTable.renderPurchases(data.purchases);
+                            }
+                        } catch (err) {
+                            console.error("Error refreshing after delete", err);
+                        }
+                    }
+                });
+            } else {
+                console.error("deleteDocument utility not available");
+            }
+        };
+
+        const electronAPI = (window as any).electronAPI;
+        if (electronAPI?.showAlert2 && electronAPI?.receiveAlertResponse) {
+            electronAPI.showAlert2(`Are you sure you want to delete Purchase "${id}"?`);
+            electronAPI.receiveAlertResponse((response: string) => {
+                if (response === 'Yes') {
+                    proceedWithDeletion();
                 }
             });
         } else {
-            console.error("deleteDocument utility not available");
+            if (confirm(`Are you sure you want to delete Purchase "${id}"?`)) {
+                proceedWithDeletion();
+            }
         }
     }
 

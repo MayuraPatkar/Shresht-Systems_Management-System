@@ -422,16 +422,41 @@ router.post('/send-invoice', async (req: Request, res: Response) => {
         let isCloudUploaded = false;
 
         if (!documentUrl && pdfGenerator) {
-            const companyInfo = await getCompanyInfo();
-            const pdfResult = htmlContent
-                ? await pdfGenerator.generateInvoicePDFFromHTML(htmlContent, invoiceId)
-                : await pdfGenerator.generateInvoicePDF(invoice, companyInfo);
+            let pdfResult;
+            if (htmlContent) {
+                // Use the same native Electron-based PDF generation as PDF save (via quotationPrintHandler)
+                try {
+                    const tempFilename = `${invoiceId}.pdf`;
+                    const outputPath = path.join(pdfGenerator.UPLOADS_DIR, tempFilename);
+                    const printResult = await quotationPrintHandler.generatePDF(htmlContent, outputPath);
+                    if (printResult.success) {
+                        pdfResult = {
+                            success: true,
+                            path: outputPath,
+                            filename: tempFilename
+                        };
+                    } else {
+                        pdfResult = {
+                            success: false,
+                            error: printResult.error
+                        };
+                    }
+                } catch (e: any) {
+                    pdfResult = {
+                        success: false,
+                        error: e.message
+                    };
+                }
+            } else {
+                const companyInfo = await getCompanyInfo();
+                pdfResult = await pdfGenerator.generateInvoicePDF(invoice, companyInfo);
+            }
 
-            if (!pdfResult.success) {
-                logger.error('Invoice PDF generation failed', { service: "messaging", error: pdfResult.error, invoiceId });
+            if (!pdfResult || !pdfResult.success) {
+                logger.error('Invoice PDF generation failed', { service: "messaging", error: pdfResult ? pdfResult.error : 'Unknown error', invoiceId });
                 return res.status(500).json({
                     message: 'Failed to generate PDF.',
-                    error: pdfResult.error
+                    error: pdfResult ? pdfResult.error : 'Unknown error'
                 });
             }
 

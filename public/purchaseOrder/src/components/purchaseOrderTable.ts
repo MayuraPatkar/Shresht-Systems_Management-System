@@ -52,7 +52,6 @@
                     </th>
                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Purchase Order ID</th>
                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Supplier Name</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Supplier Location</th>
                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
                     <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider">Total</th>
                 `;
@@ -262,7 +261,6 @@
                             ` : ''}
                         </div>
                     </td>
-                    <td class="px-4 py-3.5 text-gray-500 max-w-xs truncate" title="${supplierAddress}">${supplierAddress}</td>
                     <td class="px-4 py-3.5 whitespace-nowrap">
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${statusClass}">
                             ${status}

@@ -278,7 +278,7 @@
             }
         };
 
-        if (homeSection && homeBtn) {
+        if (homeSection) {
             const observer = new MutationObserver(updateHeaderVisibility);
             observer.observe(homeSection, { attributes: true, attributeFilter: ['style'] });
             if (newSection) {
@@ -322,6 +322,19 @@
                 }
                 
                 if ((window as any).applyPurchaseFilters) {
+                    // Update currentFilters.status state to match statusFilter if it changes from outside
+                    const currentStatus = (window as any).statusFilter === 'archived' ? 'archived' : ((window as any).currentFilters?.status === 'archived' ? 'all' : ((window as any).currentFilters?.status || 'all'));
+                    if ((window as any).currentFilters) {
+                        (window as any).currentFilters.status = currentStatus;
+                    }
+                    const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
+                    statusTabs.forEach(t => {
+                        if ((t as HTMLElement).dataset.status === currentStatus) {
+                            t.classList.add('active');
+                        } else {
+                            t.classList.remove('active');
+                        }
+                    });
                     (window as any).applyPurchaseFilters();
                 } else if ((window as any).purchaseTable) {
                     (window as any).purchaseTable.renderPurchases(data.purchases);

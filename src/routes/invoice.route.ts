@@ -260,21 +260,23 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
         }
 
         // Build consignee sub-document
-        const consignee: any = {};
+        let consignee: any = undefined;
         let consigneeAddressStr = '';
-        if (consigneeName) consignee.name = consigneeName;
-        if (consigneeAddress) {
-            if (typeof consigneeAddress === 'string') {
-                consignee.address = { line1: consigneeAddress };
-                consigneeAddressStr = consigneeAddress;
-            } else {
-                consignee.address = consigneeAddress;
-                consigneeAddressStr = [
-                    consigneeAddress.line1,
-                    consigneeAddress.line2,
-                    consigneeAddress.city,
-                    consigneeAddress.state ? consigneeAddress.state + (consigneeAddress.pincode ? ' - ' + consigneeAddress.pincode : '') : ''
-                ].filter(val => val && String(val).trim() !== "").join(', ');
+        if (consigneeName && consigneeName.trim() !== '') {
+            consignee = { name: consigneeName.trim() };
+            if (consigneeAddress) {
+                if (typeof consigneeAddress === 'string') {
+                    consignee.address = { line1: consigneeAddress };
+                    consigneeAddressStr = consigneeAddress;
+                } else {
+                    consignee.address = consigneeAddress;
+                    consigneeAddressStr = [
+                        consigneeAddress.line1,
+                        consigneeAddress.line2,
+                        consigneeAddress.city,
+                        consigneeAddress.state ? consigneeAddress.state + (consigneeAddress.pincode ? ' - ' + consigneeAddress.pincode : '') : ''
+                    ].filter(val => val && String(val).trim() !== "").join(', ');
+                }
             }
         }
 

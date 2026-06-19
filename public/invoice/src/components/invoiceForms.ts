@@ -278,6 +278,60 @@
             });
         }
 
+    // PO Number autofill and readonly logic
+    const poNumInput = document.getElementById('purchase-order-number') as HTMLInputElement | null;
+    const poDateInput = document.getElementById('purchase-order-date') as HTMLInputElement | null;
+
+    const handlePoNumberChange = async () => {
+        if (!poNumInput || !poDateInput) return;
+        const poNumber = poNumInput.value.trim();
+        if (!poNumber) {
+            poDateInput.readOnly = false;
+            poDateInput.classList.remove('bg-gray-100', 'cursor-not-allowed', 'select-none');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/purchaseOrder/${encodeURIComponent(poNumber)}`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data && data.purchaseOrder && data.purchaseOrder.purchase_date) {
+                    const date = new Date(data.purchaseOrder.purchase_date);
+                    if (!isNaN(date.getTime())) {
+                        poDateInput.value = date.toISOString().split('T')[0];
+                    }
+                    poDateInput.readOnly = true;
+                    poDateInput.classList.add('bg-gray-100', 'cursor-not-allowed', 'select-none');
+                } else {
+                    poDateInput.readOnly = false;
+                    poDateInput.classList.remove('bg-gray-100', 'cursor-not-allowed', 'select-none');
+                }
+            } else {
+                poDateInput.readOnly = false;
+                poDateInput.classList.remove('bg-gray-100', 'cursor-not-allowed', 'select-none');
+            }
+        } catch (error) {
+            console.error('Error fetching purchase order:', error);
+            poDateInput.readOnly = false;
+            poDateInput.classList.remove('bg-gray-100', 'cursor-not-allowed', 'select-none');
+        }
+    };
+
+    if (poNumInput) {
+        poNumInput.addEventListener('input', handlePoNumberChange);
+        poNumInput.addEventListener('change', handlePoNumberChange);
+    }
+
+    const invoiceFormEl = document.getElementById('invoice-form') as HTMLFormElement | null;
+    if (invoiceFormEl) {
+        invoiceFormEl.addEventListener('reset', () => {
+            if (poDateInput) {
+                poDateInput.readOnly = false;
+                poDateInput.classList.remove('bg-gray-100', 'cursor-not-allowed', 'select-none');
+            }
+        });
+    }
+
     // Bind Numeric Input restrictions
     const phoneInput = document.getElementById('buyer-phone') as HTMLInputElement | null;
     if (phoneInput) {
@@ -373,13 +427,8 @@
                         if (idValInput) idValInput.value = invoiceId;
                         sessionStorage.setItem('update-invoice', 'original');
                     }
-                    if (wasNewInvoice) {
-                        sessionStorage.removeItem('currentTab-status');
-                        window.location.href = '/invoice';
-                    } else {
-                        sessionStorage.removeItem('currentTab-status');
-                        window.location.href = `/invoice/details?id=${encodeURIComponent(invoiceId)}`;
-                    }
+                    sessionStorage.removeItem('currentTab-status');
+                    window.location.href = `/invoice/details?id=${encodeURIComponent(invoiceId)}`;
                 }
             } catch (error) {
                 console.error("Save error:", error);
@@ -947,6 +996,17 @@ const openInvoice = async function (id: string) {
         if (poNumInput) poNumInput.value = invoice.po_number || '';
         const poDateInput = document.getElementById('purchase-order-date') as HTMLInputElement;
         if (poDateInput) poDateInput.value = formatDateForInput(invoice.po_date);
+        if (poNumInput && poNumInput.value.trim()) {
+            if (poDateInput) {
+                poDateInput.readOnly = true;
+                poDateInput.classList.add('bg-gray-100', 'cursor-not-allowed', 'select-none');
+            }
+        } else {
+            if (poDateInput) {
+                poDateInput.readOnly = false;
+                poDateInput.classList.remove('bg-gray-100', 'cursor-not-allowed', 'select-none');
+            }
+        }
         const dcNumInput = document.getElementById('delivery-challan-number') as HTMLInputElement;
         if (dcNumInput) dcNumInput.value = invoice.dc_number || '';
         const dcDateInput = document.getElementById('delivery-challan-date') as HTMLInputElement;
@@ -1594,12 +1654,13 @@ const generatePreview = async function () {
     const buyerPhone = (document.getElementById("buyer-phone") as HTMLInputElement).value;
     const buyerGSTIN = (document.getElementById("buyer-gstin") as HTMLInputElement).value || '';
     const consigneeName = (document.getElementById("consignee-name") as HTMLInputElement | null)?.value || '';
+    const hasConsignee = consigneeName.trim() !== '';
     const conLine1 = (document.getElementById("consignee-address-line1") as HTMLInputElement | null)?.value || '';
     const conLine2 = (document.getElementById("consignee-address-line2") as HTMLInputElement | null)?.value || '';
     const conCity = (document.getElementById("consignee-address-city") as HTMLInputElement | null)?.value || '';
     const conState = (document.getElementById("consignee-address-state") as HTMLSelectElement | null)?.value || '';
     const conPincode = (document.getElementById("consignee-address-pincode") as HTMLInputElement | null)?.value || '';
-    const consigneeAddress = [conLine1, conLine2, conCity, conState ? conState + (conPincode ? ' - ' + conPincode : '') : ''].filter(val => val && val.trim() !== '').join(', ');
+    const consigneeAddress = hasConsignee ? [conLine1, conLine2, conCity, conState ? conState + (conPincode ? ' - ' + conPincode : '') : ''].filter(val => val && val.trim() !== '').join(', ') : '';
     const itemsTable = document.getElementById("items-table")?.getElementsByTagName("tbody")[0] as HTMLTableSectionElement;
 
     if (!itemsTable) return;
@@ -1927,7 +1988,7 @@ const collectFormData = function () {
         buyerPhone: buyerPhoneInput ? buyerPhoneInput.value : '',
         buyerEmail: buyerEmailInput ? buyerEmailInput.value : '',
         buyerGSTIN: buyerGstinInput ? buyerGstinInput.value : '',
-        consigneeName: consigneeNameInput ? consigneeNameInput.value : '',
+        consigneeName: consigneeNameInput && consigneeNameInput.value.trim() ? consigneeNameInput.value.trim() : '',
         consigneeAddress: (function(){
             const nameVal = consigneeNameInput ? (consigneeNameInput.value || '').trim() : '';
             if (!nameVal) return undefined;

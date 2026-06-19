@@ -793,8 +793,9 @@
 
     $detailsPdfBtn?.addEventListener('click', () => {
         if (!currentPayment) return;
-        const htmlContent = getReceiptHTML(currentPayment);
-        const filename = `PaymentReceipt-${currentPayment._id}`;
+        const cleanPartyName = (currentPayment.party_name || currentPayment.party_display_id || 'Receipt').replace(/[^a-zA-Z0-9-_]/g, '_');
+        const paymentDate = currentPayment.payment_date ? currentPayment.payment_date.split('T')[0] : '';
+        const filename = `PaymentReceipt-${cleanPartyName}${paymentDate ? '-' + paymentDate : ''}`;
         
         const electronAPI = (window as any).electronAPI;
         if (electronAPI && typeof electronAPI.handlePrintEvent === 'function') {

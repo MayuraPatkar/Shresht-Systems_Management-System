@@ -1124,6 +1124,7 @@ interface Window {
         const searchWrapper = document.getElementById('search-input')?.parentElement?.parentElement;
         const newPaymentBtn = document.getElementById('new-payment-btn');
         const refreshBtn = document.getElementById('refresh-btn');
+        const voucherBtn = document.getElementById('voucher-btn');
 
         if (showNew) {
             $homeSec.classList.add('hidden');
@@ -1133,6 +1134,7 @@ interface Window {
             if (searchWrapper) searchWrapper.style.display = 'none';
             if (newPaymentBtn) newPaymentBtn.style.display = 'none';
             if (refreshBtn) refreshBtn.style.display = 'none';
+            if (voucherBtn) voucherBtn.style.display = 'none';
         } else {
             $newSec.classList.add('hidden');
             $homeSec.classList.remove('hidden');
@@ -1141,6 +1143,7 @@ interface Window {
             if (searchWrapper) searchWrapper.style.display = 'flex';
             if (newPaymentBtn) newPaymentBtn.style.display = 'flex';
             if (refreshBtn) refreshBtn.style.display = 'flex';
+            if (voucherBtn) voucherBtn.style.display = 'flex';
         }
     }
 
@@ -1965,7 +1968,8 @@ interface Window {
     document.addEventListener('mousedown', (e: MouseEvent) => {
         if (!$filterPopover || $filterPopover.classList.contains('hidden')) return;
         const target = e.target as Node;
-        if (!$filterPopover.contains(target) && !$filterBtn?.contains(target)) {
+        const isCustomDateModal = target instanceof Element && target.closest('#custom-date-modal');
+        if (!$filterPopover.contains(target) && !$filterBtn?.contains(target) && !isCustomDateModal) {
             $filterPopover.classList.add('hidden');
         }
     });

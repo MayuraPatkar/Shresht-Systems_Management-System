@@ -1753,11 +1753,14 @@
                 }
                 applyWayBillFilters();
                 const noResultsMessage = `No e-way bills match your search`;
-                const messageHtml = `<div class="inline-flex flex-col items-center justify-center text-center py-4 fade-in select-none" style="min-height: 300px;">
+                const messageHtml = `<div class="flex flex-col items-center justify-center w-full text-center py-4 fade-in select-none mx-auto" style="min-height: 300px;">
+                            <div class="text-yellow-500 text-5xl mb-4">
+                                <i class="fas fa-search"></i>
+                            </div>
                             <h2 class="text-2xl font-bold text-gray-800 mb-2">No Results Found</h2>
                             <p class="text-gray-500 text-xs">${noResultsMessage}</p>
                        </div>`;
-                wayBillsListDiv.innerHTML = `<tr><td colspan="100" class="px-4 py-12 bg-white text-slate-400 text-center">${messageHtml}</td></tr>`;
+                wayBillsListDiv.innerHTML = `<tr><td colspan="100" class="px-4 py-12 bg-white text-slate-400 text-center align-middle h-full">${messageHtml}</td></tr>`;
                 return;
             }
 

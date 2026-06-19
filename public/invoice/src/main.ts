@@ -1914,11 +1914,9 @@
                 case 's': {
                     const saveBtn = document.getElementById('save-btn');
                     if (saveBtn && isFormActive()) {
-                        if (isExistingDocument() || isPreviewStepActive()) {
-                            event.preventDefault();
-                            event.stopPropagation();
-                            runOnPreviewStep(() => saveBtn.click());
-                        }
+                        event.preventDefault();
+                        event.stopPropagation();
+                        runOnPreviewStep(() => saveBtn.click());
                     }
                     break;
                 }

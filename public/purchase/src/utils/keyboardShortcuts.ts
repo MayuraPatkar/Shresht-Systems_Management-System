@@ -418,5 +418,15 @@
     // Set up document-level keydown listener
     document.addEventListener('keydown', handlePurchaseKeyboardShortcuts, true);
 
+    // Auto-initialize if loaded on details page or form page
+    if (typeof document !== 'undefined') {
+        document.addEventListener('DOMContentLoaded', () => {
+            const isDetailsOrForm = window.location.pathname.includes('/details') || window.location.pathname.includes('/form');
+            if (isDetailsOrForm) {
+                initShortcutsModal();
+            }
+        });
+    }
+
     (window as any).initPurchaseShortcutsModal = initShortcutsModal;
 })();
