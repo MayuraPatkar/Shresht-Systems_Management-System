@@ -6,11 +6,14 @@ declare var settingsApi: any;
 
 class SettingsPreferences {
     init(): void {
-        document.getElementById("save-preferences-button")?.addEventListener("click", () => this.savePreferences());
         document.getElementById("save-security-button")?.addEventListener("click", () => this.saveSecuritySettings());
         document.getElementById("restore-security-defaults-button")?.addEventListener("click", () => this.restoreSecurityDefaults());
         document.getElementById("save-stock-button")?.addEventListener("click", () => this.saveStockSettings());
         document.getElementById("restore-stock-defaults-button")?.addEventListener("click", () => this.restoreStockDefaults());
+        document.getElementById("save-numbering-button")?.addEventListener("click", () => this.saveNumberingSettings());
+        document.getElementById("restore-numbering-defaults-button")?.addEventListener("click", () => this.restoreNumberingDefaults());
+        document.getElementById("save-backup-settings-button")?.addEventListener("click", () => this.saveBackupSettings());
+        document.getElementById("restore-backup-defaults-button")?.addEventListener("click", () => this.restoreBackupDefaults());
         document.getElementById("save-whatsapp-button")?.addEventListener("click", () => this.saveWhatsAppSettings());
         document.getElementById("save-cloudinary-button")?.addEventListener("click", () => this.saveCloudinarySettings());
 
@@ -48,24 +51,30 @@ class SettingsPreferences {
             }
         });
 
-        // Clear security and stock settings validation errors on typing
-        const fieldsToClear = ["security-session-timeout", "security-max-attempts", "security-lockout-duration", "pref-stock-inactive-months"];
+        // Clear security, stock, numbering, and backup settings validation errors on typing
+        const fieldsToClear = [
+            "security-session-timeout", "security-max-attempts", "security-lockout-duration", 
+            "pref-stock-inactive-months", "pref-invoice-prefix", "pref-quotation-prefix", 
+            "pref-purchase-prefix", "pref-service-prefix", "backup-retention", "backup-location"
+        ];
         fieldsToClear.forEach(id => {
             const input = document.getElementById(id) as HTMLInputElement;
             input?.addEventListener("input", () => this.clearFieldError(input));
         });
 
-        // Restrict security and stock inputs to numeric digits only
+        // Restrict security, stock, and backup inputs to numeric digits only
         const timeoutInput = document.getElementById("security-session-timeout") as HTMLInputElement;
         const attemptsInput = document.getElementById("security-max-attempts") as HTMLInputElement;
         const durationInput = document.getElementById("security-lockout-duration") as HTMLInputElement;
         const stockInactiveMonthsInput = document.getElementById("pref-stock-inactive-months") as HTMLInputElement;
+        const backupRetentionInput = document.getElementById("backup-retention") as HTMLInputElement;
 
         if ((window as any).setupNumericInput) {
             if (timeoutInput) (window as any).setupNumericInput(timeoutInput, 4);
             if (attemptsInput) (window as any).setupNumericInput(attemptsInput, 2);
             if (durationInput) (window as any).setupNumericInput(durationInput, 2);
             if (stockInactiveMonthsInput) (window as any).setupNumericInput(stockInactiveMonthsInput, 2);
+            if (backupRetentionInput) (window as any).setupNumericInput(backupRetentionInput, 3);
         }
     }
 
@@ -140,57 +149,7 @@ class SettingsPreferences {
             });
     }
 
-    private savePreferences(): void {
-        const saveButton = document.getElementById("save-preferences-button") as HTMLButtonElement;
-        if (!saveButton) return;
-        const originalContent = saveButton.innerHTML;
 
-        const autoBackupEnabled = (document.getElementById("backup-auto-enabled") as HTMLInputElement).checked;
-        const backupLocation = (document.getElementById("backup-location") as HTMLInputElement).value;
-
-        if (autoBackupEnabled && !backupLocation.trim()) {
-            (window as any).electronAPI.showAlert1("Please select a backup location before enabling auto backup.");
-            return;
-        }
-
-        saveButton.disabled = true;
-        saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-
-        const preferences: SystemPreferences = {
-            numbering: {
-                invoice_prefix: (document.getElementById("pref-invoice-prefix") as HTMLInputElement).value,
-                quotation_prefix: (document.getElementById("pref-quotation-prefix") as HTMLInputElement).value,
-                purchase_prefix: (document.getElementById("pref-purchase-prefix") as HTMLInputElement).value,
-                service_prefix: (document.getElementById("pref-service-prefix") as HTMLInputElement).value,
-            },
-            notifications: {
-                stock_inactive_months: parseInt((document.getElementById("pref-stock-inactive-months") as HTMLInputElement).value) || 3,
-            },
-            backup: {
-                auto_backup_enabled: autoBackupEnabled,
-                backup_frequency: (document.getElementById("backup-frequency") as HTMLSelectElement).value,
-                retention_days: parseInt((document.getElementById("backup-retention") as HTMLInputElement).value),
-                backup_location: backupLocation
-            }
-        };
-
-        settingsApi.savePreferences(preferences)
-            .then((data: { success: boolean; message?: string }) => {
-                if (data.success) {
-                    (window as any).electronAPI.showAlert1("Preferences saved successfully!");
-                } else {
-                    (window as any).electronAPI.showAlert1(`Failed to save: ${data.message}`);
-                }
-            })
-            .catch((err: any) => {
-                console.error('Failed to save preferences:', err);
-                (window as any).electronAPI.showAlert1("Failed to save preferences. Please try again.");
-            })
-            .finally(() => {
-                saveButton.disabled = false;
-                saveButton.innerHTML = originalContent;
-            });
-    }
 
     loadSecuritySettings(): void {
         settingsApi.getPreferences()
@@ -417,6 +376,263 @@ class SettingsPreferences {
             })
             .catch((err: any) => {
                 console.error('Failed to restore stock defaults:', err);
+                const msg = err.message || "Failed to restore defaults. Please try again.";
+                (window as any).electronAPI.showAlert1(msg);
+            })
+            .finally(() => {
+                restoreButton.disabled = false;
+                restoreButton.innerHTML = originalContent;
+            });
+    }
+
+    private saveNumberingSettings(): void {
+        const saveButton = document.getElementById("save-numbering-button") as HTMLButtonElement;
+        if (!saveButton) return;
+        const originalContent = saveButton.innerHTML;
+        saveButton.disabled = true;
+        saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+        const invoiceInput = document.getElementById("pref-invoice-prefix") as HTMLInputElement;
+        const quotationInput = document.getElementById("pref-quotation-prefix") as HTMLInputElement;
+        const purchaseInput = document.getElementById("pref-purchase-prefix") as HTMLInputElement;
+        const serviceInput = document.getElementById("pref-service-prefix") as HTMLInputElement;
+
+        this.clearFieldError(invoiceInput);
+        this.clearFieldError(quotationInput);
+        this.clearFieldError(purchaseInput);
+        this.clearFieldError(serviceInput);
+
+        const invoicePrefix = invoiceInput.value.trim().toUpperCase();
+        const quotationPrefix = quotationInput.value.trim().toUpperCase();
+        const purchasePrefix = purchaseInput.value.trim().toUpperCase();
+        const servicePrefix = serviceInput.value.trim().toUpperCase();
+
+        let hasError = false;
+        if (!invoicePrefix || invoicePrefix.length > 5) {
+            this.showFieldError(invoiceInput, "Invoice Prefix must be between 1 and 5 characters.");
+            hasError = true;
+        }
+        if (!quotationPrefix || quotationPrefix.length > 5) {
+            this.showFieldError(quotationInput, "Quotation Prefix must be between 1 and 5 characters.");
+            hasError = true;
+        }
+        if (!purchasePrefix || purchasePrefix.length > 5) {
+            this.showFieldError(purchaseInput, "Purchase Order Prefix must be between 1 and 5 characters.");
+            hasError = true;
+        }
+        if (!servicePrefix || servicePrefix.length > 5) {
+            this.showFieldError(serviceInput, "Service Prefix must be between 1 and 5 characters.");
+            hasError = true;
+        }
+
+        if (hasError) {
+            saveButton.disabled = false;
+            saveButton.innerHTML = originalContent;
+            return;
+        }
+
+        // Update fields visually to uppercase
+        invoiceInput.value = invoicePrefix;
+        quotationInput.value = quotationPrefix;
+        purchaseInput.value = purchasePrefix;
+        serviceInput.value = servicePrefix;
+
+        const numbering = {
+            numbering: {
+                invoice_prefix: invoicePrefix,
+                quotation_prefix: quotationPrefix,
+                purchase_prefix: purchasePrefix,
+                service_prefix: servicePrefix
+            }
+        };
+
+        settingsApi.savePreferences(numbering)
+            .then((data: { success: boolean; message?: string }) => {
+                if (data.success) {
+                    (window as any).electronAPI.showAlert1("Document numbering settings saved successfully!");
+                } else {
+                    (window as any).electronAPI.showAlert1(`Failed to save: ${data.message}`);
+                }
+            })
+            .catch((err: any) => {
+                console.error('Failed to save numbering settings:', err);
+                const msg = err.message || "Failed to save numbering settings. Please try again.";
+                (window as any).electronAPI.showAlert1(msg);
+            })
+            .finally(() => {
+                saveButton.disabled = false;
+                saveButton.innerHTML = originalContent;
+            });
+    }
+
+    private restoreNumberingDefaults(): void {
+        const invoiceInput = document.getElementById("pref-invoice-prefix") as HTMLInputElement;
+        const quotationInput = document.getElementById("pref-quotation-prefix") as HTMLInputElement;
+        const purchaseInput = document.getElementById("pref-purchase-prefix") as HTMLInputElement;
+        const serviceInput = document.getElementById("pref-service-prefix") as HTMLInputElement;
+
+        if (invoiceInput) {
+            invoiceInput.value = "INV";
+            this.clearFieldError(invoiceInput);
+        }
+        if (quotationInput) {
+            quotationInput.value = "QUO";
+            this.clearFieldError(quotationInput);
+        }
+        if (purchaseInput) {
+            purchaseInput.value = "PUR";
+            this.clearFieldError(purchaseInput);
+        }
+        if (serviceInput) {
+            serviceInput.value = "SRV";
+            this.clearFieldError(serviceInput);
+        }
+
+        const restoreButton = document.getElementById("restore-numbering-defaults-button") as HTMLButtonElement;
+        if (!restoreButton) return;
+        const originalContent = restoreButton.innerHTML;
+        restoreButton.disabled = true;
+        restoreButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Restoring...';
+
+        const numbering = {
+            numbering: {
+                invoice_prefix: "INV",
+                quotation_prefix: "QUO",
+                purchase_prefix: "PUR",
+                service_prefix: "SRV"
+            }
+        };
+
+        settingsApi.savePreferences(numbering)
+            .then((data: { success: boolean; message?: string }) => {
+                if (data.success) {
+                    (window as any).electronAPI.showAlert1("Document numbering settings restored to defaults successfully!");
+                } else {
+                    (window as any).electronAPI.showAlert1(`Failed to restore defaults: ${data.message}`);
+                }
+            })
+            .catch((err: any) => {
+                console.error('Failed to restore numbering defaults:', err);
+                const msg = err.message || "Failed to restore defaults. Please try again.";
+                (window as any).electronAPI.showAlert1(msg);
+            })
+            .finally(() => {
+                restoreButton.disabled = false;
+                restoreButton.innerHTML = originalContent;
+            });
+    }
+
+    private saveBackupSettings(): void {
+        const saveButton = document.getElementById("save-backup-settings-button") as HTMLButtonElement;
+        if (!saveButton) return;
+        const originalContent = saveButton.innerHTML;
+
+        const autoBackupEnabledInput = document.getElementById("backup-auto-enabled") as HTMLInputElement;
+        const backupFrequencySelect = document.getElementById("backup-frequency") as HTMLSelectElement;
+        const backupRetentionInput = document.getElementById("backup-retention") as HTMLInputElement;
+        const backupLocationInput = document.getElementById("backup-location") as HTMLInputElement;
+
+        this.clearFieldError(backupRetentionInput);
+        this.clearFieldError(backupLocationInput);
+
+        const autoBackupEnabled = autoBackupEnabledInput.checked;
+        const backupFrequency = backupFrequencySelect.value;
+        const retentionDays = parseInt(backupRetentionInput.value);
+        const backupLocation = backupLocationInput.value;
+
+        let hasError = false;
+        if (isNaN(retentionDays) || retentionDays < 1 || retentionDays > 365) {
+            this.showFieldError(backupRetentionInput, "Retention must be a number between 1 and 365 days.");
+            hasError = true;
+        }
+
+        if (autoBackupEnabled && !backupLocation.trim()) {
+            this.showFieldError(backupLocationInput, "Please select a backup location before enabling auto backup.");
+            hasError = true;
+        }
+
+        if (hasError) {
+            return;
+        }
+
+        saveButton.disabled = true;
+        saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+        const backupSettings = {
+            backup: {
+                auto_backup_enabled: autoBackupEnabled,
+                backup_frequency: backupFrequency,
+                retention_days: retentionDays,
+                backup_location: backupLocation
+            }
+        };
+
+        settingsApi.savePreferences(backupSettings)
+            .then((data: { success: boolean; message?: string }) => {
+                if (data.success) {
+                    (window as any).electronAPI.showAlert1("Backup settings saved successfully!");
+                } else {
+                    (window as any).electronAPI.showAlert1(`Failed to save: ${data.message}`);
+                }
+            })
+            .catch((err: any) => {
+                console.error('Failed to save backup settings:', err);
+                const msg = err.message || "Failed to save backup settings. Please try again.";
+                (window as any).electronAPI.showAlert1(msg);
+            })
+            .finally(() => {
+                saveButton.disabled = false;
+                saveButton.innerHTML = originalContent;
+            });
+    }
+
+    private restoreBackupDefaults(): void {
+        const autoBackupEnabledInput = document.getElementById("backup-auto-enabled") as HTMLInputElement;
+        const backupFrequencySelect = document.getElementById("backup-frequency") as HTMLSelectElement;
+        const backupRetentionInput = document.getElementById("backup-retention") as HTMLInputElement;
+        const backupLocationInput = document.getElementById("backup-location") as HTMLInputElement;
+
+        if (autoBackupEnabledInput) {
+            autoBackupEnabledInput.checked = false;
+            this.updateAutoBackupFieldsState();
+        }
+        if (backupFrequencySelect) {
+            backupFrequencySelect.value = "daily";
+        }
+        if (backupRetentionInput) {
+            backupRetentionInput.value = "30";
+            this.clearFieldError(backupRetentionInput);
+        }
+        if (backupLocationInput) {
+            backupLocationInput.value = "";
+            this.clearFieldError(backupLocationInput);
+        }
+
+        const restoreButton = document.getElementById("restore-backup-defaults-button") as HTMLButtonElement;
+        if (!restoreButton) return;
+        const originalContent = restoreButton.innerHTML;
+        restoreButton.disabled = true;
+        restoreButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Restoring...';
+
+        const backupSettings = {
+            backup: {
+                auto_backup_enabled: false,
+                backup_frequency: "daily",
+                retention_days: 30,
+                backup_location: ""
+            }
+        };
+
+        settingsApi.savePreferences(backupSettings)
+            .then((data: { success: boolean; message?: string }) => {
+                if (data.success) {
+                    (window as any).electronAPI.showAlert1("Backup settings restored to defaults successfully!");
+                } else {
+                    (window as any).electronAPI.showAlert1(`Failed to restore defaults: ${data.message}`);
+                }
+            })
+            .catch((err: any) => {
+                console.error('Failed to restore backup defaults:', err);
                 const msg = err.message || "Failed to restore defaults. Please try again.";
                 (window as any).electronAPI.showAlert1(msg);
             })

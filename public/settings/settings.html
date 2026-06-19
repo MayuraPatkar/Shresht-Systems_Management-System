@@ -1135,6 +1135,19 @@
                             </div>
                         </div>
 
+                        <!-- Save and Restore Buttons -->
+                        <div class="flex justify-start lg:justify-end gap-3 pt-2">
+                            <button type="button" id="restore-numbering-defaults-button"
+                                class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-700 rounded-lg font-semibold transition text-xs cursor-pointer flex items-center gap-2 h-[42px] border border-slate-200">
+                                <i class="fas fa-undo text-xs"></i>
+                                <span>Restore Defaults</span>
+                            </button>
+                            <button type="button" id="save-numbering-button"
+                                class="px-5 py-2.5 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 active:scale-[0.98] transition shadow-sm hover:shadow-purple-500/20 text-xs cursor-pointer flex items-center gap-2 h-[42px]">
+                                <i class="fas fa-save text-xs"></i>
+                                <span>Save Numbering Settings</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -1194,13 +1207,21 @@
                             </p>
                         </div>
                     </div>
-                </div>
 
-                    <button type="button" id="save-preferences-button"
-                        class="px-6 py-2.5 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 active:scale-[0.98] transition shadow-sm hover:shadow-purple-500/20 text-sm cursor-pointer flex items-center gap-2">
-                        <i class="fas fa-save text-xs"></i>
-                        <span>Save All Preferences</span>
-                    </button>
+                    <!-- Save and Restore Buttons -->
+                    <div class="flex justify-start lg:justify-end gap-3 pt-2">
+                        <button type="button" id="restore-backup-defaults-button"
+                            class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-700 rounded-lg font-semibold transition text-xs cursor-pointer flex items-center gap-2 h-[42px] border border-slate-200">
+                            <i class="fas fa-undo text-xs"></i>
+                            <span>Restore Defaults</span>
+                        </button>
+                        <button type="button" id="save-backup-settings-button"
+                            class="px-5 py-2.5 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 active:scale-[0.98] transition shadow-sm hover:shadow-purple-500/20 text-xs cursor-pointer flex items-center gap-2 h-[42px]">
+                            <i class="fas fa-save text-xs"></i>
+                            <span>Save Backup Settings</span>
+                        </button>
+                    </div>
+                </div>
           
 
             </div>
