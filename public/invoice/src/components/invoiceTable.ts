@@ -382,10 +382,8 @@
             }
 
             row.addEventListener('click', () => {
-                if (!isTrash) {
-                    sessionStorage.setItem('view-invoice', 'duplicate');
-                    viewInvoice(invoice.invoice_id, userRole);
-                }
+                sessionStorage.setItem('view-invoice', 'duplicate');
+                viewInvoice(invoice.invoice_id, userRole);
             });
 
             // Enrich total values if zero asynchronously:

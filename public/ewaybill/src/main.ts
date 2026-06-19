@@ -976,7 +976,6 @@
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">E-Way Bill No</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Invoice ID</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Customer</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Transport Mode</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
                 <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider">Total Value</th>
             `;
@@ -1487,8 +1486,16 @@
                 const dateToFormat = wayBill.ewaybill_generated_at || wayBill.createdAt;
                 const formattedDate = dateToFormat ? (typeof (window as any).formatDateDisplay === 'function' ? (window as any).formatDateDisplay(dateToFormat) : '-') : '-';
                 
-                const toAddressStr = formatAddress(wayBill.to_address);
-                const toAddressShort = toAddressStr.substring(0, 50);
+                let customerName = '-';
+                if (wayBill.to_address) {
+                    if (typeof wayBill.to_address === 'string') {
+                        customerName = wayBill.to_address.split('\n')[0] || '-';
+                    } else if (typeof wayBill.to_address === 'object') {
+                        const addrObj = wayBill.to_address as any;
+                        customerName = addrObj.line1 || '-';
+                    }
+                }
+                const customerNameShort = customerName.substring(0, 35);
                 const total = wayBill.total_invoice_value || 0;
 
                 return `
@@ -1497,7 +1504,7 @@
                             <span class="text-xs font-bold text-slate-800">${displayId}</span>
                             <span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusBadgeClass}">${wayBill.ewaybill_status || 'Draft'}</span>
                         </div>
-                        <p class="text-xs text-slate-600 mb-2 truncate">${toAddressShort}</p>
+                        <p class="text-xs text-slate-600 mb-2 truncate" title="${customerName}">${customerNameShort}</p>
                         <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
                             <span class="text-slate-400">${formattedDate}</span>
                             <span class="font-bold text-slate-900">₹${formatIndian(total, 2)}</span>
@@ -1541,20 +1548,35 @@
 
         const total = wayBill.total_invoice_value || 0;
 
+        let customerName = '-';
+        if (wayBill.to_address) {
+            const addrStr = formatAddress(wayBill.to_address);
+            // The to_address formatting usually starts with the customer name, but let's parse the first line before a comma or newline if it's stored in a structured way.
+            if (typeof wayBill.to_address === 'string') {
+                customerName = wayBill.to_address.split('\n')[0] || '-';
+            } else if (typeof wayBill.to_address === 'object') {
+                // If it is an address object, we can see if it has line1
+                const addrObj = wayBill.to_address as any;
+                customerName = addrObj.line1 || '-';
+            }
+        }
+        
+        const customerNameShort = customerName.substring(0, 35);
+
         if (isTrash) {
             const deletedAt = wayBill.deletion?.deleted_at
                 ? (typeof (window as any).formatDateDisplay === 'function' ? (window as any).formatDateDisplay(wayBill.deletion.deleted_at) : wayBill.deletion.deleted_at)
                 : '-';
 
             row.innerHTML = `
-                <td class="px-4 py-3 text-slate-850 font-medium whitespace-nowrap text-xs">${formattedDate}</td>
-                <td class="px-4 py-3 text-slate-600 font-bold whitespace-nowrap text-xs">${displayId}</td>
-                <td class="px-4 py-3 text-slate-850 font-medium whitespace-nowrap text-xs">${invoiceId}</td>
-                <td class="px-4 py-3 text-slate-700 text-xs max-w-[180px] truncate" title="${toAddressShort}">${toAddressShort}</td>
-                <td class="px-4 py-3 text-red-500 font-medium whitespace-nowrap text-xs">
+                <td class="px-4 py-3 text-slate-850 font-medium whitespace-nowrap text-xs text-left">${formattedDate}</td>
+                <td class="px-4 py-3 text-slate-600 font-bold whitespace-nowrap text-xs text-left">${displayId}</td>
+                <td class="px-4 py-3 text-slate-850 font-medium whitespace-nowrap text-xs text-left">${invoiceId}</td>
+                <td class="px-4 py-3 text-slate-700 text-xs max-w-[180px] truncate text-left" title="${customerName}">${customerNameShort}</td>
+                <td class="px-4 py-3 text-red-500 font-medium whitespace-nowrap text-xs text-left">
                     <i class="fas fa-trash mr-1 text-[10px]"></i> ${deletedAt}
                 </td>
-                <td class="px-4 py-3 whitespace-nowrap">
+                <td class="px-4 py-3 whitespace-nowrap text-left">
                     <span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusBadgeClass}">${wayBill.ewaybill_status || 'Draft'}</span>
                 </td>
                 <td class="px-4 py-3 text-right font-bold text-xs whitespace-nowrap text-slate-900">
@@ -1573,17 +1595,16 @@
             `;
         } else {
             row.innerHTML = `
-                <td class="px-4 py-3 text-slate-850 font-medium whitespace-nowrap text-xs">${formattedDate}</td>
-                <td class="px-4 py-3 text-slate-850 font-bold whitespace-nowrap text-xs">
+                <td class="px-4 py-3 text-slate-850 font-medium whitespace-nowrap text-xs text-left">${formattedDate}</td>
+                <td class="px-4 py-3 text-slate-850 font-bold whitespace-nowrap text-xs text-left">
                     <span class="cursor-pointer hover:text-blue-600 copy-text transition-colors" title="Click to copy ID">
                         ${displayId}
                         <i class="fas fa-copy text-[10px] ml-1 opacity-50"></i>
                     </span>
                 </td>
-                <td class="px-4 py-3 text-slate-850 font-medium whitespace-nowrap text-xs">${invoiceId}</td>
-                <td class="px-4 py-3 text-xs max-w-[180px] truncate" title="${toAddressShort}">${toAddressShort}</td>
-                <td class="px-4 py-3 text-slate-500 whitespace-nowrap text-xs">${transMode}</td>
-                <td class="px-4 py-3 whitespace-nowrap">
+                <td class="px-4 py-3 text-slate-850 font-medium whitespace-nowrap text-xs text-left">${invoiceId}</td>
+                <td class="px-4 py-3 text-xs max-w-[180px] truncate text-left" title="${customerName}">${customerNameShort}</td>
+                <td class="px-4 py-3 whitespace-nowrap text-left">
                     <span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusBadgeClass}">${wayBill.ewaybill_status || 'Draft'}</span>
                 </td>
                 <td class="px-4 py-3 text-right font-bold text-xs whitespace-nowrap text-slate-900">
@@ -1649,7 +1670,7 @@
         }
 
         row.addEventListener('click', () => {
-            if (!isTrash && typeof (window as any).viewWayBill === 'function') {
+            if (typeof (window as any).viewWayBill === 'function') {
                 (window as any).viewWayBill(wayBillMongoId);
             }
         });
