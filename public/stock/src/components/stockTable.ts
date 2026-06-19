@@ -184,9 +184,20 @@ function getRowBgClasses(item: StockItem): string[] {
     return [];
 }
 
-// ─── Main render function ─────────────────────────────────────────────────────
+let stockPaginationManager: any = null;
 
 function renderStockTable(data: StockItem[]): void {
+    if (!stockPaginationManager) {
+        stockPaginationManager = new (window as any).TablePaginationManager(
+            'stock-table',
+            (paginatedData: StockItem[]) => renderStockTablePage(paginatedData),
+            25
+        );
+    }
+    stockPaginationManager.setData(data);
+}
+
+function renderStockTablePage(data: StockItem[]): void {
     const tbody = document.querySelector('#stock-table tbody') as HTMLTableSectionElement | null;
     if (!tbody) return;
 

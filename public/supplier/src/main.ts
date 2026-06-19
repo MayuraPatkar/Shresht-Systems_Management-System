@@ -349,8 +349,8 @@ document.addEventListener('DOMContentLoaded', () => {
             window.showDeletedItems = !window.showDeletedItems;
             
             if (window.showDeletedItems) {
-                showDeletedBtn.classList.remove('bg-gray-200', 'text-gray-700');
-                showDeletedBtn.classList.add('bg-red-100', 'text-red-700', 'ring-2', 'ring-red-500');
+                showDeletedBtn.classList.remove('bg-gray-200', 'text-gray-700', 'w-10', 'justify-center');
+                showDeletedBtn.classList.add('bg-red-100', 'text-red-700', 'ring-2', 'ring-red-500', 'px-4', 'gap-2');
                 showDeletedBtn.innerHTML = '<i class="fas fa-trash-restore"></i> Close Trash';
                 showDeletedBtn.title = 'Close Trash';
 
@@ -365,8 +365,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     bulkDeleteBtn.classList.add('flex');
                 }
             } else {
-                showDeletedBtn.classList.add('bg-gray-200', 'text-gray-700');
-                showDeletedBtn.classList.remove('bg-red-100', 'text-red-700', 'ring-2', 'ring-red-500');
+                showDeletedBtn.classList.add('bg-gray-200', 'text-gray-700', 'w-10', 'justify-center');
+                showDeletedBtn.classList.remove('bg-red-100', 'text-red-700', 'ring-2', 'ring-red-500', 'px-4', 'gap-2');
                 showDeletedBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
                 showDeletedBtn.title = 'View Trash';
 

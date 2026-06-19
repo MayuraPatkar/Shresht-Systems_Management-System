@@ -152,6 +152,10 @@ function applyFilters(): void {
         });
     }
 
+    if (currentSort.field) {
+        filteredData = sortData(filteredData, currentSort.field, currentSort.direction);
+    }
+
     renderStockTable(filteredData);
     (window as any).filteredStockData = filteredData;
     updateBulkButtonLabels(searchTerm, typeFilter, categoryFilter, statusFilter);
@@ -391,8 +395,7 @@ function setupSorting(): void {
             }
 
             // Sort and re-render
-            const sortedData = sortData(currentStockData, field, direction);
-            renderStockTable(sortedData);
+            applyFilters();
         });
     });
 }
