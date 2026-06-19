@@ -869,6 +869,78 @@
                 </div>
             </div>
 
+            <!-- Backup Schedule Card -->
+            <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+                <div class="flex justify-between items-start">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-9 h-9 bg-purple-50 rounded-lg flex items-center justify-center text-purple-500 border border-purple-100/50">
+                            <i class="fas fa-clock text-sm"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800 tracking-tight">Automatic Backup Schedule</h2>
+                            <p class="text-xs text-slate-400 font-medium">Protect your data with scheduled background snapshots</p>
+                        </div>
+                    </div>
+                    <!-- Sleek Toggle Switch -->
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs font-semibold text-slate-500">Enable Auto Backup</span>
+                        <label class="relative inline-flex items-center cursor-pointer select-none">
+                            <input type="checkbox" id="backup-auto-enabled" class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Proportioned Rows (Frequency, Retention, Backup Location) -->
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 pt-2">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Frequency</label>
+                        <select id="backup-frequency"
+                            class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 transition font-medium text-slate-800 font-semibold">
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="on_close">Every Time App Closes</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Retention (Days)</label>
+                        <input type="number" id="backup-retention" min="1" max="365"
+                            class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 transition font-medium text-slate-800"
+                            placeholder="30">
+                    </div>
+                    <div class="lg:col-span-2 flex flex-col gap-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Backup Location</label>
+                        <div class="relative flex items-center">
+                            <input type="text" id="backup-location" placeholder="Select or enter backup folder"
+                                class="w-full pl-4 pr-12 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 font-medium text-slate-800">
+                            <button id="backup-browse" type="button"
+                                class="absolute right-1 px-3 py-1.5 text-slate-400 hover:text-slate-600 rounded-md hover:bg-slate-100 transition cursor-pointer">
+                                <i class="fas fa-folder-open text-base"></i>
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-0.5">
+                            <i class="fas fa-info-circle text-slate-400"></i>
+                            <span>Choose a folder outside the application directory (recommended).</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Save and Restore Buttons -->
+                <div class="flex justify-start lg:justify-end gap-3 pt-2">
+                    <button type="button" id="restore-backup-defaults-button"
+                        class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-700 rounded-lg font-semibold transition text-xs cursor-pointer flex items-center gap-2 h-[42px] border border-slate-200">
+                        <i class="fas fa-undo text-xs"></i>
+                        <span>Restore Defaults</span>
+                    </button>
+                    <button type="button" id="save-backup-settings-button"
+                        class="px-5 py-2.5 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 active:scale-[0.98] transition shadow-sm hover:shadow-purple-500/20 text-xs cursor-pointer flex items-center gap-2 h-[42px]">
+                        <i class="fas fa-save text-xs"></i>
+                        <span>Save Backup Settings</span>
+                    </button>
+                </div>
+            </div>
+
             <!-- Manual Backup Card -->
             <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
                 <div class="flex items-center gap-3.5 mb-1">
@@ -1151,77 +1223,7 @@
                     </div>
                 </div>
 
-                <!-- Backup Schedule Card -->
-                <div class="bg-white rounded-xl border border-slate-200 p-8 lg:col-span-2 space-y-6">
-                    <div class="flex justify-between items-start">
-                        <div class="flex items-center gap-3.5">
-                            <div class="w-9 h-9 bg-purple-50 rounded-lg flex items-center justify-center text-purple-500 border border-purple-100/50">
-                                <i class="fas fa-clock text-sm"></i>
-                            </div>
-                            <div>
-                                <h2 class="text-lg font-bold text-slate-800 tracking-tight">Automatic Backup Schedule</h2>
-                                <p class="text-xs text-slate-400 font-medium">Protect your data with scheduled background snapshots</p>
-                            </div>
-                        </div>
-                        <!-- Sleek Toggle Switch -->
-                        <div class="flex items-center gap-3">
-                            <span class="text-xs font-semibold text-slate-500">Enable Auto Backup</span>
-                            <label class="relative inline-flex items-center cursor-pointer select-none">
-                                <input type="checkbox" id="backup-auto-enabled" class="sr-only peer">
-                                <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <!-- Proportioned Rows (Frequency, Retention, Backup Location) -->
-                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 pt-2">
-                        <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Frequency</label>
-                            <select id="backup-frequency"
-                                class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 transition font-medium text-slate-800 font-semibold">
-                                <option value="daily">Daily</option>
-                                <option value="weekly">Weekly</option>
-                                <option value="monthly">Monthly</option>
-                                <option value="on_close">Every Time App Closes</option>
-                            </select>
-                        </div>
-                        <div class="flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Retention (Days)</label>
-                            <input type="number" id="backup-retention" min="1" max="365"
-                                class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 transition font-medium text-slate-800"
-                                placeholder="30">
-                        </div>
-                        <div class="lg:col-span-2 flex flex-col gap-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Backup Location</label>
-                            <div class="relative flex items-center">
-                                <input type="text" id="backup-location" placeholder="Select or enter backup folder"
-                                    class="w-full pl-4 pr-12 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 font-medium text-slate-800">
-                                <button id="backup-browse" type="button"
-                                    class="absolute right-1 px-3 py-1.5 text-slate-400 hover:text-slate-600 rounded-md hover:bg-slate-100 transition cursor-pointer">
-                                    <i class="fas fa-folder-open text-base"></i>
-                                </button>
-                            </div>
-                            <p class="text-[11px] text-slate-500 mt-0.5">
-                                <i class="fas fa-info-circle text-slate-400"></i>
-                                <span>Choose a folder outside the application directory (recommended).</span>
-                            </p>
-                        </div>
-                    </div>
 
-                    <!-- Save and Restore Buttons -->
-                    <div class="flex justify-start lg:justify-end gap-3 pt-2">
-                        <button type="button" id="restore-backup-defaults-button"
-                            class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-700 rounded-lg font-semibold transition text-xs cursor-pointer flex items-center gap-2 h-[42px] border border-slate-200">
-                            <i class="fas fa-undo text-xs"></i>
-                            <span>Restore Defaults</span>
-                        </button>
-                        <button type="button" id="save-backup-settings-button"
-                            class="px-5 py-2.5 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 active:scale-[0.98] transition shadow-sm hover:shadow-purple-500/20 text-xs cursor-pointer flex items-center gap-2 h-[42px]">
-                            <i class="fas fa-save text-xs"></i>
-                            <span>Save Backup Settings</span>
-                        </button>
-                    </div>
-                </div>
           
 
             </div>
