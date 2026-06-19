@@ -285,7 +285,7 @@ class SettingsBackup {
                 const location = data.settings?.backup?.backup_location;
 
                 if (!location || !location.trim() || location === './backups' || location === '.\\backups') {
-                    (window as any).electronAPI.showAlert1("Please configure a backup location in Data Backup tab before creating a backup.");
+                    (window as any).electronAPI.showAlert1("Please configure a backup location before creating a backup.");
                     return;
                 }
 
@@ -333,7 +333,7 @@ class SettingsBackup {
                 const location = data.settings?.backup?.backup_location;
 
                 if (!location || !location.trim() || location === './backups' || location === '.\\backups') {
-                    (window as any).electronAPI.showAlert1("Please configure a backup location in Data Backup tab before opening backup folder.");
+                    (window as any).electronAPI.showAlert1("Please configure a backup location before opening backup folder.");
                     return;
                 }
 

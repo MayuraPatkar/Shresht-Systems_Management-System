@@ -239,7 +239,7 @@ router.post("/backup/manual", asyncHandler(async (req: Request, res: Response) =
         const settings = await SettingsModel.findOne() as any;
         const backupLocation = settings?.backup?.backup_location;
         if (!backupLocation || backupLocation === './backups' || backupLocation === '.\\backups') {
-            return res.status(400).json({ success: false, message: 'Backup location not configured. Please set a backup location in Data Backup tab.' });
+            return res.status(400).json({ success: false, message: 'Backup location not configured. Please set a backup location.' });
         }
         if (!backupUtil) throw new Error('Backup utility not available');
         const info = await backupUtil(backupLocation);
