@@ -12,8 +12,10 @@ class SettingsPreferences {
         document.getElementById("restore-stock-defaults-button")?.addEventListener("click", () => this.restoreStockDefaults());
         document.getElementById("save-numbering-button")?.addEventListener("click", () => this.saveNumberingSettings());
         document.getElementById("restore-numbering-defaults-button")?.addEventListener("click", () => this.restoreNumberingDefaults());
-        document.getElementById("save-backup-settings-button")?.addEventListener("click", () => this.saveBackupSettings());
-        document.getElementById("restore-backup-defaults-button")?.addEventListener("click", () => this.restoreBackupDefaults());
+        document.getElementById("save-backup-location-button")?.addEventListener("click", () => this.saveBackupLocation());
+        document.getElementById("restore-backup-location-defaults-button")?.addEventListener("click", () => this.restoreBackupLocationDefaults());
+        document.getElementById("save-backup-schedule-button")?.addEventListener("click", () => this.saveBackupSchedule());
+        document.getElementById("restore-backup-schedule-defaults-button")?.addEventListener("click", () => this.restoreBackupScheduleDefaults());
         document.getElementById("save-whatsapp-button")?.addEventListener("click", () => this.saveWhatsAppSettings());
         document.getElementById("save-cloudinary-button")?.addEventListener("click", () => this.saveCloudinarySettings());
 
@@ -85,9 +87,7 @@ class SettingsPreferences {
         const isEnabled = autoBackupCheckbox.checked;
         const fieldsToToggle = [
             "backup-frequency",
-            "backup-retention",
-            "backup-location",
-            "backup-browse"
+            "backup-retention"
         ];
 
         fieldsToToggle.forEach(id => {
@@ -522,30 +522,20 @@ class SettingsPreferences {
             });
     }
 
-    private saveBackupSettings(): void {
-        const saveButton = document.getElementById("save-backup-settings-button") as HTMLButtonElement;
+    private saveBackupLocation(): void {
+        const saveButton = document.getElementById("save-backup-location-button") as HTMLButtonElement;
         if (!saveButton) return;
         const originalContent = saveButton.innerHTML;
 
-        const autoBackupEnabledInput = document.getElementById("backup-auto-enabled") as HTMLInputElement;
-        const backupFrequencySelect = document.getElementById("backup-frequency") as HTMLSelectElement;
-        const backupRetentionInput = document.getElementById("backup-retention") as HTMLInputElement;
         const backupLocationInput = document.getElementById("backup-location") as HTMLInputElement;
+        const autoBackupEnabledInput = document.getElementById("backup-auto-enabled") as HTMLInputElement;
 
-        this.clearFieldError(backupRetentionInput);
         this.clearFieldError(backupLocationInput);
 
-        const autoBackupEnabled = autoBackupEnabledInput.checked;
-        const backupFrequency = backupFrequencySelect.value;
-        const retentionDays = parseInt(backupRetentionInput.value);
         const backupLocation = backupLocationInput.value;
+        const autoBackupEnabled = autoBackupEnabledInput ? autoBackupEnabledInput.checked : false;
 
         let hasError = false;
-        if (isNaN(retentionDays) || retentionDays < 1 || retentionDays > 365) {
-            this.showFieldError(backupRetentionInput, "Retention must be a number between 1 and 365 days.");
-            hasError = true;
-        }
-
         if (autoBackupEnabled && !backupLocation.trim()) {
             this.showFieldError(backupLocationInput, "Please select a backup location before enabling auto backup.");
             hasError = true;
@@ -558,26 +548,23 @@ class SettingsPreferences {
         saveButton.disabled = true;
         saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
-        const backupSettings = {
+        const locationSettings = {
             backup: {
-                auto_backup_enabled: autoBackupEnabled,
-                backup_frequency: backupFrequency,
-                retention_days: retentionDays,
                 backup_location: backupLocation
             }
         };
 
-        settingsApi.savePreferences(backupSettings)
+        settingsApi.savePreferences(locationSettings)
             .then((data: { success: boolean; message?: string }) => {
                 if (data.success) {
-                    (window as any).electronAPI.showAlert1("Backup settings saved successfully!");
+                    (window as any).electronAPI.showAlert1("Backup location saved successfully!");
                 } else {
                     (window as any).electronAPI.showAlert1(`Failed to save: ${data.message}`);
                 }
             })
             .catch((err: any) => {
-                console.error('Failed to save backup settings:', err);
-                const msg = err.message || "Failed to save backup settings. Please try again.";
+                console.error('Failed to save backup location:', err);
+                const msg = err.message || "Failed to save backup location. Please try again.";
                 (window as any).electronAPI.showAlert1(msg);
             })
             .finally(() => {
@@ -586,11 +573,124 @@ class SettingsPreferences {
             });
     }
 
-    private restoreBackupDefaults(): void {
+    private restoreBackupLocationDefaults(): void {
+        const backupLocationInput = document.getElementById("backup-location") as HTMLInputElement;
+        const autoBackupEnabledInput = document.getElementById("backup-auto-enabled") as HTMLInputElement;
+
+        if (autoBackupEnabledInput && autoBackupEnabledInput.checked) {
+            (window as any).electronAPI.showAlert1("Disable auto backup before resetting the backup location.");
+            return;
+        }
+
+        if (backupLocationInput) {
+            backupLocationInput.value = "";
+            this.clearFieldError(backupLocationInput);
+        }
+
+        const restoreButton = document.getElementById("restore-backup-location-defaults-button") as HTMLButtonElement;
+        if (!restoreButton) return;
+        const originalContent = restoreButton.innerHTML;
+        restoreButton.disabled = true;
+        restoreButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Restoring...';
+
+        const locationSettings = {
+            backup: {
+                backup_location: ""
+            }
+        };
+
+        settingsApi.savePreferences(locationSettings)
+            .then((data: { success: boolean; message?: string }) => {
+                if (data.success) {
+                    (window as any).electronAPI.showAlert1("Backup location restored to default successfully!");
+                } else {
+                    (window as any).electronAPI.showAlert1(`Failed to restore default: ${data.message}`);
+                }
+            })
+            .catch((err: any) => {
+                console.error('Failed to restore backup location default:', err);
+                const msg = err.message || "Failed to restore default. Please try again.";
+                (window as any).electronAPI.showAlert1(msg);
+            })
+            .finally(() => {
+                restoreButton.disabled = false;
+                restoreButton.innerHTML = originalContent;
+            });
+    }
+
+    private saveBackupSchedule(): void {
+        const saveButton = document.getElementById("save-backup-schedule-button") as HTMLButtonElement;
+        if (!saveButton) return;
+        const originalContent = saveButton.innerHTML;
+
         const autoBackupEnabledInput = document.getElementById("backup-auto-enabled") as HTMLInputElement;
         const backupFrequencySelect = document.getElementById("backup-frequency") as HTMLSelectElement;
         const backupRetentionInput = document.getElementById("backup-retention") as HTMLInputElement;
         const backupLocationInput = document.getElementById("backup-location") as HTMLInputElement;
+
+        this.clearFieldError(backupRetentionInput);
+        if (backupLocationInput) {
+            this.clearFieldError(backupLocationInput);
+        }
+
+        const autoBackupEnabled = autoBackupEnabledInput.checked;
+        const backupFrequency = backupFrequencySelect.value;
+        const retentionDays = parseInt(backupRetentionInput.value);
+        const backupLocation = backupLocationInput ? backupLocationInput.value : '';
+
+        let hasError = false;
+        if (isNaN(retentionDays) || retentionDays < 1 || retentionDays > 365) {
+            this.showFieldError(backupRetentionInput, "Retention must be a number between 1 and 365 days.");
+            hasError = true;
+        }
+
+        if (autoBackupEnabled && !backupLocation.trim()) {
+            if (backupLocationInput) {
+                this.showFieldError(backupLocationInput, "Please select a backup location before enabling auto backup.");
+            } else {
+                (window as any).electronAPI.showAlert1("Please configure a backup location first.");
+            }
+            hasError = true;
+        }
+
+        if (hasError) {
+            return;
+        }
+
+        saveButton.disabled = true;
+        saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+        const scheduleSettings = {
+            backup: {
+                auto_backup_enabled: autoBackupEnabled,
+                backup_frequency: backupFrequency,
+                retention_days: retentionDays
+            }
+        };
+
+        settingsApi.savePreferences(scheduleSettings)
+            .then((data: { success: boolean; message?: string }) => {
+                if (data.success) {
+                    (window as any).electronAPI.showAlert1("Backup schedule saved successfully!");
+                } else {
+                    (window as any).electronAPI.showAlert1(`Failed to save: ${data.message}`);
+                }
+            })
+            .catch((err: any) => {
+                console.error('Failed to save backup schedule:', err);
+                const msg = err.message || "Failed to save backup schedule. Please try again.";
+                (window as any).electronAPI.showAlert1(msg);
+            })
+            .finally(() => {
+                saveButton.disabled = false;
+                saveButton.innerHTML = originalContent;
+            });
+    }
+
+    private restoreBackupScheduleDefaults(): void {
+        const autoBackupEnabledInput = document.getElementById("backup-auto-enabled") as HTMLInputElement;
+        const backupFrequencySelect = document.getElementById("backup-frequency") as HTMLSelectElement;
+        const backupRetentionInput = document.getElementById("backup-retention") as HTMLInputElement;
 
         if (autoBackupEnabledInput) {
             autoBackupEnabledInput.checked = false;
@@ -603,36 +703,31 @@ class SettingsPreferences {
             backupRetentionInput.value = "30";
             this.clearFieldError(backupRetentionInput);
         }
-        if (backupLocationInput) {
-            backupLocationInput.value = "";
-            this.clearFieldError(backupLocationInput);
-        }
 
-        const restoreButton = document.getElementById("restore-backup-defaults-button") as HTMLButtonElement;
+        const restoreButton = document.getElementById("restore-backup-schedule-defaults-button") as HTMLButtonElement;
         if (!restoreButton) return;
         const originalContent = restoreButton.innerHTML;
         restoreButton.disabled = true;
         restoreButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Restoring...';
 
-        const backupSettings = {
+        const scheduleSettings = {
             backup: {
                 auto_backup_enabled: false,
                 backup_frequency: "daily",
-                retention_days: 30,
-                backup_location: ""
+                retention_days: 30
             }
         };
 
-        settingsApi.savePreferences(backupSettings)
+        settingsApi.savePreferences(scheduleSettings)
             .then((data: { success: boolean; message?: string }) => {
                 if (data.success) {
-                    (window as any).electronAPI.showAlert1("Backup settings restored to defaults successfully!");
+                    (window as any).electronAPI.showAlert1("Backup schedule restored to defaults successfully!");
                 } else {
                     (window as any).electronAPI.showAlert1(`Failed to restore defaults: ${data.message}`);
                 }
             })
             .catch((err: any) => {
-                console.error('Failed to restore backup defaults:', err);
+                console.error('Failed to restore backup schedule defaults:', err);
                 const msg = err.message || "Failed to restore defaults. Please try again.";
                 (window as any).electronAPI.showAlert1(msg);
             })
