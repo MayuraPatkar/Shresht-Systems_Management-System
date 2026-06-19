@@ -9,6 +9,8 @@ class SettingsPreferences {
         document.getElementById("save-preferences-button")?.addEventListener("click", () => this.savePreferences());
         document.getElementById("save-security-button")?.addEventListener("click", () => this.saveSecuritySettings());
         document.getElementById("restore-security-defaults-button")?.addEventListener("click", () => this.restoreSecurityDefaults());
+        document.getElementById("save-stock-button")?.addEventListener("click", () => this.saveStockSettings());
+        document.getElementById("restore-stock-defaults-button")?.addEventListener("click", () => this.restoreStockDefaults());
         document.getElementById("save-whatsapp-button")?.addEventListener("click", () => this.saveWhatsAppSettings());
         document.getElementById("save-cloudinary-button")?.addEventListener("click", () => this.saveCloudinarySettings());
 
@@ -46,22 +48,24 @@ class SettingsPreferences {
             }
         });
 
-        // Clear security settings validation errors on typing
-        const securityFields = ["security-session-timeout", "security-max-attempts", "security-lockout-duration"];
-        securityFields.forEach(id => {
+        // Clear security and stock settings validation errors on typing
+        const fieldsToClear = ["security-session-timeout", "security-max-attempts", "security-lockout-duration", "pref-stock-inactive-months"];
+        fieldsToClear.forEach(id => {
             const input = document.getElementById(id) as HTMLInputElement;
             input?.addEventListener("input", () => this.clearFieldError(input));
         });
 
-        // Restrict security inputs to numeric digits only
+        // Restrict security and stock inputs to numeric digits only
         const timeoutInput = document.getElementById("security-session-timeout") as HTMLInputElement;
         const attemptsInput = document.getElementById("security-max-attempts") as HTMLInputElement;
         const durationInput = document.getElementById("security-lockout-duration") as HTMLInputElement;
+        const stockInactiveMonthsInput = document.getElementById("pref-stock-inactive-months") as HTMLInputElement;
 
         if ((window as any).setupNumericInput) {
             if (timeoutInput) (window as any).setupNumericInput(timeoutInput, 4);
             if (attemptsInput) (window as any).setupNumericInput(attemptsInput, 2);
             if (durationInput) (window as any).setupNumericInput(durationInput, 2);
+            if (stockInactiveMonthsInput) (window as any).setupNumericInput(stockInactiveMonthsInput, 2);
         }
     }
 
@@ -333,6 +337,88 @@ class SettingsPreferences {
             .catch((err: any) => {
                 console.error('Failed to restore defaults:', err);
                 (window as any).electronAPI.showAlert1("Failed to restore default security settings. Please try again.");
+            })
+            .finally(() => {
+                restoreButton.disabled = false;
+                restoreButton.innerHTML = originalContent;
+            });
+    }
+
+    private saveStockSettings(): void {
+        const saveButton = document.getElementById("save-stock-button") as HTMLButtonElement;
+        if (!saveButton) return;
+        const originalContent = saveButton.innerHTML;
+        saveButton.disabled = true;
+        saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+        const stockInactiveMonthsInput = document.getElementById("pref-stock-inactive-months") as HTMLInputElement;
+        this.clearFieldError(stockInactiveMonthsInput);
+
+        const stockInactiveMonths = parseInt(stockInactiveMonthsInput.value);
+
+        if (isNaN(stockInactiveMonths) || stockInactiveMonths < 1 || stockInactiveMonths > 24) {
+            this.showFieldError(stockInactiveMonthsInput, "Inactivity Duration must be a number between 1 and 24 months.");
+            saveButton.disabled = false;
+            saveButton.innerHTML = originalContent;
+            return;
+        }
+
+        const notifications = {
+            notifications: {
+                stock_inactive_months: stockInactiveMonths
+            }
+        };
+
+        settingsApi.savePreferences(notifications)
+            .then((data: { success: boolean; message?: string }) => {
+                if (data.success) {
+                    (window as any).electronAPI.showAlert1("Stock settings saved successfully!");
+                } else {
+                    (window as any).electronAPI.showAlert1(`Failed to save: ${data.message}`);
+                }
+            })
+            .catch((err: any) => {
+                console.error('Failed to save stock settings:', err);
+                const msg = err.message || "Failed to save stock settings. Please try again.";
+                (window as any).electronAPI.showAlert1(msg);
+            })
+            .finally(() => {
+                saveButton.disabled = false;
+                saveButton.innerHTML = originalContent;
+            });
+    }
+
+    private restoreStockDefaults(): void {
+        const stockInactiveMonthsInput = document.getElementById("pref-stock-inactive-months") as HTMLInputElement;
+        if (stockInactiveMonthsInput) {
+            stockInactiveMonthsInput.value = "3";
+            this.clearFieldError(stockInactiveMonthsInput);
+        }
+
+        const restoreButton = document.getElementById("restore-stock-defaults-button") as HTMLButtonElement;
+        if (!restoreButton) return;
+        const originalContent = restoreButton.innerHTML;
+        restoreButton.disabled = true;
+        restoreButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Restoring...';
+
+        const notifications = {
+            notifications: {
+                stock_inactive_months: 3
+            }
+        };
+
+        settingsApi.savePreferences(notifications)
+            .then((data: { success: boolean; message?: string }) => {
+                if (data.success) {
+                    (window as any).electronAPI.showAlert1("Stock settings restored to defaults successfully!");
+                } else {
+                    (window as any).electronAPI.showAlert1(`Failed to restore defaults: ${data.message}`);
+                }
+            })
+            .catch((err: any) => {
+                console.error('Failed to restore stock defaults:', err);
+                const msg = err.message || "Failed to restore defaults. Please try again.";
+                (window as any).electronAPI.showAlert1(msg);
             })
             .finally(() => {
                 restoreButton.disabled = false;
