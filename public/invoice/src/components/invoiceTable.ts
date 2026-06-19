@@ -300,10 +300,10 @@
                 row.innerHTML = `
                     <td class="px-4 py-3 text-slate-850 font-medium whitespace-nowrap text-xs">${formattedDate}</td>
                     <td class="px-4 py-3 text-slate-600 font-bold whitespace-nowrap text-xs">${invoice.invoice_id}</td>
-                    <td class="px-4 py-3 text-slate-900 font-semibold text-xs max-w-[150px] truncate" title="${invoice.project_name || '-'}">
+                    <td class="px-4 py-3 text-slate-900 font-semibold text-xs max-w-[260px] truncate" title="${invoice.project_name || '-'}">
                         ${invoice.project_name || '-'}
                     </td>
-                    <td class="px-4 py-3 text-slate-700 text-xs max-w-[180px] truncate" title="${invoice.customer_name || ''}">${invoice.customer_name || ''}</td>
+                    <td class="px-4 py-3 text-slate-700 text-xs max-w-[300px] truncate" title="${invoice.customer_name || ''}">${invoice.customer_name || ''}</td>
                     <td class="px-4 py-3 text-red-500 font-medium whitespace-nowrap text-xs">
                         <i class="fas fa-trash mr-1 text-[10px]"></i> ${deletedAt}
                     </td>
@@ -330,10 +330,10 @@
                             <i class="fas fa-copy text-[10px] ml-1 opacity-50"></i>
                         </span>
                     </td>
-                    <td class="px-4 py-3 text-slate-900 font-semibold text-xs max-w-[150px] truncate" title="${invoice.project_name || '-'}">
+                    <td class="px-4 py-3 text-slate-900 font-semibold text-xs max-w-[260px] truncate" title="${invoice.project_name || '-'}">
                         ${invoice.project_name || '-'}
                     </td>
-                    <td class="px-4 py-3 text-xs max-w-[180px] truncate">
+                    <td class="px-4 py-3 text-xs max-w-[300px] truncate">
                         <div class="font-medium text-slate-800 truncate" title="${invoice.customer_name || ''}">${invoice.customer_name || ''}</div>
                     </td>
                     <td class="px-4 py-3 whitespace-nowrap">

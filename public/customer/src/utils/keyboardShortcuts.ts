@@ -132,8 +132,8 @@
         modalDiv.setAttribute('aria-label', 'Keyboard Shortcuts');
 
         modalDiv.innerHTML = `
-            <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl max-w-xl w-full mx-4 max-h-[85vh] overflow-y-auto shortcuts-panel">
-                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-10">
+            <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl max-w-xl w-full mx-4 max-h-[85vh] overflow-hidden isolate shortcuts-panel flex flex-col">
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-white/95 backdrop-blur-md z-10">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
                             <i class="fas fa-keyboard text-lg"></i>
@@ -144,7 +144,7 @@
                         <i class="fas fa-times text-sm"></i>
                     </button>
                 </div>
-                <div id="shortcuts-content" class="p-6 space-y-5"></div>
+                <div id="shortcuts-content" class="p-6 space-y-5 overflow-y-auto flex-1"></div>
             </div>
         `;
         document.body.appendChild(modalDiv);

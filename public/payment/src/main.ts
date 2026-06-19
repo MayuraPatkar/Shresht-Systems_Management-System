@@ -1008,7 +1008,18 @@ interface Window {
     function renderPage(paginatedPayments: IPaymentRecord[]): void {
         // Empty state check
         if (paginatedPayments.length === 0) {
-            const emptyStateHTML = `
+            const hasPayments = allPayments.length > 0;
+            const emptyStateHTML = hasPayments ? `
+                <tr>
+                    <td colspan="7" class="px-6 py-16 text-center text-slate-455 bg-white align-middle h-full">
+                        <div class="w-full h-full min-h-[320px] flex flex-col items-center justify-center text-center py-4 fade-in select-none">
+                            <div class="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 mb-4 border border-dashed border-slate-300">
+                                <i class="fas fa-search text-2xl"></i>
+                            </div>
+                            <h3 class="text-base font-bold text-slate-800 mb-1">No results found</h3>
+                        </div>
+                    </td>
+                </tr>` : `
                 <tr>
                     <td colspan="7" class="px-6 py-16 text-center text-slate-455 bg-white align-middle h-full">
                         <div class="w-full h-full min-h-[320px] flex flex-col items-center justify-center text-center py-4 fade-in select-none">
@@ -1025,7 +1036,11 @@ interface Window {
                 </tr>`;
             $tbody.innerHTML = emptyStateHTML;
             if ($paymentCardsMobile) {
-                $paymentCardsMobile.innerHTML = `
+                $paymentCardsMobile.innerHTML = hasPayments ? `
+                    <div class="text-center py-10 bg-white rounded-xl border border-slate-200 p-6">
+                        <i class="fas fa-search text-3xl text-slate-300 mb-2"></i>
+                        <p class="text-sm font-bold text-slate-700">No results found</p>
+                    </div>` : `
                     <div class="text-center py-10 bg-white rounded-xl border border-slate-200 p-6">
                         <i class="fas fa-inbox text-3xl text-slate-300 mb-2"></i>
                         <p class="text-sm font-bold text-slate-700">No Payments Found</p>
@@ -1033,7 +1048,9 @@ interface Window {
                     </div>`;
             }
 
-            document.getElementById('empty-new-payment-btn')?.addEventListener('click', () => openModal(null));
+            if (!hasPayments) {
+                document.getElementById('empty-new-payment-btn')?.addEventListener('click', () => openModal(null));
+            }
             return;
         }
 
@@ -1058,7 +1075,7 @@ interface Window {
                 <td class="px-4 py-3 whitespace-nowrap">${refLink}</td>
                 <td class="px-4 py-3 whitespace-nowrap text-xs">
                     ${(p as any).voucher_no ? `
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 cursor-pointer hover:bg-blue-100" onclick="event.stopPropagation(); (window as any).viewVoucherByNo('${escapeHtml((p as any).voucher_no)}')">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 cursor-pointer hover:bg-blue-100" onclick="event.stopPropagation(); window.viewVoucherByNo('${escapeHtml((p as any).voucher_no)}')">
                             ${escapeHtml((p as any).voucher_no)}
                         </span>
                     ` : '-'}
@@ -3082,15 +3099,15 @@ interface Window {
                     return `
                     <tr class="hover:bg-slate-50 border-b border-slate-100 transition-colors">
                         <td class="px-4 py-3 font-medium text-slate-600">${new Date(v.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
-                        <td class="px-4 py-3 font-bold text-blue-600 cursor-pointer hover:underline" onclick="(window as any).viewVoucherByNo('${escapeHtml(v.voucherNumber)}')">${escapeHtml(v.voucherNumber)}</td>
+                        <td class="px-4 py-3 font-bold text-blue-600 cursor-pointer hover:underline" onclick="window.viewVoucherByNo('${escapeHtml(v.voucherNumber)}')">${escapeHtml(v.voucherNumber)}</td>
                         <td class="px-4 py-3 font-semibold text-slate-800">${escapeHtml(v.partyName)} <span class="text-[10px] text-slate-400 font-bold uppercase">(${v.partyType})</span></td>
                         <td class="px-4 py-3">${escapeHtml(v.paymentMethod)}</td>
                         <td class="px-4 py-3 text-right font-extrabold text-slate-900">₹ ${v.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                         <td class="px-4 py-3 truncate max-w-[150px]" title="${escapeHtml(v.paidTowards)}">${escapeHtml(v.paidTowards)}</td>
                         <td class="px-4 py-3 text-center">
                             <div class="flex items-center justify-center gap-2">
-                                <button onclick="event.stopPropagation(); (window as any).printVoucher('${v._id}')" class="p-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded hover:bg-emerald-100 transition-colors" title="Print"><i class="fas fa-print text-xs"></i></button>
-                                <button onclick="event.stopPropagation(); (window as any).downloadVoucherPDF('${v._id}')" class="p-1.5 bg-slate-100 text-slate-700 border border-slate-350 rounded hover:bg-slate-200 transition-colors" title="Download PDF"><i class="fas fa-file-pdf text-xs"></i></button>
+                                <button onclick="event.stopPropagation(); window.printVoucher('${v._id}')" class="p-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded hover:bg-emerald-100 transition-colors" title="Print"><i class="fas fa-print text-xs"></i></button>
+                                <button onclick="event.stopPropagation(); window.downloadVoucherPDF('${v._id}')" class="p-1.5 bg-slate-100 text-slate-700 border border-slate-350 rounded hover:bg-slate-200 transition-colors" title="Download PDF"><i class="fas fa-file-pdf text-xs"></i></button>
                             </div>
                         </td>
                     </tr>`;
