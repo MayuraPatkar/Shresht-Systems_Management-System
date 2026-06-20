@@ -75,86 +75,395 @@
         return p.direction === 'IN' ? 'Payment Received' : 'Payment Sent';
     }
 
-    function getReceiptHTML(payment: IPaymentRecord): string {
+
+
+    function getReceiptHTML(
+        payment: IPaymentRecord,
+        companyInfo: any = null,
+        partyDetails: { name: string; phone: string; gstin: string; email: string; address: string } | null = null,
+        refDetails: { id: string; date: string; amount: number; paid: number; refunded: number; balance: number; status: string } | null = null
+    ): string {
         const type = getTransactionTypeLabel(payment);
-        const party = (payment as any).party_name || payment.party_display_id || payment.party_id || '-';
         const amountStr = formatCurrency(payment.amount);
         const dateStr = formatDate(payment.payment_date);
+        
+        // Company branding fallbacks
+        const company = companyInfo || {
+            company_name: 'SHRESHT SYSTEMS',
+            address: { line1: 'Company Address', line2: '', city: '', state: '', pincode: '', country: 'India' },
+            phone: { ph1: '0000000000', ph2: '' },
+            email: 'email@company.com',
+            website: 'www.company.com',
+            gstin: 'GSTIN Number'
+        };
+        const companyName = (company.company_name || 'SHRESHT SYSTEMS').toUpperCase();
+        const companyAddress = typeof company.address === 'string'
+            ? company.address
+            : [company.address?.line1, company.address?.line2, company.address?.city, company.address?.state ? company.address.state + (company.address.pincode ? ' - ' + company.address.pincode : '') : ''].filter(Boolean).join(', ') || 'Company Address';
+        const companyPhone = company.phone ? `${company.phone.ph1}${company.phone.ph2 ? ' / ' + company.phone.ph2 : ''}` : '';
+        
+        // Status resolution
+        let statusLabel = 'PAID';
+        let statusBadgeClass = 'badge-paid';
+        if (payment.is_refund) {
+            statusLabel = 'REFUND';
+            statusBadgeClass = 'badge-refunded';
+        } else if (payment.is_already_refunded) {
+            statusLabel = 'REFUNDED';
+            statusBadgeClass = 'badge-refunded';
+        } else if (payment.is_advance) {
+            statusLabel = 'ADVANCE';
+            statusBadgeClass = 'badge-partial'; // amber
+        } else if (payment.status) {
+            const statusLower = payment.status.toLowerCase();
+            if (statusLower === 'partially paid' || statusLower === 'partial') {
+                statusLabel = 'PARTIALLY PAID';
+                statusBadgeClass = 'badge-partial';
+            } else if (statusLower === 'pending') {
+                statusLabel = 'PENDING';
+                statusBadgeClass = 'badge-pending';
+            }
+        }
 
+        // Amount in Words
+        const numToWords = (window as any).numberToWords;
+        const amountInWords = numToWords ? `${numToWords(payment.amount)} Rupees Only` : '';
+
+        // Mode badge class
+        let modeBadgeClass = 'mode-cash';
+        const modeVal = payment.mode || 'Cash';
+        if (modeVal === 'UPI') modeBadgeClass = 'mode-upi';
+        else if (modeVal === 'Bank Transfer') modeBadgeClass = 'mode-bank';
+        else if (modeVal === 'Cheque') modeBadgeClass = 'mode-cheque';
+
+        // Party fields
+        const partyName = partyDetails?.name || payment.party_name || '-';
+        const partyPhone = partyDetails?.phone || '-';
+        const partyGstin = partyDetails?.gstin || '-';
+        const partyEmail = partyDetails?.email || '-';
+        const partyAddress = partyDetails?.address || '-';
+
+        // Settlement table
+        let settlementHTML = '';
+        if (refDetails && payment.reference_type === 'Invoice') {
+            const outstanding = refDetails.balance;
+            const isSettled = outstanding <= 0;
+            const settlementStatusLabel = isSettled ? 'FULLY SETTLED' : 'OUTSTANDING';
+            const settlementStatusClass = isSettled ? 'status-badge badge-paid' : 'status-badge badge-partial';
+            
+            settlementHTML = `
+                <div class="settlement-card">
+                    <div class="card-title">Invoice Settlement Summary</div>
+                    <table class="settlement-table">
+                        <thead>
+                            <tr>
+                                <th>Invoice Number</th>
+                                <th class="amount-col">Invoice Amount</th>
+                                <th class="amount-col">Amount Paid</th>
+                                <th class="amount-col">Balance Amount</th>
+                                <th style="text-align: center; width: 140px;">Settlement Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="strong">${refDetails.id}</td>
+                                <td class="amount-col">₹&nbsp;${formatCurrency(refDetails.amount).replace('₹', '').trim()}</td>
+                                <td class="amount-col">₹&nbsp;${formatCurrency(refDetails.paid).replace('₹', '').trim()}</td>
+                                <td class="amount-col strong">₹&nbsp;${formatCurrency(outstanding).replace('₹', '').trim()}</td>
+                                <td style="text-align: center;">
+                                    <span class="${settlementStatusClass}" style="padding: 3px 10px; font-size: 9px;">${settlementStatusLabel}</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        const printTimeStr = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+        
         return `
             <html>
             <head>
                 <title>Payment Receipt - ${payment._id}</title>
                 <style>
-                    body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
-                    .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
-                    .logo { font-size: 24px; font-weight: bold; color: #1e3a8a; margin-bottom: 5px; }
-                    .subtitle { font-size: 14px; color: #666; }
-                    .receipt-title { font-size: 18px; font-weight: bold; text-transform: uppercase; margin-top: 20px; margin-bottom: 20px; letter-spacing: 1px; }
-                    .details-table { w-full border-collapse: collapse; margin-top: 20px; width: 100%; }
-                    .details-table td { padding: 12px 8px; border-bottom: 1px solid #eee; font-size: 14px; }
-                    .details-table td.label { font-weight: bold; color: #555; width: 35%; }
-                    .amount-box { margin-top: 30px; padding: 15px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; text-align: right; }
-                    .amount-val { font-size: 20px; font-weight: bold; color: #1e3a8a; }
-                    .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 20px; }
+                    body {
+                        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+                        margin: 0;
+                        padding: 0;
+                        color: #1e293b;
+                        background-color: #ffffff;
+                        line-height: 1.5;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                    h1, h2, h3, p { margin: 0; }
+                    .receipt-container {
+                        width: 210mm;
+                        max-width: 210mm;
+                        min-height: 297mm;
+                        margin: 30px auto;
+                        padding: 30px;
+                        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                        border: 1px solid #e2e8f0;
+                        border-radius: 8px;
+                        box-sizing: border-box;
+                        position: relative;
+                        background: #ffffff url("../assets/icon2.png") no-repeat center/40%;
+                    }
                     @media print {
-                        body { padding: 0; }
+                        @page {
+                            margin: 0;
+                        }
+                        body {
+                            margin: 0;
+                            padding: 0;
+                        }
+                        .receipt-container {
+                            margin: 0;
+                            padding: 30px;
+                            box-shadow: none;
+                            border: none;
+                            border-radius: 0;
+                            width: 100%;
+                            max-width: 100%;
+                            min-height: 100%;
+                        }
+                    }
+                    
+                    /* Exact Invoice Header Banner styles */
+                    .header {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        padding: 20px 30px;
+                        margin-bottom: 24px;
+                        background: #1a365d;
+                        border-radius: 12px;
+                        color: #ffffff;
+                        border: none;
+                        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+                        box-sizing: border-box;
+                    }
+                    .quotation-brand {
+                        display: flex;
+                        align-items: center;
+                        gap: 20px;
+                    }
+                    .logo {
+                        width: 80px;
+                        height: 80px;
+                        background: #ffffff;
+                        border-radius: 12px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        flex-shrink: 0;
+                        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                        box-sizing: border-box;
+                    }
+                    .logo img {
+                        width: 50px;
+                        height: 50px;
+                        object-fit: contain;
+                    }
+                    .quotation-brand-text h1 {
+                        margin: 0;
+                        color: #ffffff;
+                        font-size: 26px;
+                        letter-spacing: -0.5px;
+                        font-weight: 800;
+                        line-height: 1.1;
+                    }
+                    .quotation-tagline {
+                        margin: 4px 0 0 0;
+                        color: #e2e8f0;
+                        font-size: 13px;
+                        font-weight: 500;
+                        letter-spacing: 0.5px;
+                        text-transform: uppercase;
+                    }
+                    .company-details {
+                        text-align: right;
+                        line-height: 1.6;
+                    }
+                    .company-details p {
+                        margin: 0;
+                        color: #f1f5f9;
+                        font-size: 12px;
+                        font-weight: 500;
+                    }
+                    
+                    /* Title & Badge Row */
+                    .receipt-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+                    .receipt-title-box h2 { font-size: 24px; font-weight: 800; color: #1e3a66; letter-spacing: -0.5px; text-transform: uppercase; }
+                    .receipt-meta { font-size: 12px; color: #64748b; margin-top: 4px; font-weight: 500; }
+                    .receipt-meta span { color: #1e293b; font-weight: 600; }
+                    
+                    /* Badges */
+                    .status-badge { padding: 6px 14px; border-radius: 9999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; display: inline-block; text-align: center; }
+                    .badge-paid { background-color: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
+                    .badge-partial { background-color: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
+                    .badge-pending { background-color: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+                    .badge-refunded { background-color: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+                    
+                    /* Two-Column Grid */
+                    .info-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 20px; margin-bottom: 24px; }
+                    .info-card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+                    .card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px; }
+                    
+                    /* Customer Info */
+                    .party-details { font-size: 12px; line-height: 1.6; }
+                    .party-name { font-size: 14px; font-weight: 700; color: #1e3a66; margin-bottom: 4px; }
+                    .party-info-row { display: flex; margin-top: 4px; }
+                    .party-info-label { color: #64748b; width: 60px; flex-shrink: 0; font-weight: 600; }
+                    .party-info-value { color: #1e293b; font-weight: 550; }
+                    
+                    /* Amount Box */
+                    .amount-card { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px dashed #cbd5e1; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+                    .amount-title { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+                    .amount-value { font-size: 30px; font-weight: 950; color: #1e3a66; letter-spacing: -0.5px; }
+                    .amount-words-box { font-size: 10px; color: #64748b; font-style: italic; font-weight: 600; margin-top: 6px; max-width: 100%; text-transform: capitalize; }
+                    
+                    /* Details Grid */
+                    .details-grid-card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 24px; }
+                    .details-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; row-gap: 12px; }
+                    .detail-row { display: flex; justify-content: space-between; font-size: 12px; border-bottom: 1px solid #f8fafc; padding-bottom: 6px; }
+                    .detail-label { color: #64748b; font-weight: 600; }
+                    .detail-value { color: #1e293b; font-weight: 600; text-align: right; }
+                    
+                    /* Mode Badges */
+                    .mode-badge { font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
+                    .mode-cash { background-color: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+                    .mode-upi { background-color: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd; }
+                    .mode-bank { background-color: #faf5ff; color: #7c3aed; border: 1px solid #e9d5ff; }
+                    .mode-cheque { background-color: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+                    
+                    /* Settlement Table */
+                    .settlement-card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 24px; }
+                    .settlement-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+                    .settlement-table th { text-align: left; padding: 8px 10px; background-color: #f8fafc; color: #64748b; font-weight: 700; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; }
+                    .settlement-table td { padding: 10px; border-bottom: 1px solid #f1f5f9; font-weight: 500; color: #334155; }
+                    .settlement-table td.strong { font-weight: 700; color: #1e293b; }
+                    .settlement-table td.amount-col { text-align: right; }
+                    .settlement-table th.amount-col { text-align: right; }
+                    
+                    /* Footer */
+                    .footer-note { border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 32px; text-align: center; font-size: 10px; color: #94a3b8; font-weight: 500; }
+                    
+                    @media print {
                         button { display: none; }
                     }
                 </style>
             </head>
             <body>
-                <div class="header">
-                    <div class="logo">SHRESHT SYSTEMS</div>
-                    <div class="subtitle">Management System - Payment Receipt</div>
-                </div>
-                <div style="text-align: center;">
-                    <div class="receipt-title">${type} Acknowledgement</div>
-                </div>
-                <table class="details-table">
-                    <tr>
-                        <td class="label">Payment ID</td>
-                        <td>${payment._id}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Date</td>
-                        <td>${dateStr}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Party Name</td>
-                        <td>${party}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Transaction Type</td>
-                        <td>${type}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Payment Mode</td>
-                        <td>${payment.mode}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Reference Document</td>
-                        <td>${payment.reference_type ? `${payment.reference_type} (${payment.reference_id || '-'})` : '-'}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Transaction Details</td>
-                        <td>${payment.transaction_details || '-'}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Remarks / Description</td>
-                        <td>${payment.remarks || '-'}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Status</td>
-                        <td>${payment.status || 'Completed'}</td>
-                    </tr>
-                </table>
-                <div class="amount-box">
-                    <span style="font-size: 14px; font-weight: bold; color: #666; margin-right: 10px;">Total Amount:</span>
-                    <span class="amount-val">${amountStr}</span>
-                </div>
-                <div class="footer">
-                    This is a system-generated transaction acknowledgement receipt.
+                <div class="receipt-container">
+                    <!-- Brand Navy Header (Exact Invoice Style) -->
+                    <div class="header">
+                        <div class="quotation-brand">
+                            <div class="logo">
+                                <img src="../assets/icon.png" alt="SSMS Logo">
+                            </div>
+                            <div class="quotation-brand-text">
+                                <h1>${companyName}</h1>
+                                <p class="quotation-tagline">CCTV & Energy Solutions</p>
+                            </div>
+                        </div>
+                        <div class="company-details">
+                            <p>${companyAddress}</p>
+                            <p>Ph: ${companyPhone}</p>
+                            <p>GSTIN: ${company.gstin}</p>
+                            <p>Email: ${company.email}</p>
+                            <p>Website: ${company.website}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Title row -->
+                    <div class="receipt-header-row">
+                        <div class="receipt-title-box">
+                            <h2>Payment Receipt</h2>
+                            <div class="receipt-meta">
+                                Receipt No: <span>${payment._id.substring(payment._id.length - 6).toUpperCase()}</span> &nbsp;|&nbsp; 
+                                Date: <span>${dateStr}</span>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="status-badge ${statusBadgeClass}">${statusLabel}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Two Column Section (Party & Amount) -->
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <div class="card-title">Received From</div>
+                            <div class="party-details">
+                                <div class="party-name">${partyName}</div>
+                                <div class="party-info-row">
+                                    <span class="party-info-label">Address:</span>
+                                    <span class="party-info-value">${partyAddress}</span>
+                                </div>
+                                <div class="party-info-row">
+                                    <span class="party-info-label">Phone:</span>
+                                    <span class="party-info-value">${partyPhone}</span>
+                                </div>
+                                <div class="party-info-row">
+                                    <span class="party-info-label">GSTIN:</span>
+                                    <span class="party-info-value">${partyGstin}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="amount-card">
+                            <div class="amount-title">Amount Received</div>
+                            <div class="amount-value">${amountStr}</div>
+                            ${amountInWords ? `<div class="amount-words-box">${amountInWords} Only</div>` : ''}
+                        </div>
+                    </div>
+                    
+                    <!-- Transaction Details Grid Card -->
+                    <div class="details-grid-card">
+                        <div class="card-title">Transaction Details</div>
+                        <div class="details-grid">
+                            <div class="detail-row">
+                                <span class="detail-label">Transaction ID:</span>
+                                <span class="detail-value">${payment.transaction_details || payment._id}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Payment Date:</span>
+                                <span class="detail-value">${dateStr}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Payment Mode:</span>
+                                <span class="detail-value">
+                                    <span class="mode-badge ${modeBadgeClass}">${modeVal}</span>
+                                </span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Transaction Type:</span>
+                                <span class="detail-value">${type}</span>
+                            </div>
+                            <div class="detail-row" style="grid-column: span 2;">
+                                <span class="detail-label">Reference Document:</span>
+                                <span class="detail-value">
+                                    ${payment.reference_type ? `${payment.reference_type} (${payment.reference_id || '-'})` : '-'}
+                                </span>
+                            </div>
+                            ${payment.remarks ? `
+                            <div class="detail-row" style="grid-column: span 2; border-bottom: none;">
+                                <span class="detail-label">Remarks:</span>
+                                <span class="detail-value" style="text-align: left; font-weight: 500;">${payment.remarks}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                    
+                    <!-- Settlement summary section -->
+                    ${settlementHTML}
+                    
+                    <!-- Footer Note -->
+                    <div class="footer-note">
+                        This receipt confirms successful receipt of payment. Generated by SSMS ERP on ${printTimeStr}.
+                    </div>
                 </div>
             </body>
             </html>
@@ -791,9 +1100,40 @@
         window.location.href = `/payment?id=${paymentId}&refund=true`;
     });
 
-    $detailsPdfBtn?.addEventListener('click', () => {
+    $detailsPdfBtn?.addEventListener('click', async () => {
         if (!currentPayment) return;
-        const htmlContent = getReceiptHTML(currentPayment);
+        
+        // Fetch company info dynamically
+        const companyInfo = (window as any).companyConfig ? await (window as any).companyConfig.getCompanyInfo() : null;
+        
+        // Extract party details from the DOM elements
+        const partyDetails = {
+            name: $detailsPartyName.textContent || '-',
+            phone: $detailsPartyPhone.textContent || '-',
+            gstin: $detailsPartyGstin.textContent || '-',
+            email: $detailsPartyEmail.textContent || '-',
+            address: $detailsPartyAddress.textContent || '-'
+        };
+        
+        // Extract reference details if available
+        let refDetails = null;
+        if (currentPayment.reference_id && currentPayment.reference_type && currentPayment.reference_type !== 'Adjustment') {
+            const paidText = document.getElementById('details-ref-paid')?.textContent || '0';
+            const refundedText = document.getElementById('details-ref-refunded')?.textContent || '0';
+            const balanceText = document.getElementById('details-ref-balance')?.textContent || '0';
+            
+            refDetails = {
+                id: $detailsRefId.textContent || '-',
+                date: $detailsRefDate.textContent || '-',
+                amount: parseFloat(($detailsRefAmount.textContent || '0').replace(/[^0-9.-]/g, '')) || 0,
+                paid: parseFloat(paidText.replace(/[^0-9.-]/g, '')) || 0,
+                refunded: parseFloat(refundedText.replace(/[^0-9.-]/g, '')) || 0,
+                balance: parseFloat(balanceText.replace(/[^0-9.-]/g, '')) || 0,
+                status: $detailsRefStatus.textContent || '-'
+            };
+        }
+        
+        const htmlContent = getReceiptHTML(currentPayment, companyInfo, partyDetails, refDetails);
         const cleanPartyName = (currentPayment.party_name || currentPayment.party_display_id || 'Receipt').replace(/[^a-zA-Z0-9-_]/g, '_');
         const paymentDate = currentPayment.payment_date ? currentPayment.payment_date.split('T')[0] : '';
         const filename = `PaymentReceipt-${cleanPartyName}${paymentDate ? '-' + paymentDate : ''}`;
