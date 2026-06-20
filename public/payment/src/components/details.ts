@@ -416,7 +416,7 @@
                         <div class="amount-card">
                             <div class="amount-title">Amount Received</div>
                             <div class="amount-value">${amountStr}</div>
-                            ${amountInWords ? `<div class="amount-words-box">${amountInWords} Only</div>` : ''}
+                            ${amountInWords ? `<div class="amount-words-box">${amountInWords}</div>` : ''}
                         </div>
                     </div>
                     

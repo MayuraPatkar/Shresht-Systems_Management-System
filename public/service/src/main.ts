@@ -961,6 +961,23 @@
 
     function initKeyboardShortcuts() {
         document.addEventListener('keydown', (e: KeyboardEvent) => {
+            const isCtrlPressed = e.ctrlKey || e.metaKey;
+
+            // Allow Ctrl+S keyboard shortcut even when focused on inputs
+            if (isCtrlPressed && e.key.toLowerCase() === 's') {
+                const formEl = document.getElementById('new');
+                const isFormVisible = formEl && !formEl.classList.contains('hidden');
+                if (isFormVisible) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const saveBtn = document.getElementById('save-btn');
+                    if (saveBtn && window.getComputedStyle(saveBtn).display !== 'none') {
+                        (window as any).saveService();
+                    }
+                }
+                return;
+            }
+
             if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) {
                 if (e.key === 'Escape') e.target.blur();
                 return;
@@ -980,13 +997,6 @@
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'n') {
                 e.preventDefault();
                 showNewForm();
-            }
-
-            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
-                e.preventDefault();
-                if (document.getElementById('new') && !document.getElementById('new')?.classList.contains('hidden') && (window as any).currentStep === 3) {
-                    (window as any).saveService();
-                }
             }
 
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
