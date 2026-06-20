@@ -2620,6 +2620,9 @@ interface Window {
                     }
                 })
                 .catch(err => console.error('Error auto-loading payment from params:', err));
+        } else if (urlParams.get('voucher')) {
+            const vNo = urlParams.get('voucher');
+            if (vNo) (window as any).viewVoucherByNo(vNo);
         } else if (urlParams.get('new') === 'true') {
             openModal(null);
             setTimeout(() => {
