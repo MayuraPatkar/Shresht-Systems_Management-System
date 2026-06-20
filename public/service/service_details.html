@@ -141,17 +141,6 @@
                         title="Record New Service Stage">
                         <i class="fas fa-wrench text-xs"></i> Record
                     </button>
-                    <button id="details-pause-btn"
-                        class="px-4 py-2 border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-lg text-sm font-semibold transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-500/10"
-                        title="Pause/Resume Service Schedule">
-                        <i id="details-pause-icon" class="fas fa-pause text-xs text-amber-500"></i>
-                        <span id="details-pause-text">Pause</span>
-                    </button>
-                    <button id="details-close-btn"
-                        class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-sm font-semibold transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-rose-500/10"
-                        title="Close Service Schedule">
-                        <i class="fas fa-times text-xs"></i> Close
-                    </button>
 
                     <div class="w-px h-6 bg-slate-200 mx-1"></div>
 
@@ -520,6 +509,49 @@
                 </div>
             </div>
         </div>
+
+        <!-- Danger Zone Section -->
+        <section id="danger-zone-section" class="bg-red-50 rounded-xl p-6 border-2 border-red-200 fade-in mt-8">
+            <div class="flex items-center gap-3 mb-4 pb-3 border-b border-red-200">
+                <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                <h2 class="text-xl font-semibold text-red-800">Danger Zone</h2>
+            </div>
+            <div class="space-y-0">
+                <p class="mb-4 text-sm font-medium text-red-700">
+                    These actions alter the service schedule. Please proceed with caution.
+                </p>
+
+                <!-- Pause/Resume Row -->
+                <div id="danger-zone-pause-row" class="grid grid-cols-1 gap-4 py-5 border-b border-red-100/50 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                    <div class="min-w-0">
+                        <p class="text-sm font-semibold text-slate-900">Pause / Resume Service Schedule</p>
+                        <p class="mt-1 text-sm text-slate-600">Temporarily pause or resume sending service reminders and scheduling visits.</p>
+                    </div>
+                    <div class="sm:justify-self-end">
+                        <button type="button" id="details-pause-btn"
+                            class="inline-flex items-center justify-center gap-2 rounded-lg border border-amber-300 bg-white px-5 py-2.5 text-sm font-semibold text-amber-700 transition-all hover:border-amber-500 hover:bg-amber-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-amber-200 cursor-pointer">
+                            <i id="details-pause-icon" class="fas fa-pause text-amber-500 text-xs"></i>
+                            <span id="details-pause-text">Pause</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Close Row -->
+                <div id="danger-zone-close-row" class="grid grid-cols-1 gap-4 py-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                    <div class="min-w-0">
+                        <p class="text-sm font-semibold text-slate-900">Close Service Schedule</p>
+                        <p class="mt-1 text-sm text-slate-600">Permanently close this service schedule. No further services will be scheduled.</p>
+                    </div>
+                    <div class="sm:justify-self-end">
+                        <button type="button" id="details-close-btn"
+                            class="inline-flex items-center justify-center gap-2 rounded-lg border border-red-300 bg-white px-5 py-2.5 text-sm font-semibold text-red-700 transition-all hover:border-red-500 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-200 cursor-pointer">
+                            <i class="fas fa-times text-xs"></i>
+                            Close Schedule
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
     </div>
 

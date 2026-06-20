@@ -1171,7 +1171,12 @@ router.post("/close-service/:invoiceId", async (req: Request, res: Response) => 
     try {
         const { invoiceId } = req.params;
 
-        const invoice = await InvoiceModel.findOne({ invoice_id: invoiceId }) as any;
+        let invoice = await InvoiceModel.findOne({ invoice_id: invoiceId }) as any;
+        if (!invoice) {
+            try {
+                invoice = await InvoiceModel.findById(invoiceId);
+            } catch (e) {}
+        }
         if (!invoice) {
             return res.status(404).json({ message: 'Invoice not found' });
         }

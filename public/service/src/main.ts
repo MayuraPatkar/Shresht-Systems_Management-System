@@ -170,7 +170,10 @@
             const invVal = params.get('invoice') || params.get('invoiceId') || params.get('invoice_id') || null;
             showNewForm(invVal);
         } else if (params.has('edit')) {
-            const editVal = params.get('edit');
+            let editVal = params.get('edit');
+            if (editVal === 'true') {
+                editVal = params.get('id') || params.get('serviceId');
+            }
             if (editVal) editService(editVal);
         } else {
             showEmptyState();
