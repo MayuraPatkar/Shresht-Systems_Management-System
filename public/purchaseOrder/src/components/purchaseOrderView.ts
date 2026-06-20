@@ -534,12 +534,22 @@
         const actionHeaders = document.querySelectorAll(".action-header");
         const dangerZoneSection = document.getElementById("danger-zone") || document.getElementById("danger-zone-section");
         
+        const viewEditBtn = document.getElementById('view-edit-btn');
+        const viewSaveBtn = document.getElementById('view-save-btn');
+        const viewCancelBtn = document.getElementById('view-cancel-btn');
+        const viewPaymentBtn = document.getElementById('view-payment-btn');
+
         if (isEditingInline) {
             editFields.forEach(el => el.classList.remove("hidden"));
             viewFields.forEach(el => el.classList.add("hidden"));
             actionHeaders.forEach(el => el.classList.remove("hidden"));
             if (dangerZoneSection) dangerZoneSection.classList.add("hidden");
             
+            if (viewEditBtn) viewEditBtn.style.display = 'none';
+            if (viewSaveBtn) viewSaveBtn.style.display = 'flex';
+            if (viewCancelBtn) viewCancelBtn.style.display = 'flex';
+            if (viewPaymentBtn) viewPaymentBtn.style.display = 'none';
+
             // Populating supplier edit fields
             const addr = snapshot.address || {};
             (document.getElementById('edit-purchase-date') as HTMLInputElement).value = purchaseOrder.purchase_date ? purchaseOrder.purchase_date.split('T')[0] : '';
@@ -565,6 +575,10 @@
                     dangerZoneSection.classList.add('hidden');
                 }
             }
+            if (viewEditBtn) viewEditBtn.style.display = 'flex';
+            if (viewSaveBtn) viewSaveBtn.style.display = 'none';
+            if (viewCancelBtn) viewCancelBtn.style.display = 'none';
+            if (viewPaymentBtn) viewPaymentBtn.style.display = 'flex';
         }
 
         // Item List - clear and populate
@@ -1022,6 +1036,47 @@
         if (saveBtn) {
             saveBtn.addEventListener("click", () => {
                 saveInlineChanges();
+            });
+        }
+
+        const viewPaymentBtn = document.getElementById("view-payment-btn");
+        if (viewPaymentBtn) {
+            viewPaymentBtn.addEventListener("click", () => {
+                if (currentPurchaseOrder) {
+                    let totalTaxable = 0;
+                    let totalTaxAmount = 0;
+                    (currentPurchaseOrder.items || []).forEach((item: any) => {
+                        const qty = parseFloat(item.quantity || 0);
+                        const unitPrice = parseFloat(item.unit_price || 0);
+                        const rate = parseFloat(item.gst_rate || item.rate || 0);
+                        const taxableValue = qty * unitPrice;
+                        const taxAmount = (taxableValue * rate) / 100;
+                        totalTaxable += taxableValue;
+                        totalTaxAmount += taxAmount;
+                    });
+                    
+                    const calcGrandTotal = totalTaxable + totalTaxAmount;
+                    const roundOff = Math.round(calcGrandTotal) - calcGrandTotal;
+                    const totalAmount = calcGrandTotal + roundOff;
+
+                    const storedGrandTotal = Number(currentPurchaseOrder.totals?.grand_total || totalAmount);
+                    const totalPaid = Number(currentPurchaseOrder.total_paid_amount || 0);
+                    const balanceDue = storedGrandTotal - totalPaid;
+
+                    if (currentPurchaseOrder.payment_status === 'PAID' || balanceDue <= 0) {
+                        showAlert("This purchase order is already fully paid.");
+                        return;
+                    }
+
+                    const refId = currentPurchaseOrder.purchase_order_no;
+                    const refType = 'Purchase'; // Ref Type in ledger defaults to Purchase
+                    const partyType = 'Supplier';
+                    const partyId = currentPurchaseOrder.supplier_id || '';
+                    const partyName = encodeURIComponent(currentPurchaseOrder.supplier_snapshot?.name || '');
+
+                    const url = `/payment/payment.html?new=true&direction=OUT&amount=${balanceDue}&ref_type=${refType}&ref_id=${refId}&party_type=${partyType}&party_id=${partyId}&party_name=${partyName}`;
+                    window.location.href = url;
+                }
             });
         }
 
