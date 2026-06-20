@@ -692,6 +692,107 @@ router.post('/send-quotation', async (req: Request, res: Response) => {
     }
 });
 
+// Send payment receipt or voucher using template (auto-generates PDF)
+router.post('/send-payment', async (req: Request, res: Response) => {
+    const { phone, paymentId, htmlContent, documentType, partyName, amount, date } = req.body;
+    if (!phone || !paymentId || !htmlContent || !documentType) {
+        return res.status(400).json({ message: 'Phone, Payment ID, HTML Content, and Document Type are required.' });
+    }
+
+    let documentUrl = '';
+    let isCloudUploaded = false;
+    const tempFilename = `${paymentId.replace(/[^a-zA-Z0-9-_]/g, '_')}.pdf`;
+    const outputPath = path.join(pdfGenerator.UPLOADS_DIR, tempFilename);
+
+    try {
+        // Generate PDF using quotationPrintHandler
+        const printResult = await quotationPrintHandler.generatePDF(htmlContent, outputPath);
+        if (!printResult.success) {
+            logger.error('Payment PDF generation failed', { service: "messaging", error: printResult.error, paymentId });
+            return res.status(500).json({ message: 'Failed to generate PDF.', error: printResult.error });
+        }
+
+        // Upload to Cloudinary if configured
+        if (cloudStorage && cloudStorage.isConfigured()) {
+            const uploadResult = await cloudStorage.uploadPDF(outputPath, paymentId);
+            if (uploadResult.success) {
+                documentUrl = uploadResult.url;
+                isCloudUploaded = true;
+                logger.info('Payment PDF uploaded to cloud', { service: "messaging", url: documentUrl, paymentId });
+
+                try {
+                    const fileCleanup = require('../utils/fileCleanup');
+                    await fileCleanup.removeFile(outputPath, (global.appPaths && global.appPaths.userData) || __dirname);
+                } catch (e: any) {
+                    logger.warn('Failed to delete local PDF after cloud upload:', e && e.message);
+                }
+            } else {
+                logger.warn(`Cloud upload failed, using local URL: ${uploadResult.error}`);
+            }
+        }
+
+        if (!documentUrl) {
+            const baseUrl = config.whatsapp.pdfBaseUrl || `http://localhost:${config.port}`;
+            documentUrl = `${baseUrl}/documents/${tempFilename}`;
+        }
+
+        // Send via WhatsApp
+        const result = await sendDocumentTemplate(phone, {
+            documentType: documentType,
+            customerName: partyName || 'Valued Client',
+            referenceNo: paymentId,
+            date: date || formatDateForTemplate(new Date()),
+            amount: amount ? formatAmountForTemplate(parseFloat(amount) || 0) : '0.00',
+            documentUrl: documentUrl
+        });
+
+        const messageId = result?.messages?.[0]?.id;
+
+        await logCommunication({
+            recipient: phone,
+            messageType: 'Document',
+            referenceId: paymentId,
+            content: `${documentType === 'payment voucher' ? 'Payment Voucher' : 'Payment Receipt'} PDF sent to ${partyName || 'Valued Client'}. Reference: ${paymentId}. Amount: ${amount || '0.00'}`,
+            documentUrl: documentUrl,
+            status: "Success",
+            messageId
+        });
+
+        // Auto-delete temp PDF from Cloudinary after 3 minutes
+        if (isCloudUploaded && cloudStorage) {
+            setTimeout(async () => {
+                try {
+                    await cloudStorage.deletePDF(paymentId);
+                    logger.info('Temporary payment PDF deleted from cloud storage', { service: "messaging", paymentId });
+                } catch (e: any) {
+                    logger.error('Error auto-deleting payment PDF:', { service: "messaging", error: e.message || String(e), paymentId });
+                }
+            }, 180000);
+        }
+
+        res.json({
+            message: `${documentType === 'payment voucher' ? 'Voucher' : 'Receipt'} sent via WhatsApp.`,
+            pdfUrl: documentUrl
+        });
+    } catch (err: any) {
+        logger.error('Payment document send failed', { service: "messaging", error: err?.response?.data || err.message, paymentId });
+        const errMsg = err?.response?.data ? JSON.stringify(err.response.data) : err.message || String(err);
+        await logCommunication({
+            recipient: phone,
+            messageType: 'Document',
+            referenceId: paymentId,
+            content: `${documentType === 'payment voucher' ? 'Payment Voucher' : 'Payment Receipt'} PDF sent. Reference: ${paymentId}`,
+            documentUrl: documentUrl,
+            status: "Failed",
+            errorMessage: errMsg
+        });
+        res.status(500).json({
+            message: 'Failed to send payment document.',
+            error: err?.response?.data || err.message
+        });
+    }
+});
+
 // Send generic document
 router.post('/send-document', async (req: Request, res: Response) => {
     const { phone, documentType, customerName, referenceNo, date, amount, documentUrl } = req.body;

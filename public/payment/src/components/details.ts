@@ -877,10 +877,13 @@
         $detailsCreated.textContent = formatDate(payment.createdAt);
         
         const vNo = (payment as any).voucher_no;
+        const $sendVoucherBtn = document.getElementById('details-send-voucher-btn');
         if (vNo) {
             $detailsVoucher.innerHTML = `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">${escapeHtml(vNo)}</span>`;
+            if ($sendVoucherBtn) $sendVoucherBtn.classList.remove('hidden');
         } else {
             $detailsVoucher.textContent = '-';
+            if ($sendVoucherBtn) $sendVoucherBtn.classList.add('hidden');
         }
 
         $detailsRemarks.textContent = valOrDash(payment.remarks);
@@ -1249,6 +1252,349 @@
             return;
         }
     });
+
+    // Send Receipt button handler
+    const $detailsSendReceiptBtn = document.getElementById('details-send-receipt-btn') as HTMLButtonElement | null;
+    $detailsSendReceiptBtn?.addEventListener('click', async () => {
+        if (!currentPayment) return;
+        const payment = currentPayment;
+
+        // Fetch company info dynamically
+        const companyInfo = (window as any).companyConfig ? await (window as any).companyConfig.getCompanyInfo() : null;
+
+        // Extract party details from the DOM elements
+        const partyDetails = {
+            name: $detailsPartyName.textContent || '-',
+            phone: $detailsPartyPhone.textContent || '-',
+            gstin: $detailsPartyGstin.textContent || '-',
+            email: $detailsPartyEmail.textContent || '-',
+            address: $detailsPartyAddress.textContent || '-'
+        };
+
+        // Extract reference details if available
+        let refDetails = null;
+        if (payment.reference_id && payment.reference_type && payment.reference_type !== 'Adjustment') {
+            const paidText = document.getElementById('details-ref-paid')?.textContent || '0';
+            const refundedText = document.getElementById('details-ref-refunded')?.textContent || '0';
+            const balanceText = document.getElementById('details-ref-balance')?.textContent || '0';
+
+            refDetails = {
+                id: $detailsRefId.textContent || '-',
+                date: $detailsRefDate.textContent || '-',
+                amount: parseFloat(($detailsRefAmount.textContent || '0').replace(/[^0-9.-]/g, '')) || 0,
+                paid: parseFloat(paidText.replace(/[^0-9.-]/g, '')) || 0,
+                refunded: parseFloat(refundedText.replace(/[^0-9.-]/g, '')) || 0,
+                balance: parseFloat(balanceText.replace(/[^0-9.-]/g, '')) || 0,
+                status: $detailsRefStatus.textContent || '-'
+            };
+        }
+
+        const htmlContent = getReceiptHTML(payment, companyInfo, partyDetails, refDetails);
+        const defaultPhone = partyDetails.phone && partyDetails.phone !== '-' ? partyDetails.phone : '';
+        const paymentIdStr = payment._id.substring(payment._id.length - 6).toUpperCase();
+
+        showWhatsAppPromptModal(defaultPhone, async (phone: string) => {
+            const cleanPhone = phone.replace(/\D/g, '');
+            if (cleanPhone.length < 10 || cleanPhone.length > 15) {
+                alert('Please enter a valid phone number (10 to 15 digits).');
+                return;
+            }
+
+            let formattedPhone = cleanPhone;
+            if (!formattedPhone.startsWith('91') && formattedPhone.length === 10) {
+                formattedPhone = '91' + formattedPhone;
+            }
+
+            if ($detailsSendReceiptBtn) {
+                $detailsSendReceiptBtn.disabled = true;
+                $detailsSendReceiptBtn.classList.add('opacity-70', 'cursor-not-allowed');
+                $detailsSendReceiptBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            }
+
+            try {
+                const res = await fetch('/comms/send-payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        phone: formattedPhone,
+                        paymentId: `Receipt-${paymentIdStr}`,
+                        htmlContent: htmlContent,
+                        documentType: 'payment receipt',
+                        partyName: partyDetails.name,
+                        amount: payment.amount,
+                        date: payment.payment_date
+                    })
+                });
+
+                const result = await res.json();
+                if (!res.ok) {
+                    throw new Error(result.message || result.error || 'Failed to send receipt.');
+                }
+
+                showToast('Receipt sent via WhatsApp successfully!');
+            } catch (err: any) {
+                console.error('WhatsApp receipt send error:', err);
+                alert(err.message || 'Error occurred while sending receipt.');
+            } finally {
+                if ($detailsSendReceiptBtn) {
+                    $detailsSendReceiptBtn.disabled = false;
+                    $detailsSendReceiptBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+                    $detailsSendReceiptBtn.innerHTML = '<i class="fab fa-whatsapp text-emerald-500 text-xs"></i> Send Receipt';
+                }
+            }
+        });
+    });
+
+    // Send Voucher button handler
+    const $detailsSendVoucherBtn = document.getElementById('details-send-voucher-btn') as HTMLButtonElement | null;
+    $detailsSendVoucherBtn?.addEventListener('click', async () => {
+        if (!currentPayment || !currentPayment.voucher_no) return;
+
+        if ($detailsSendVoucherBtn) {
+            $detailsSendVoucherBtn.disabled = true;
+            $detailsSendVoucherBtn.classList.add('opacity-70', 'cursor-not-allowed');
+            $detailsSendVoucherBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching...';
+        }
+
+        try {
+            // Fetch voucher details from server
+            const res = await fetch(`/payment/voucher/by-no/${currentPayment.voucher_no}`);
+            const data = await res.json();
+
+            if (!res.ok || !data.success) {
+                throw new Error(data.message || 'Failed to fetch voucher details.');
+            }
+
+            const htmlContent = generateVoucherPrintHTML(data.voucher, data.company);
+            const partyPhone = data.voucher.partyPhone || $detailsPartyPhone.textContent || '';
+            const defaultPhone = partyPhone && partyPhone !== '-' ? partyPhone : '';
+
+            showWhatsAppPromptModal(defaultPhone, async (phone: string) => {
+                const cleanPhone = phone.replace(/\D/g, '');
+                if (cleanPhone.length < 10 || cleanPhone.length > 15) {
+                    alert('Please enter a valid phone number (10 to 15 digits).');
+                    return;
+                }
+
+                let formattedPhone = cleanPhone;
+                if (!formattedPhone.startsWith('91') && formattedPhone.length === 10) {
+                    formattedPhone = '91' + formattedPhone;
+                }
+
+                if ($detailsSendVoucherBtn) {
+                    $detailsSendVoucherBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                }
+
+                try {
+                    const sendRes = await fetch('/comms/send-payment', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            phone: formattedPhone,
+                            paymentId: `Voucher-${data.voucher.voucherNumber}`,
+                            htmlContent: htmlContent,
+                            documentType: 'payment voucher',
+                            partyName: data.voucher.partyName,
+                            amount: data.voucher.amount,
+                            date: data.voucher.date
+                        })
+                    });
+
+                    const sendResult = await sendRes.json();
+                    if (!sendRes.ok) {
+                        throw new Error(sendResult.message || sendResult.error || 'Failed to send voucher.');
+                    }
+
+                    showToast('Voucher sent via WhatsApp successfully!');
+                } catch (err: any) {
+                    console.error('WhatsApp voucher send error:', err);
+                    alert(err.message || 'Error occurred while sending voucher.');
+                } finally {
+                    if ($detailsSendVoucherBtn) {
+                        $detailsSendVoucherBtn.disabled = false;
+                        $detailsSendVoucherBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+                        $detailsSendVoucherBtn.innerHTML = '<i class="fab fa-whatsapp text-emerald-500 text-xs"></i> Send Voucher';
+                    }
+                }
+            });
+        } catch (err: any) {
+            console.error('Voucher fetch / send error:', err);
+            alert(err.message || 'Failed to prepare voucher for sending.');
+            if ($detailsSendVoucherBtn) {
+                $detailsSendVoucherBtn.disabled = false;
+                $detailsSendVoucherBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+                $detailsSendVoucherBtn.innerHTML = '<i class="fab fa-whatsapp text-emerald-500 text-xs"></i> Send Voucher';
+            }
+        }
+    });
+
+    function generateVoucherPrintHTML(v: any, c: any): string {
+        const formatDate = (d: any) => d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+        const formatIndian = (n: any) => Number(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        let methodDetails = v.paymentMethod;
+        if (v.paymentMethod === 'Cheque') {
+            methodDetails += ` (Cheque No: ${v.chequeNumber || '-'}, Bank: ${v.bankName || '-'}, Date: ${formatDate(v.chequeDate)})`;
+        } else if (v.paymentMethod === 'Bank Transfer') {
+            methodDetails += ` (Bank: ${v.bankName || '-'}, Ref: ${v.referenceNumber || '-'})`;
+        } else if (v.paymentMethod === 'UPI') {
+            methodDetails += ` (UPI Ref: ${v.referenceNumber || '-'})`;
+        }
+
+        return `
+        <html>
+        <head>
+            <title>Payment Voucher - ${v.voucherNumber}</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 30px; color: #333; background-color: #fff; margin: 0; }
+                .voucher-container { border: 2px solid #333; padding: 24px; max-width: 800px; margin: 0 auto; background: #fff; }
+                .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px double #333; padding-bottom: 15px; margin-bottom: 20px; }
+                .company-info h1 { font-size: 20px; font-weight: bold; margin: 0; color: #000; text-transform: uppercase; }
+                .company-info p { font-size: 11px; margin: 3px 0 0 0; color: #555; }
+                .voucher-title-box { text-align: center; margin: 15px 0; }
+                .voucher-title { font-size: 16px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; border: 2px solid #000; padding: 6px 16px; display: inline-block; }
+                .content-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+                .content-table td { padding: 12px 8px; font-size: 13px; vertical-align: top; }
+                .content-table tr { border-bottom: 1px solid #eee; }
+                .label { font-weight: bold; width: 25%; color: #000; }
+                .value { border-bottom: 1px dashed #333; }
+                .amount-row { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; margin-bottom: 40px; }
+                .amount-box { border: 2px solid #000; padding: 10px 20px; font-size: 18px; font-weight: bold; background-color: #f8fafc; display: inline-block; }
+                .amount-words-box { font-size: 12px; font-style: italic; width: 65%; border-bottom: 1px dashed #333; padding-bottom: 5px; }
+                .signature-row { display: flex; justify-content: space-between; margin-top: 50px; font-size: 12px; font-weight: bold; }
+                .sig-col { width: 40%; text-align: center; }
+                .sig-line { border-bottom: 1px solid #000; margin-bottom: 8px; height: 30px; }
+                @media print { body { padding: 0; } .voucher-container { border: 2px solid #000; } }
+            </style>
+        </head>
+        <body>
+            <div class="voucher-container">
+                <div class="header">
+                    <div class="company-info">
+                        <h1>${c.name}</h1>
+                        <p>${c.address || ''}</p>
+                        <p>Phone: ${c.phone || ''} | Email: ${c.email || ''}</p>
+                    </div>
+                    <div style="text-align: right; font-family: monospace;">
+                        <div style="font-weight: bold; font-size: 14px;">Voucher No: <span style="color: #c2410c;">${v.voucherNumber}</span></div>
+                        <div style="margin-top: 5px; font-size: 12px;">Date: ${formatDate(v.date)}</div>
+                    </div>
+                </div>
+
+                <div class="voucher-title-box">
+                    <div class="voucher-title">Payment Voucher</div>
+                </div>
+
+                <table class="content-table">
+                    <tr>
+                        <td class="label">Paid To (Payee)</td>
+                        <td class="value">${v.partyName} (${v.partyType})</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Payment Method</td>
+                        <td class="value">${methodDetails}</td>
+                    </tr>
+                    <tr style="border-bottom: none;">
+                        <td class="label">Paid Towards</td>
+                        <td class="value" style="white-space: pre-wrap;">${v.paidTowards}</td>
+                    </tr>
+                </table>
+
+                <div class="amount-row">
+                    <div class="amount-words-box">
+                        <strong>Amount in Words:</strong><br>
+                        ${v.amountInWords}
+                    </div>
+                    <div class="amount-box">
+                        ₹ ${formatIndian(v.amount)}
+                    </div>
+                </div>
+
+                <div class="signature-row">
+                    <div class="sig-col">
+                        <div class="sig-line"></div>
+                        Paid By
+                    </div>
+                    <div class="sig-col">
+                        <div class="sig-line"></div>
+                        Receiver Signature
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>`;
+    }
+
+    function showWhatsAppPromptModal(defaultPhone: string, callback: (phone: string) => void) {
+        const modalHTML = `
+            <div id="whatsapp-prompt-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-[4px] z-[999] flex items-center justify-center transition-all duration-200">
+                <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden border border-slate-100 flex flex-col">
+                    <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i class="fab fa-whatsapp text-emerald-500 text-xl"></i>
+                            <h3 class="text-lg font-bold text-slate-800">Send via WhatsApp</h3>
+                        </div>
+                        <button id="close-whatsapp-modal" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-200 cursor-pointer">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div>
+                            <label for="whatsapp-prompt-phone" class="block text-sm font-medium text-slate-700 mb-2">
+                                Enter Client's WhatsApp Number
+                            </label>
+                            <input type="tel" id="whatsapp-prompt-phone" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium transition-all" 
+                                placeholder="e.g., 9876543210 or 919876543210" value="${defaultPhone}">
+                            <p class="text-xs text-slate-400 mt-2">Specify the number with country code if outside India.</p>
+                        </div>
+                    </div>
+                    <div class="p-6 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
+                        <button id="cancel-whatsapp-modal" class="px-5 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 font-semibold text-sm transition-all cursor-pointer">
+                            Cancel
+                        </button>
+                        <button id="submit-whatsapp-modal" class="px-5 py-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 font-semibold text-sm transition-all cursor-pointer shadow-sm shadow-emerald-500/10 flex items-center gap-2">
+                            <i class="fas fa-paper-plane text-xs"></i> Send
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const existingModal = document.getElementById('whatsapp-prompt-modal');
+        if (existingModal) existingModal.remove();
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        const modal = document.getElementById('whatsapp-prompt-modal')!;
+        const closeBtn = document.getElementById('close-whatsapp-modal')!;
+        const cancelBtn = document.getElementById('cancel-whatsapp-modal')!;
+        const submitBtn = document.getElementById('submit-whatsapp-modal')!;
+        const phoneInput = document.getElementById('whatsapp-prompt-phone') as HTMLInputElement;
+
+        const closeModal = () => modal.remove();
+
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        submitBtn.addEventListener('click', () => {
+            callback(phoneInput.value);
+            closeModal();
+        });
+
+        phoneInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                callback(phoneInput.value);
+                closeModal();
+            } else if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        setTimeout(() => phoneInput.focus(), 50);
+    }
 
     // ── Init ───────────────────────────────────────────────
     initShortcutsModal();
