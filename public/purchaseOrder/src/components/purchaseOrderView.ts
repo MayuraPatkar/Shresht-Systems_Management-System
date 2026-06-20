@@ -450,8 +450,128 @@
         }
     }
 
+    function updatePurchaseOrderStatusTracker(purchaseOrder: any) {
+        const trackerEl = document.getElementById('purchaseorder-status-tracker');
+        if (!trackerEl) return;
+
+        const status = purchaseOrder.status || 'Draft';
+
+        let step1State = 'completed';
+        let step2State = 'pending';
+        let step3State = 'pending';
+        let step4State = 'pending';
+        let step5State = 'pending';
+
+        let step3Label = 'Accepted';
+        let step3Subtitle = 'Accepted by supplier';
+        let step3Icon = 'fa-check-circle';
+        let step3ColorClass = 'emerald';
+
+        let progressWidth = '0%';
+
+        if (status === 'Draft') {
+            step1State = 'active';
+            progressWidth = '0%';
+        } else if (status === 'Issued/Sent') {
+            step1State = 'completed';
+            step2State = 'active';
+            progressWidth = '25%';
+        } else if (status === 'Acknowledged/Accepted') {
+            step1State = 'completed';
+            step2State = 'completed';
+            step3State = 'active';
+            progressWidth = '50%';
+        } else if (status === 'Rejected') {
+            step1State = 'completed';
+            step2State = 'completed';
+            step3State = 'warning';
+            step3Label = 'Rejected';
+            step3Subtitle = 'Declined by supplier';
+            step3Icon = 'fa-times-circle';
+            step3ColorClass = 'red';
+            progressWidth = '50%';
+        } else if (status === 'Shipped') {
+            step1State = 'completed';
+            step2State = 'completed';
+            step3State = 'completed';
+            step4State = 'active';
+            progressWidth = '75%';
+        } else if (status === 'Invoiced') {
+            step1State = 'completed';
+            step2State = 'completed';
+            step3State = 'completed';
+            step4State = 'completed';
+            step5State = 'completed';
+            progressWidth = '100%';
+        }
+
+        const renderStepCircle = (state: string, icon: string, color: string, label: string, subtitle: string) => {
+            let circleClass = '';
+            let labelClass = 'text-gray-800';
+            let iconMarkup = `<i class="fas ${icon} text-sm"></i>`;
+
+            if (state === 'completed') {
+                circleClass = 'bg-emerald-500 text-white ring-4 ring-emerald-100';
+                iconMarkup = `<i class="fas fa-check text-sm"></i>`;
+            } else if (state === 'active') {
+                if (color === 'emerald') {
+                    circleClass = 'bg-emerald-500 text-white ring-4 ring-emerald-100';
+                    labelClass = 'text-emerald-600 font-bold';
+                } else {
+                    circleClass = 'bg-blue-600 text-white ring-4 ring-blue-100';
+                    labelClass = 'text-blue-600 font-bold';
+                }
+            } else if (state === 'warning') {
+                if (color === 'red') {
+                    circleClass = 'bg-red-500 text-white ring-4 ring-red-100';
+                    labelClass = 'text-red-600 font-bold';
+                } else {
+                    circleClass = 'bg-amber-500 text-white ring-4 ring-amber-100';
+                    labelClass = 'text-amber-600 font-bold';
+                }
+            } else {
+                circleClass = 'bg-gray-100 text-gray-400 border border-gray-200';
+                labelClass = 'text-gray-400';
+            }
+
+            return `
+                <div class="flex flex-col items-center z-10 flex-1 relative">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${circleClass}">
+                        ${iconMarkup}
+                    </div>
+                    <span class="text-xs font-bold mt-2 ${labelClass}">${label}</span>
+                    <span class="text-[10px] text-gray-500 mt-0.5">${subtitle}</span>
+                </div>
+            `;
+        };
+
+        trackerEl.innerHTML = `
+            <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
+                <i class="fas fa-route text-blue-600 text-xl"></i>
+                <h3 class="text-lg font-bold text-gray-800">Status Tracker</h3>
+            </div>
+            <div class="relative w-full max-w-4xl mx-auto py-6">
+                <!-- Background progress line -->
+                <div class="absolute top-[36px] left-[20px] right-[20px] h-1 bg-gray-100 -translate-y-1/2 z-0 rounded-full">
+                    <div class="h-full bg-gradient-to-r from-emerald-500 to-blue-600 transition-all duration-500 rounded-full" style="width: ${progressWidth}"></div>
+                </div>
+                
+                <!-- Steps Container -->
+                <div class="relative flex justify-between items-center z-10 w-full">
+                    ${renderStepCircle(step1State, 'fa-file-signature', 'blue', 'Draft', 'Created')}
+                    ${renderStepCircle(step2State, 'fa-paper-plane', 'blue', 'Issued/Sent', 'Sent to supplier')}
+                    ${renderStepCircle(step3State, step3Icon, step3ColorClass, step3Label, step3Subtitle)}
+                    ${renderStepCircle(step4State, 'fa-shipping-fast', 'blue', 'Shipped', 'Goods dispatched')}
+                    ${renderStepCircle(step5State, 'fa-file-invoice-dollar', 'emerald', 'Invoiced', 'Billed by supplier')}
+                </div>
+            </div>
+        `;
+        trackerEl.classList.remove('hidden');
+    }
+
     function renderPurchaseOrderDetails(purchaseOrder: any) {
         currentPurchaseOrder = purchaseOrder;
+        updatePurchaseOrderStatusTracker(purchaseOrder);
         const formatIndian = (window as any).formatIndian || ((n, f) => n.toFixed(f));
 
         // Fill Project Details
@@ -537,7 +657,9 @@
         const viewEditBtn = document.getElementById('view-edit-btn');
         const viewSaveBtn = document.getElementById('view-save-btn');
         const viewCancelBtn = document.getElementById('view-cancel-btn');
-        const viewPaymentBtn = document.getElementById('view-payment-btn');
+        const viewConvertBtn = document.getElementById('view-convert-purchase-btn') as HTMLButtonElement | null;
+
+        const isPOInvoiced = purchaseOrder.status === 'Invoiced';
 
         if (isEditingInline) {
             editFields.forEach(el => el.classList.remove("hidden"));
@@ -548,7 +670,7 @@
             if (viewEditBtn) viewEditBtn.style.display = 'none';
             if (viewSaveBtn) viewSaveBtn.style.display = 'flex';
             if (viewCancelBtn) viewCancelBtn.style.display = 'flex';
-            if (viewPaymentBtn) viewPaymentBtn.style.display = 'none';
+            if (viewConvertBtn) viewConvertBtn.style.display = 'none';
 
             // Populating supplier edit fields
             const addr = snapshot.address || {};
@@ -578,7 +700,19 @@
             if (viewEditBtn) viewEditBtn.style.display = 'flex';
             if (viewSaveBtn) viewSaveBtn.style.display = 'none';
             if (viewCancelBtn) viewCancelBtn.style.display = 'none';
-            if (viewPaymentBtn) viewPaymentBtn.style.display = 'flex';
+            
+            if (viewConvertBtn) {
+                viewConvertBtn.style.display = 'flex';
+                if (isPOInvoiced) {
+                    viewConvertBtn.disabled = false;
+                    viewConvertBtn.className = "view-mode-btn flex bg-emerald-600 hover:bg-emerald-700 text-white px-4 h-10 rounded-lg items-center justify-center gap-2 font-medium whitespace-nowrap cursor-pointer";
+                    viewConvertBtn.title = "Convert this Invoiced Purchase Order to a Purchase";
+                } else {
+                    viewConvertBtn.disabled = true;
+                    viewConvertBtn.className = "view-mode-btn flex bg-gray-200 text-gray-400 border border-gray-300 px-4 h-10 rounded-lg items-center justify-center gap-2 font-medium whitespace-nowrap opacity-60 cursor-not-allowed";
+                    viewConvertBtn.title = "Only purchase orders with 'Invoiced' status can be converted to purchases.";
+                }
+            }
         }
 
         // Item List - clear and populate
@@ -714,9 +848,29 @@
             const newDeleteBtn = deleteBtn.cloneNode(true) as HTMLButtonElement;
             deleteBtn.parentNode?.replaceChild(newDeleteBtn, deleteBtn);
 
+            const isDeleted = purchaseOrder.deletion?.is_deleted || purchaseOrder.is_deleted;
+            const deleteTitle = document.getElementById('danger-zone-delete-title');
+            const deleteDesc = document.getElementById('danger-zone-delete-desc');
+
+            if (isDeleted) {
+                if (deleteTitle) deleteTitle.textContent = 'Permanently Delete Purchase Order';
+                if (deleteDesc) deleteDesc.textContent = 'Permanently delete this purchase order from database. This action cannot be undone.';
+                newDeleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete Permanently';
+            } else {
+                if (deleteTitle) deleteTitle.textContent = 'Delete Purchase Order';
+                if (deleteDesc) deleteDesc.textContent = 'Move this purchase order to trash.';
+                newDeleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete Purchase Order';
+            }
+
             newDeleteBtn.addEventListener('click', () => {
-                if (typeof (window as any).handlePurchaseOrderHardDelete === 'function') {
-                    (window as any).handlePurchaseOrderHardDelete(purchaseOrder.purchase_order_no);
+                if (isDeleted) {
+                    if (typeof (window as any).handlePurchaseOrderHardDelete === 'function') {
+                        (window as any).handlePurchaseOrderHardDelete(purchaseOrder.purchase_order_no);
+                    }
+                } else {
+                    if (typeof (window as any).handlePurchaseOrderSoftDelete === 'function') {
+                        (window as any).handlePurchaseOrderSoftDelete(purchaseOrder.purchase_order_no);
+                    }
                 }
             });
         }
@@ -1016,8 +1170,7 @@
             editBtn.parentNode?.replaceChild(newEditBtn, editBtn);
             newEditBtn.addEventListener("click", () => {
                 if (currentPurchaseOrder) {
-                    setEditingInline(true);
-                    renderPurchaseOrderDetails(currentPurchaseOrder);
+                    window.location.href = `/purchaseOrder/purchaseOrder_form.html?id=${currentPurchaseOrder.purchase_order_no}`;
                 }
             });
         }
@@ -1039,43 +1192,13 @@
             });
         }
 
-        const viewPaymentBtn = document.getElementById("view-payment-btn");
-        if (viewPaymentBtn) {
-            viewPaymentBtn.addEventListener("click", () => {
-                if (currentPurchaseOrder) {
-                    let totalTaxable = 0;
-                    let totalTaxAmount = 0;
-                    (currentPurchaseOrder.items || []).forEach((item: any) => {
-                        const qty = parseFloat(item.quantity || 0);
-                        const unitPrice = parseFloat(item.unit_price || 0);
-                        const rate = parseFloat(item.gst_rate || item.rate || 0);
-                        const taxableValue = qty * unitPrice;
-                        const taxAmount = (taxableValue * rate) / 100;
-                        totalTaxable += taxableValue;
-                        totalTaxAmount += taxAmount;
-                    });
-                    
-                    const calcGrandTotal = totalTaxable + totalTaxAmount;
-                    const roundOff = Math.round(calcGrandTotal) - calcGrandTotal;
-                    const totalAmount = calcGrandTotal + roundOff;
-
-                    const storedGrandTotal = Number(currentPurchaseOrder.totals?.grand_total || totalAmount);
-                    const totalPaid = Number(currentPurchaseOrder.total_paid_amount || 0);
-                    const balanceDue = storedGrandTotal - totalPaid;
-
-                    if (currentPurchaseOrder.payment_status === 'PAID' || balanceDue <= 0) {
-                        showAlert("This purchase order is already fully paid.");
-                        return;
-                    }
-
-                    const refId = currentPurchaseOrder.purchase_order_no;
-                    const refType = 'Purchase'; // Ref Type in ledger defaults to Purchase
-                    const partyType = 'Supplier';
-                    const partyId = currentPurchaseOrder.supplier_id || '';
-                    const partyName = encodeURIComponent(currentPurchaseOrder.supplier_snapshot?.name || '');
-
-                    const url = `/payment/payment.html?new=true&direction=OUT&amount=${balanceDue}&ref_type=${refType}&ref_id=${refId}&party_type=${partyType}&party_id=${partyId}&party_name=${partyName}`;
-                    window.location.href = url;
+        const convertBtn = document.getElementById("view-convert-purchase-btn");
+        if (convertBtn) {
+            convertBtn.addEventListener("click", () => {
+                if (currentPurchaseOrder && currentPurchaseOrder.status === 'Invoiced') {
+                    sessionStorage.setItem("purchase-order-to-purchase-id", currentPurchaseOrder.purchase_order_no);
+                    sessionStorage.setItem("currentTab-status", "new");
+                    window.location.href = "../purchase/purchase_form.html";
                 }
             });
         }

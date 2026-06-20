@@ -498,6 +498,22 @@
         });
     };
 
+    (window as any).handlePurchaseOrderSoftDelete = (id: string) => {
+        confirmAction(`Are you sure you want to delete purchase order "${id}"? This will move it to trash.`, async () => {
+            try {
+                await (window as any).purchaseOrderApi.deletePurchaseOrder(id);
+                showToast('Purchase order moved to trash');
+                if (document.getElementById('view')?.style.display === 'block') {
+                    window.location.href = '/purchaseorder';
+                } else {
+                    await loadRecentPurchaseOrders();
+                }
+            } catch (error) {
+                showToast('Failed to delete purchase order', 'error');
+            }
+        });
+    };
+
     (window as any).handlePurchaseOrderHardDelete = (id: string) => {
         confirmAction(`Are you sure you want to permanently delete purchase order "${id}"? This cannot be undone.`, async () => {
             try {
