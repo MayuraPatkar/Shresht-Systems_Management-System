@@ -269,8 +269,160 @@ function scheduleHsnDuplicateValidation(trigger, delay = 0) {
 
 (window as any).validateHsnDuplicateFields = validateHsnDuplicateFields;
 
+function setupCollapsibleSidebar() {
+  const sidebarNav = document.getElementById('sidebar-nav');
+  if (!sidebarNav) return;
+
+  const groups = [
+    {
+      name: 'Sales',
+      icon: 'fa-solid fa-briefcase',
+      items: [
+        { id: 'customer', label: 'Customers', path: '/customer', icon: 'fa-solid fa-users' },
+        { id: 'quotation', label: 'Quotations', path: '/quotation', icon: 'fa-solid fa-file-invoice' },
+        { id: 'invoice', label: 'Invoices', path: '/invoice', icon: 'fa-solid fa-file-invoice-dollar' },
+        { id: 'comms', label: 'Comms', path: '/comms', icon: 'fa-solid fa-comments' }
+      ]
+    },
+    {
+      name: 'Procurement',
+      icon: 'fa-solid fa-truck-ramp-box',
+      items: [
+        { id: 'supplier', label: 'Suppliers', path: '/supplier', icon: 'fa-solid fa-truck' },
+        { id: 'postOrder', label: 'Purchase Orders', path: '/purchaseorder', icon: 'fa-solid fa-file-contract' },
+        { id: 'purchaseOnly', label: 'Purchases', path: '/purchase', icon: 'fa-solid fa-cart-shopping' }
+      ]
+    },
+    {
+      name: 'Inventory',
+      icon: 'fa-solid fa-boxes-stacked',
+      items: [
+        { id: 'stock', label: 'Stock', path: '/stock', icon: 'fa-solid fa-box' },
+        { id: 'wayBill', label: 'E-Way Bills', path: '/ewaybill', icon: 'fa-solid fa-truck-fast' }
+      ]
+    },
+    {
+      name: 'Operations',
+      icon: 'fa-solid fa-screwdriver-wrench',
+      items: [
+        { id: 'service', label: 'Services', path: '/service', icon: 'fa-solid fa-wrench' }
+      ]
+    },
+    {
+      name: 'Finance',
+      icon: 'fa-solid fa-wallet',
+      items: [
+        { id: 'payment', label: 'Payments', path: '/payment', icon: 'fa-solid fa-money-bill-wave' },
+        { id: 'voucher', label: 'Vouchers', path: '/voucher', icon: 'fa-solid fa-file-invoice-dollar' }
+      ]
+    },
+    {
+      name: 'Analytics',
+      icon: 'fa-solid fa-chart-line',
+      items: [
+        { id: 'reports', label: 'Reports', path: '/reports', icon: 'fa-solid fa-chart-bar' },
+        { id: 'calculations', label: 'Calculations', path: '/calculations', icon: 'fa-solid fa-calculator' }
+      ]
+    },
+    {
+      name: 'Administration',
+      icon: 'fa-solid fa-sliders',
+      items: [
+        { id: 'settings', label: 'Settings', path: '/settings', icon: 'fa-solid fa-cog' }
+      ]
+    }
+  ];
+
+  const currentPath = window.location.pathname.toLowerCase();
+
+  const isGroupActive = (group: typeof groups[0]) => {
+    return group.items.some(item => {
+      const itemPathLower = item.path.toLowerCase();
+      return currentPath === itemPathLower || currentPath.startsWith(itemPathLower + '/');
+    });
+  };
+
+  let html = `
+    <div class="flex flex-col gap-1 pb-4">
+      <a href="/dashboard" id="dashboard" class="nav-link flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold mb-2">
+        <i class="fas fa-th-large w-8 text-center"></i>
+        <span>Dashboard</span>
+      </a>
+  `;
+
+  groups.forEach(group => {
+    const groupId = group.name.toLowerCase();
+    const active = isGroupActive(group);
+    
+    const savedState = localStorage.getItem(`ssms.sidebar.expanded.${groupId}`);
+    const isExpanded = savedState !== null ? savedState === 'true' : active;
+
+    html += `
+      <div class="sidebar-group">
+        <button class="sidebar-group-header" data-group="${groupId}" type="button">
+          <div class="flex items-center gap-2 pointer-events-none">
+            <i class="${group.icon} text-slate-400"></i>
+            <span>${group.name}</span>
+          </div>
+          <i class="fas fa-chevron-down text-[10px] chevron-icon ${isExpanded ? '' : 'collapsed'} pointer-events-none" id="chevron-${groupId}"></i>
+        </button>
+        <div class="sidebar-group-items ${isExpanded ? '' : 'collapsed'}" id="group-items-${groupId}">
+    `;
+
+    group.items.forEach(item => {
+      const itemPathLower = item.path.toLowerCase();
+      const isItemActive = currentPath === itemPathLower || currentPath.startsWith(itemPathLower + '/');
+      const activeClass = isItemActive ? 'active' : '';
+
+      html += `
+        <a href="${item.path}" id="${item.id}" class="nav-link sub-item ${activeClass} flex items-center gap-3">
+          <i class="${item.icon}"></i>
+          <span>${item.label}</span>
+        </a>
+      `;
+    });
+
+    html += `
+        </div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+
+  sidebarNav.innerHTML = html;
+
+  sidebarNav.querySelectorAll('.sidebar-group-header').forEach(header => {
+    header.addEventListener('click', () => {
+      const groupId = header.getAttribute('data-group');
+      if (!groupId) return;
+
+      const itemsContainer = document.getElementById(`group-items-${groupId}`);
+      const chevron = document.getElementById(`chevron-${groupId}`);
+      if (!itemsContainer || !chevron) return;
+
+      const isCurrentlyCollapsed = itemsContainer.classList.contains('collapsed');
+      
+      if (isCurrentlyCollapsed) {
+        itemsContainer.classList.remove('collapsed');
+        chevron.classList.remove('collapsed');
+        localStorage.setItem(`ssms.sidebar.expanded.${groupId}`, 'true');
+      } else {
+        itemsContainer.classList.add('collapsed');
+        chevron.classList.add('collapsed');
+        localStorage.setItem(`ssms.sidebar.expanded.${groupId}`, 'false');
+      }
+    });
+  });
+
+  sidebarNav.classList.add('ready');
+}
+
 // Sidebar Active State Management
 document.addEventListener('DOMContentLoaded', () => {
+  // Setup collapsible sidebar layout
+  setupCollapsibleSidebar();
+
   // Check sidebar navigation before updating back target
   updateModuleBackTarget();
   renderModuleBackButton();
@@ -325,6 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
     '/ewaybill': 'wayBill',
     '/service': 'service',
     '/payment': 'payment',
+    '/voucher': 'voucher',
     '/stock': 'stock',
     '/comms': 'comms',
     '/reports': 'reports',

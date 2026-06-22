@@ -30,6 +30,7 @@ const pages: Array<{ route: string; file: string }> = [
     { route: '/service/details', file: 'service/service_details.html' },
     { route: '/payment', file: 'payment/payment.html' },
     { route: '/payment/details', file: 'payment/payment_details.html' },
+    { route: '/voucher', file: 'voucher/voucher.html' },
     { route: '/stock', file: 'stock/stock.html' },
     { route: '/comms', file: 'comms/comms.html' },
     { route: '/reports', file: 'reports/reports.html' },

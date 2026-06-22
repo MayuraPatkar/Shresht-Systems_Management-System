@@ -1107,7 +1107,7 @@
 
     $detailsEditBtn.addEventListener('click', () => {
         if (currentPayment && currentPayment.voucher_no) {
-            window.location.href = `/payment?voucher=${encodeURIComponent(currentPayment.voucher_no)}`;
+            window.location.href = `/voucher?voucherNumber=${encodeURIComponent(currentPayment.voucher_no)}`;
         } else {
             window.location.href = `/payment?id=${paymentId}&edit=true`;
         }
@@ -1372,7 +1372,7 @@
 
         try {
             // Fetch voucher details from server
-            const res = await fetch(`/payment/voucher/by-no/${currentPayment.voucher_no}`);
+            const res = await fetch(`/voucher/by-no/${currentPayment.voucher_no}`);
             const data = await res.json();
 
             if (!res.ok || !data.success) {
@@ -1455,7 +1455,7 @@
 
         try {
             // Fetch voucher details from server
-            const res = await fetch(`/payment/voucher/by-no/${currentPayment.voucher_no}`);
+            const res = await fetch(`/voucher/by-no/${currentPayment.voucher_no}`);
             const data = await res.json();
 
             if (!res.ok || !data.success) {

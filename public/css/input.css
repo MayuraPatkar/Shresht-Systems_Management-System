@@ -146,4 +146,105 @@
     width: 1.5rem !important;
     font-size: 1.125rem !important;
   }
+
+  /* Collapsible Sidebar Styles */
+  .sidebar-group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.5rem 0.75rem !important;
+    margin-top: 0.5rem;
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b !important; /* text-slate-500 */
+    cursor: pointer;
+    border-radius: 0.375rem;
+    transition: all 0.15s ease-in-out;
+    border: none;
+    background: none;
+    text-align: left;
+  }
+
+  .sidebar-group-header:hover {
+    background-color: #f1f5f9 !important; /* bg-slate-100 */
+    color: #1e293b !important; /* text-slate-800 */
+  }
+
+  /* Group header icon style */
+  .sidebar-group-header i:first-child {
+    font-size: 0.85rem !important;
+    width: 1.25rem !important;
+    text-align: center;
+  }
+
+  /* Subtle line separator above group headers except the first */
+  .sidebar-group {
+    position: relative;
+  }
+  .sidebar-group:not(:first-of-type) {
+    border-top: 1px solid #f1f5f9; /* border-slate-100 */
+    margin-top: 0.75rem;
+    padding-top: 0.5rem;
+  }
+
+  /* Sub-items list container */
+  .sidebar-group-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    margin-top: 0.15rem;
+    overflow: hidden;
+    transition: max-height 0.25s ease-out;
+  }
+
+  .sidebar-group-items.collapsed {
+    max-height: 0 !important;
+    display: none !important;
+  }
+
+  /* Style for sub-item links inside groups */
+  #sidebar-nav a.sub-item {
+    padding: 0.5rem 0.75rem 0.5rem 2rem !important; /* Indent sub-items */
+    font-size: 0.875rem !important; /* Slightly smaller text for hierarchy */
+    color: #475569 !important; /* slate-600 */
+    border-radius: 0.375rem;
+  }
+
+  #sidebar-nav a.sub-item:hover {
+    background-color: #f8fafc !important; /* slate-50 */
+    color: #0f172a !important; /* slate-900 */
+  }
+
+  #sidebar-nav a.active {
+    background-color: #eff6ff !important; /* blue-50 */
+    color: #2563eb !important; /* blue-600 */
+    font-weight: 600 !important;
+  }
+
+  #sidebar-nav a.sub-item i {
+    width: 1.25rem !important;
+    font-size: 0.95rem !important;
+  }
+
+  /* Group header chevron rotation */
+  .chevron-icon {
+    transition: transform 0.2s ease;
+  }
+  .chevron-icon.collapsed {
+    transform: rotate(-90deg);
+  }
+
+  /* Prevent Flash of Unstyled Sidebar Content (FOUC) */
+  #sidebar-nav {
+    opacity: 0;
+    overflow: hidden !important;
+  }
+  #sidebar-nav.ready {
+    opacity: 1;
+    overflow-y: auto !important;
+    transition: opacity 0.1s ease-in-out;
+  }
 }
