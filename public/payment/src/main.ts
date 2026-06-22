@@ -2892,7 +2892,11 @@ interface Window {
                 .then(data => {
                     if (data.success && data.payment) {
                         if (isEdit) {
-                            openModal(data.payment);
+                            if (data.payment.voucher_no) {
+                                (window as any).viewVoucherByNo(data.payment.voucher_no);
+                            } else {
+                                openModal(data.payment);
+                            }
                         } else if (isRefund) {
                             openRefundModal(data.payment);
                         }
@@ -3237,7 +3241,14 @@ interface Window {
         
         const dateVal = $vFormDate.value;
         if ($vPreviewDate) {
-            $vPreviewDate.textContent = dateVal ? new Date(dateVal).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+            let displayDate = '-';
+            if (dateVal) {
+                const parsedDate = new Date(dateVal);
+                if (!isNaN(parsedDate.getTime())) {
+                    displayDate = parsedDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+                }
+            }
+            $vPreviewDate.textContent = displayDate;
         }
 
         if ($vPreviewPayee) {
@@ -3247,7 +3258,15 @@ interface Window {
         const method = $vFormMethod.value;
         let methodDetails = method;
         if (method === 'Cheque') {
-            methodDetails += ` (Cheque No: ${$vFormChequeNo.value || '-'}, Bank: ${$vFormChequeBank.value || '-'}, Date: ${$vFormChequeDate.value ? new Date($vFormChequeDate.value).toLocaleDateString('en-IN') : '-'})`;
+            const chqDateVal = $vFormChequeDate.value;
+            let displayChqDate = '-';
+            if (chqDateVal) {
+                const parsedChqDate = new Date(chqDateVal);
+                if (!isNaN(parsedChqDate.getTime())) {
+                    displayChqDate = parsedChqDate.toLocaleDateString('en-IN');
+                }
+            }
+            methodDetails += ` (Cheque No: ${$vFormChequeNo.value || '-'}, Bank: ${$vFormChequeBank.value || '-'}, Date: ${displayChqDate})`;
         } else if (method === 'Bank Transfer') {
             methodDetails += ` (Bank: ${$vFormBankName.value || '-'}, Ref: ${$vFormBankRef.value || '-'})`;
         } else if (method === 'UPI') {
@@ -3418,14 +3437,25 @@ interface Window {
             const res = await fetch(`/payment/voucher/by-no/${encodeURIComponent(voucherNo)}`);
             const data = await res.json();
             if (data.success) {
+                $voucherModal?.classList.remove('hidden');
+                switchVoucherTab('create');
+
                 selectedVoucher = data.voucher;
                 currentVoucherCompany = data.company;
                 
-                $voucherModal?.classList.remove('hidden');
-                switchVoucherTab('create');
-                
                 // Populate Form (Disabled)
-                $vFormDate.value = new Date(selectedVoucher.date).toISOString().split('T')[0];
+                let formattedDate = '';
+                if (selectedVoucher.date) {
+                    const parsedDate = new Date(selectedVoucher.date);
+                    if (!isNaN(parsedDate.getTime())) {
+                        formattedDate = parsedDate.toISOString().split('T')[0];
+                    }
+                }
+                if (!formattedDate) {
+                    formattedDate = new Date().toISOString().split('T')[0];
+                }
+                $vFormDate.value = formattedDate;
+
                 $vFormPartyType.value = selectedVoucher.partyType;
                 $vFormPartyName.value = selectedVoucher.partyName;
                 $vFormAmount.value = selectedVoucher.amount;
@@ -3447,7 +3477,15 @@ interface Window {
                 if (selectedVoucher.paymentMethod === 'Cheque') {
                     $vFormChequeFields?.classList.remove('hidden');
                     $vFormChequeNo.value = selectedVoucher.chequeNumber || '';
-                    $vFormChequeDate.value = selectedVoucher.chequeDate ? new Date(selectedVoucher.chequeDate).toISOString().split('T')[0] : '';
+                    
+                    let formattedChqDate = '';
+                    if (selectedVoucher.chequeDate) {
+                        const parsedChqDate = new Date(selectedVoucher.chequeDate);
+                        if (!isNaN(parsedChqDate.getTime())) {
+                            formattedChqDate = parsedChqDate.toISOString().split('T')[0];
+                        }
+                    }
+                    $vFormChequeDate.value = formattedChqDate;
                     $vFormChequeBank.value = selectedVoucher.bankName || '';
                 } else if (selectedVoucher.paymentMethod === 'Bank Transfer') {
                     $vFormBankFields?.classList.remove('hidden');
@@ -3474,9 +3512,9 @@ interface Window {
             } else {
                 (window as any).showAlert('Voucher not found');
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error('Failed to view voucher', e);
-            (window as any).showAlert('Failed to load voucher details');
+            (window as any).showAlert(`Failed to load voucher details: ${e?.message || e}`);
         }
     };
 

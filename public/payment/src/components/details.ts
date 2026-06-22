@@ -1106,7 +1106,11 @@
     });
 
     $detailsEditBtn.addEventListener('click', () => {
-        window.location.href = `/payment?id=${paymentId}&edit=true`;
+        if (currentPayment && currentPayment.voucher_no) {
+            window.location.href = `/payment?voucher=${encodeURIComponent(currentPayment.voucher_no)}`;
+        } else {
+            window.location.href = `/payment?id=${paymentId}&edit=true`;
+        }
     });
 
     $detailsRefundBtn.addEventListener('click', () => {
