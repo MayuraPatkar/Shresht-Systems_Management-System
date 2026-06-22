@@ -877,9 +877,14 @@
             }
 
             // Refresh button handler
-            const refreshBtn = document.getElementById('refreshQuotationBtnView');
+            const refreshBtn = document.getElementById('refresh-btn');
             if (refreshBtn) {
                 refreshBtn.addEventListener('click', async () => {
+                    refreshBtn.classList.remove('spinning');
+                    void refreshBtn.offsetWidth; // Force reflow
+                    refreshBtn.classList.add('spinning');
+                    setTimeout(() => refreshBtn.classList.remove('spinning'), 650);
+
                     document.getElementById('view').style.display = 'none';
                     document.getElementById('details-loading').style.display = 'flex';
                     try {

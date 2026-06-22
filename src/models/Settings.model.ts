@@ -52,6 +52,7 @@ export interface IWhatsApp {
     phoneNumberId?: string;
     pdfBaseUrl?: string;
     storedTokenReference?: string;
+    verifyToken?: string;
 }
 
 /**
@@ -179,6 +180,7 @@ const whatsappSchema = new Schema<IWhatsApp>(
         phoneNumberId: { type: String, default: "" },
         pdfBaseUrl: { type: String, default: "" },
         storedTokenReference: { type: String, default: "" },
+        verifyToken: { type: String, default: "" },
     },
     { _id: false }
 );

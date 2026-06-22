@@ -1604,75 +1604,266 @@ class CommsForms {
             methodDetails += ` (UPI Ref: ${v.referenceNumber || '-'})`;
         }
 
+        const companyName = (c.company_name || c.name || 'SHRESHT SYSTEMS').toUpperCase();
+        const companyAddress = typeof c.address === 'string'
+            ? c.address
+            : [c.address?.line1, c.address?.line2, c.address?.city, c.address?.state ? c.address.state + (c.address.pincode ? ' - ' + c.address.pincode : '') : ''].filter(Boolean).join(', ') || 'Company Address';
+        const companyPhone = c.phone ? (typeof c.phone === 'string' ? c.phone : `${c.phone.ph1 || ''}${c.phone.ph2 ? ' / ' + c.phone.ph2 : ''}`) : '';
+        const companyGstin = c.gstin || '';
+        const companyEmail = c.email || '';
+        const companyWebsite = c.website || '';
+
+        let modeBadgeClass = 'mode-cash';
+        const methodLower = (v.paymentMethod || '').toLowerCase();
+        if (methodLower === 'cash') {
+            modeBadgeClass = 'mode-cash';
+        } else if (methodLower === 'upi') {
+            modeBadgeClass = 'mode-upi';
+        } else if (methodLower === 'bank transfer' || methodLower === 'bank') {
+            modeBadgeClass = 'mode-bank';
+        } else if (methodLower === 'cheque') {
+            modeBadgeClass = 'mode-cheque';
+        }
+
+        const printTimeStr = new Date().toLocaleString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
+
         return `
         <html>
         <head>
             <title>Payment Voucher - ${v.voucherNumber}</title>
             <style>
-                body { font-family: Arial, sans-serif; padding: 30px; color: #333; background-color: #fff; margin: 0; }
-                .voucher-container { border: 2px solid #333; padding: 24px; max-width: 800px; margin: 0 auto; background: #fff; }
-                .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px double #333; padding-bottom: 15px; margin-bottom: 20px; }
-                .company-info h1 { font-size: 20px; font-weight: bold; margin: 0; color: #000; text-transform: uppercase; }
-                .company-info p { font-size: 11px; margin: 3px 0 0 0; color: #555; }
-                .voucher-title-box { text-align: center; margin: 15px 0; }
-                .voucher-title { font-size: 16px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; border: 2px solid #000; padding: 6px 16px; display: inline-block; }
-                .content-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-                .content-table td { padding: 12px 8px; font-size: 13px; vertical-align: top; }
-                .content-table tr { border-bottom: 1px solid #eee; }
-                .label { font-weight: bold; width: 25%; color: #000; }
-                .value { border-bottom: 1px dashed #333; }
-                .amount-row { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; margin-bottom: 40px; }
-                .amount-box { border: 2px solid #000; padding: 10px 20px; font-size: 18px; font-weight: bold; background-color: #f8fafc; display: inline-block; }
-                .amount-words-box { font-size: 12px; font-style: italic; width: 65%; border-bottom: 1px dashed #333; padding-bottom: 5px; }
-                .signature-row { display: flex; justify-content: space-between; margin-top: 50px; font-size: 12px; font-weight: bold; }
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; color: #1e293b; background-color: #fff; margin: 0; }
+                .voucher-container {
+                    border: 1px solid #e2e8f0;
+                    padding: 30px;
+                    max-width: 800px;
+                    margin: 0 auto;
+                    background: #fff;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                }
+                
+                /* Exact Brand Navy Header Banner styles */
+                .header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: 20px 30px;
+                    margin-bottom: 24px;
+                    background: #1a365d;
+                    border-radius: 12px;
+                    color: #ffffff;
+                    border: none;
+                    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+                    box-sizing: border-box;
+                }
+                .quotation-brand {
+                    display: flex;
+                    align-items: center;
+                    gap: 20px;
+                }
+                .logo {
+                    width: 80px;
+                    height: 80px;
+                    background: #ffffff;
+                    border-radius: 12px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                    box-sizing: border-box;
+                }
+                .logo img {
+                    width: 50px;
+                    height: 50px;
+                    object-fit: contain;
+                }
+                .quotation-brand-text h1 {
+                    margin: 0;
+                    color: #ffffff;
+                    font-size: 26px;
+                    letter-spacing: -0.5px;
+                    font-weight: 800;
+                    line-height: 1.1;
+                }
+                .quotation-tagline {
+                    margin: 4px 0 0 0;
+                    color: #e2e8f0;
+                    font-size: 13px;
+                    font-weight: 500;
+                    letter-spacing: 0.5px;
+                    text-transform: uppercase;
+                }
+                .company-details {
+                    text-align: right;
+                    line-height: 1.6;
+                }
+                .company-details p {
+                    margin: 0;
+                    color: #f1f5f9;
+                    font-size: 12px;
+                    font-weight: 500;
+                }
+                
+                /* Title & Badge Row */
+                .receipt-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+                .receipt-title-box h2 { font-size: 24px; font-weight: 800; color: #1e3a66; letter-spacing: -0.5px; text-transform: uppercase; margin: 0; }
+                .receipt-meta { font-size: 12px; color: #64748b; margin-top: 4px; font-weight: 500; }
+                .receipt-meta span { color: #1e293b; font-weight: 600; }
+                
+                /* Two-Column Grid */
+                .info-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 20px; margin-bottom: 24px; }
+                .info-card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+                .card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px; }
+                
+                /* Customer Info */
+                .party-details { font-size: 12px; line-height: 1.6; }
+                .party-name { font-size: 14px; font-weight: 700; color: #1e3a66; margin-bottom: 4px; }
+                .party-info-row { display: flex; margin-top: 4px; }
+                .party-info-label { color: #64748b; width: 60px; flex-shrink: 0; font-weight: 600; }
+                .party-info-value { color: #1e293b; font-weight: 550; }
+                
+                /* Amount Box */
+                .amount-card { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px dashed #cbd5e1; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+                .amount-title { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+                .amount-value { font-size: 30px; font-weight: 950; color: #1e3a66; letter-spacing: -0.5px; }
+                .amount-words-box { font-size: 10px; color: #64748b; font-style: italic; font-weight: 600; margin-top: 6px; max-width: 100%; text-transform: capitalize; }
+                
+                /* Details Grid */
+                .details-grid-card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 24px; }
+                .details-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; row-gap: 12px; }
+                .detail-row { display: flex; justify-content: space-between; font-size: 12px; border-bottom: 1px solid #f8fafc; padding-bottom: 6px; }
+                .detail-label { color: #64748b; font-weight: 600; }
+                .detail-value { color: #1e293b; font-weight: 600; text-align: right; }
+                
+                /* Mode Badges */
+                .mode-badge { font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; display: inline-block; }
+                .mode-cash { background-color: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+                .mode-upi { background-color: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd; }
+                .mode-bank { background-color: #faf5ff; color: #7c3aed; border: 1px solid #e9d5ff; }
+                .mode-cheque { background-color: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+                
+                /* Signature styling */
+                .signature-row { display: flex; justify-content: space-between; margin-top: 40px; font-size: 12px; font-weight: bold; border-top: 1px solid #f1f5f9; padding-top: 24px; }
                 .sig-col { width: 40%; text-align: center; }
-                .sig-line { border-bottom: 1px solid #000; margin-bottom: 8px; height: 30px; }
-                @media print { body { padding: 0; } .voucher-container { border: 2px solid #000; } }
+                .sig-line { border-bottom: 1px solid #cbd5e1; margin-bottom: 8px; height: 30px; }
+                
+                /* Footer */
+                .footer-note { border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 32px; text-align: center; font-size: 10px; color: #94a3b8; font-weight: 500; }
+                
+                @media print {
+                    body { padding: 0; }
+                    .voucher-container {
+                        border: none;
+                        box-shadow: none;
+                        padding: 0;
+                    }
+                }
             </style>
         </head>
         <body>
             <div class="voucher-container">
+                <!-- Brand Navy Header (Exact Invoice Style) -->
                 <div class="header">
-                    <div class="company-info">
-                        <h1>${c.company_name || c.name}</h1>
-                        <p>${c.address?.line1 || c.address || ''}</p>
-                        <p>Phone: ${c.phone?.ph1 || c.phone || ''} | Email: ${c.email || ''}</p>
+                    <div class="quotation-brand">
+                        <div class="logo">
+                            <img src="../assets/icon.png" alt="SSMS Logo">
+                        </div>
+                        <div class="quotation-brand-text">
+                            <h1>${companyName}</h1>
+                            <p class="quotation-tagline">CCTV & Energy Solutions</p>
+                        </div>
                     </div>
-                    <div style="text-align: right; font-family: monospace;">
-                        <div style="font-weight: bold; font-size: 14px;">Voucher No: <span style="color: #c2410c;">${v.voucherNumber}</span></div>
-                        <div style="margin-top: 5px; font-size: 12px;">Date: ${formatDate(v.date)}</div>
-                    </div>
-                </div>
-
-                <div class="voucher-title-box">
-                    <div class="voucher-title">Payment Voucher</div>
-                </div>
-
-                <table class="content-table">
-                    <tr>
-                        <td class="label">Paid To (Payee)</td>
-                        <td class="value">${v.partyName} (${v.partyType})</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Payment Method</td>
-                        <td class="value">${methodDetails}</td>
-                    </tr>
-                    <tr style="border-bottom: none;">
-                        <td class="label">Paid Towards</td>
-                        <td class="value" style="white-space: pre-wrap;">${v.paidTowards}</td>
-                    </tr>
-                </table>
-
-                <div class="amount-row">
-                    <div class="amount-words-box">
-                        <strong>Amount in Words:</strong><br>
-                        ${v.amountInWords}
-                    </div>
-                    <div class="amount-box">
-                        ₹ ${formatIndian(v.amount)}
+                    <div class="company-details">
+                        <p>${companyAddress}</p>
+                        <p>Ph: ${companyPhone}</p>
+                        <p>GSTIN: ${companyGstin}</p>
+                        <p>Email: ${companyEmail}</p>
+                        <p>Website: ${companyWebsite}</p>
                     </div>
                 </div>
 
+                <!-- Title row -->
+                <div class="receipt-header-row">
+                    <div class="receipt-title-box">
+                        <h2>Payment Voucher</h2>
+                        <div class="receipt-meta">
+                            Voucher No: <span>${v.voucherNumber}</span> &nbsp;|&nbsp; 
+                            Date: <span>${formatDate(v.date)}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Two Column Section (Party & Amount) -->
+                <div class="info-grid">
+                    <div class="info-card">
+                        <div class="card-title">Paid To (Payee)</div>
+                        <div class="party-details">
+                            <div class="party-name">${v.partyName}</div>
+                            <div class="party-info-row">
+                                <span class="party-info-label">Type:</span>
+                                <span class="party-info-value">${v.partyType || '-'}</span>
+                            </div>
+                            ${v.partyPhone ? `
+                            <div class="party-info-row">
+                                <span class="party-info-label">Phone:</span>
+                                <span class="party-info-value">${v.partyPhone}</span>
+                            </div>
+                            ` : ''}
+                            ${v.partyAddress ? `
+                            <div class="party-info-row">
+                                <span class="party-info-label">Address:</span>
+                                <span class="party-info-value">${v.partyAddress}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                    
+                    <div class="amount-card">
+                        <div class="amount-title">Amount Paid</div>
+                        <div class="amount-value">₹ ${formatIndian(v.amount)}</div>
+                        ${v.amountInWords ? `<div class="amount-words-box">${v.amountInWords}</div>` : ''}
+                    </div>
+                </div>
+
+                <!-- Transaction Details Grid Card -->
+                <div class="details-grid-card">
+                    <div class="card-title">Voucher Details</div>
+                    <div class="details-grid">
+                        <div class="detail-row">
+                            <span class="detail-label">Voucher Number:</span>
+                            <span class="detail-value">${v.voucherNumber}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Voucher Date:</span>
+                            <span class="detail-value">${formatDate(v.date)}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Payment Mode:</span>
+                            <span class="detail-value">
+                                <span class="mode-badge ${modeBadgeClass}">${v.paymentMethod}</span>
+                            </span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Payment Details:</span>
+                            <span class="detail-value">${methodDetails}</span>
+                        </div>
+                        <div class="detail-row" style="grid-column: span 2; border-bottom: none;">
+                            <span class="detail-label">Paid Towards:</span>
+                            <span class="detail-value" style="text-align: left; font-weight: 500; white-space: pre-wrap;">${v.paidTowards || '-'}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Signature Row -->
                 <div class="signature-row">
                     <div class="sig-col">
                         <div class="sig-line"></div>
@@ -1682,6 +1873,11 @@ class CommsForms {
                         <div class="sig-line"></div>
                         Receiver Signature
                     </div>
+                </div>
+
+                <!-- Footer Note -->
+                <div class="footer-note">
+                    This voucher confirms successful payout of cash or bank funds. Generated by SSMS ERP on ${printTimeStr}.
                 </div>
             </div>
         </body>

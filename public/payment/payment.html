@@ -214,7 +214,7 @@
                     class="bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 px-4 h-10 rounded-lg flex items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
                     title="Create Payment Voucher">
                     <i class="fas fa-file-invoice-dollar text-slate-550"></i>
-                    <span>Voucher</span>
+                    <span>New Voucher</span>
                 </button>
                 <button id="refresh-btn"
                     class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
@@ -823,12 +823,11 @@
                             <i class="fas fa-file-invoice-dollar text-lg"></i>
                         </div>
                         <div>
-                            <h2 class="text-lg font-bold text-slate-800">Payment Voucher Management</h2>
-                            <p class="text-xs text-slate-550">Create, search, print, and export cash payment vouchers</p>
+                            <h2 class="text-lg font-bold text-slate-800">Payment Voucher</h2>
                         </div>
                     </div>
                     <!-- Tab Buttons -->
-                    <div class="flex bg-slate-205 p-1 rounded-lg gap-1">
+                    <div class="flex bg-slate-205 p-1 rounded-lg gap-1" style="display: none;">
                         <button id="voucher-tab-history" class="px-4 py-1.5 rounded-md text-xs font-bold text-slate-700 bg-white shadow-sm cursor-pointer transition-all">
                             <i class="fas fa-history mr-1"></i>Voucher History
                         </button>
@@ -844,7 +843,7 @@
                 <!-- Modal Body -->
                 <div class="flex-1 overflow-hidden flex flex-col">
                     <!-- Tab Content: Voucher History -->
-                    <div id="voucher-content-history" class="flex-1 flex overflow-hidden">
+                    <div id="voucher-content-history" class="flex-1 flex overflow-hidden hidden">
                         <!-- Filters Sidebar -->
                         <div class="w-72 border-r border-slate-200 p-5 overflow-y-auto space-y-4 bg-slate-50 flex-shrink-0">
                             <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Search & Filters</h3>
@@ -932,7 +931,7 @@
                     </div>
 
                     <!-- Tab Content: New Voucher -->
-                    <div id="voucher-content-create" class="flex-1 hidden overflow-hidden flex flex-col md:flex-row">
+                    <div id="voucher-content-create" class="flex-1 overflow-hidden flex flex-col md:flex-row">
                         <!-- Form Panel -->
                         <div class="w-full md:w-[45%] border-r border-slate-200 p-6 overflow-y-auto bg-slate-50 space-y-4 flex-shrink-0">
                             <form id="voucher-create-form" class="space-y-4">
@@ -1049,56 +1048,74 @@
 
                         <!-- Live Preview Panel -->
                         <div class="flex-1 bg-slate-500/5 p-6 overflow-y-auto flex flex-col justify-between min-w-0">
-                            <div class="max-w-[700px] w-full mx-auto bg-white border border-slate-300 shadow-md p-6 rounded-xl relative font-sans text-slate-800" id="voucher-preview-document">
-                                <!-- Voucher header -->
-                                <div class="flex justify-between items-start border-b-2 border-slate-800 pb-4 mb-4">
+                            <div class="max-w-[700px] w-full mx-auto bg-white border border-slate-200 shadow-md p-8 rounded-xl relative font-sans text-slate-800" id="voucher-preview-document">
+                                <!-- Brand Navy Header (Exact Receipt Style) -->
+                                <div class="bg-[#1a365d] text-white p-5 rounded-xl flex justify-between items-center mb-6 shadow-sm">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-16 h-16 bg-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                                            <img src="../assets/icon.png" alt="Logo" class="w-10 h-10 object-contain">
+                                        </div>
+                                        <div>
+                                            <h1 class="text-xl font-extrabold text-white tracking-tight uppercase" id="preview-v-company-name">SHRESHT SYSTEMS</h1>
+                                            <p class="text-[10px] text-slate-200 uppercase tracking-widest mt-0.5">CCTV & Energy Solutions</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right text-[10px] text-slate-100 leading-normal">
+                                        <p id="preview-v-company-address">-</p>
+                                        <p id="preview-v-company-contact">-</p>
+                                    </div>
+                                </div>
+
+                                <!-- Title row -->
+                                <div class="flex justify-between items-start mb-6">
                                     <div>
-                                        <h1 class="text-base font-extrabold text-slate-900 tracking-wide uppercase" id="preview-v-company-name">SHRESHT SYSTEMS</h1>
-                                        <p class="text-[10px] text-slate-550 mt-1 max-w-[320px]" id="preview-v-company-address">-</p>
-                                        <p class="text-[10px] text-slate-550" id="preview-v-company-contact">-</p>
-                                    </div>
-                                    <div class="text-right flex-shrink-0">
-                                        <div class="text-xs font-bold">Voucher No: <span class="text-red-600 font-extrabold" id="preview-v-no">PV-2026-XXXX</span></div>
-                                        <div class="text-[10px] text-slate-550 mt-1">Date: <span id="preview-v-date">-</span></div>
+                                        <h2 class="text-xl font-extrabold text-[#1e3a66] tracking-tight uppercase">Payment Voucher</h2>
+                                        <div class="text-[11px] text-slate-500 mt-1 font-medium">
+                                            Voucher No: <span class="text-slate-800 font-semibold" id="preview-v-no">PV-2026-XXXX</span> &nbsp;|&nbsp; 
+                                            Date: <span class="text-slate-800 font-semibold" id="preview-v-date">-</span>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div class="text-center my-4">
-                                    <span class="border-2 border-slate-800 px-4 py-1 text-xs uppercase font-extrabold tracking-wider bg-slate-50">Payment Voucher</span>
-                                </div>
-
-                                <table class="w-full text-xs mb-6 border-collapse">
-                                    <tr class="border-b border-slate-100">
-                                        <td class="py-2.5 font-bold text-slate-550 w-24">Paid To:</td>
-                                        <td class="py-2.5 font-semibold text-slate-800 border-b border-slate-350 border-dashed" id="preview-v-payee">-</td>
-                                    </tr>
-                                    <tr class="border-b border-slate-100">
-                                        <td class="py-2.5 font-bold text-slate-550">Method:</td>
-                                        <td class="py-2.5 font-semibold text-slate-800 border-b border-slate-350 border-dashed" id="preview-v-method">-</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="py-2.5 font-bold text-slate-550">Towards:</td>
-                                        <td class="py-2.5 font-semibold text-slate-800 border-b border-slate-350 border-dashed whitespace-pre-wrap leading-relaxed" id="preview-v-towards">-</td>
-                                    </tr>
-                                </table>
-
-                                <div class="flex justify-between items-center mt-6">
-                                    <div class="text-xs leading-relaxed max-w-[65%]">
-                                        <span class="font-bold text-slate-550 text-[10px] uppercase">Amount in Words:</span><br>
-                                        <span class="font-bold italic text-slate-700 block mt-1" id="preview-v-words">-</span>
+                                <!-- Two Column Section (Party & Amount) -->
+                                <div class="grid grid-cols-[1.1fr_0.9fr] gap-5 mb-6">
+                                    <div class="bg-white border border-slate-200 rounded-lg p-4">
+                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 pb-1.5 border-b border-slate-100">Paid To (Payee)</div>
+                                        <div class="text-xs">
+                                            <div class="text-sm font-bold text-[#1e3a66]" id="preview-v-payee">-</div>
+                                        </div>
                                     </div>
-                                    <div class="border-2 border-slate-800 px-4 py-2 font-extrabold text-base bg-slate-50 tracking-wide text-slate-900 shadow-sm" id="preview-v-amount">
-                                        ₹ 0.00
+                                    
+                                    <div class="bg-gradient-to-br from-slate-50 to-slate-100 border border-dashed border-slate-300 rounded-lg p-4 flex flex-col items-center justify-center text-center">
+                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Amount Paid</div>
+                                        <div class="text-2xl font-black text-[#1e3a66] tracking-tight" id="preview-v-amount">₹ 0.00</div>
+                                        <div class="text-[9px] text-slate-500 font-semibold italic mt-1.5 max-w-full text-capitalize leading-tight" id="preview-v-words">-</div>
                                     </div>
                                 </div>
 
-                                <div class="flex justify-between items-center mt-12 pt-6 border-t border-slate-100 text-[10px] font-bold text-slate-550">
+                                <!-- Voucher Details Card -->
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 mb-6">
+                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 pb-1.5 border-b border-slate-100">Voucher Details</div>
+                                    <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-xs">
+                                        <div class="flex justify-between border-b border-slate-50 pb-1">
+                                            <span class="text-slate-500 font-semibold">Payment Mode:</span>
+                                            <span class="text-slate-800 font-bold" id="preview-v-method">-</span>
+                                        </div>
+                                        <div class="flex justify-between border-b border-slate-50 pb-1 col-span-2">
+                                            <span class="text-slate-500 font-semibold">Paid Towards:</span>
+                                            <span class="text-slate-800 font-bold whitespace-pre-wrap text-left" id="preview-v-towards">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Signature Row -->
+                                <div class="flex justify-between items-center mt-10 pt-5 border-t border-slate-100 text-[10px] font-bold text-slate-500">
                                     <div class="w-32 text-center">
-                                        <div class="border-b border-slate-800 h-6 mb-1"></div>
+                                        <div class="border-b border-slate-300 h-6 mb-1.5"></div>
                                         <span>Paid By</span>
                                     </div>
                                     <div class="w-32 text-center">
-                                        <div class="border-b border-slate-800 h-6 mb-1"></div>
+                                        <div class="border-b border-slate-300 h-6 mb-1.5"></div>
                                         <span>Receiver Signature</span>
                                     </div>
                                 </div>

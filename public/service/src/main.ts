@@ -445,8 +445,8 @@
             <tr class="service-row border-b border-slate-100 hover:bg-slate-50 transition-all duration-150 group cursor-pointer text-xs" data-invoice-id="${invoiceId}" data-id="${invoiceId}">
                 <td class="px-4 py-3 font-semibold text-slate-850 whitespace-nowrap">${dueDate}</td>
                 <td class="px-4 py-3 font-bold text-blue-600 hover:underline cursor-pointer invoice-link-cell" data-inv-ref="${invoiceId}">${invoiceId}</td>
-                <td class="px-4 py-3 font-semibold text-slate-800 max-w-[200px] truncate" title="${escapeHtml(projectName)}">${escapeHtml(projectName)}</td>
-                <td class="px-4 py-3 font-semibold text-slate-800 max-w-[180px] truncate" title="${escapeHtml(customerName)}">${escapeHtml(customerName)}</td>
+                <td class="px-4 py-3 font-semibold text-slate-800 truncate" title="${escapeHtml(projectName)}">${escapeHtml(projectName)}</td>
+                <td class="px-4 py-3 font-semibold text-slate-800 truncate" title="${escapeHtml(customerName)}">${escapeHtml(customerName)}</td>
                 <td class="px-4 py-3 font-bold text-purple-650">${stageLabel}</td>
             </tr>
         `;
@@ -475,8 +475,8 @@
             <tr class="service-row border-b border-slate-100 hover:bg-slate-50 transition-all duration-150 group cursor-pointer text-xs" data-service-id="${serviceId}" data-id="${serviceId}">
                 <td class="px-4 py-3 font-semibold text-slate-850 whitespace-nowrap">${serviceDate}</td>
                 <td class="px-4 py-3 font-bold text-slate-800">${serviceId}</td>
-                <td class="px-4 py-3 font-semibold text-slate-800 max-w-[200px] truncate" title="${escapeHtml(projectName)}">${escapeHtml(projectName)}</td>
-                <td class="px-4 py-3 font-semibold text-slate-800 max-w-[180px] truncate" title="${escapeHtml(customerName)}">${escapeHtml(customerName)}</td>
+                <td class="px-4 py-3 font-semibold text-slate-800 truncate" title="${escapeHtml(projectName)}">${escapeHtml(projectName)}</td>
+                <td class="px-4 py-3 font-semibold text-slate-800 truncate" title="${escapeHtml(customerName)}">${escapeHtml(customerName)}</td>
                 <td class="px-4 py-3 font-semibold text-slate-700">${stageLabel}</td>
                 <td class="px-4 py-3 whitespace-nowrap">${paymentBadge}</td>
             </tr>

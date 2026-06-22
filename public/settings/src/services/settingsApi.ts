@@ -77,7 +77,7 @@ class SettingsApi {
         return this.request("/settings/backup/manual", { method: "POST" });
     }
 
-    async updateWhatsAppPreferences(data: { phoneNumberId: string; enabled: boolean }): Promise<{ success: boolean; message?: string }> {
+    async updateWhatsAppPreferences(data: { phoneNumberId: string; verifyToken?: string; enabled: boolean }): Promise<{ success: boolean; message?: string }> {
         return this.request("/settings/preferences/whatsapp", {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },

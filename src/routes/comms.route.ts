@@ -26,6 +26,7 @@ interface WhatsAppCreds {
     token: string;
     phoneNumberId: string;
     pdfBaseUrl: string;
+    verifyToken: string;
 }
 
 let cachedWhatsApp: WhatsAppCreds | null = null;
@@ -56,15 +57,20 @@ async function resolveWhatsAppCredentials(): Promise<WhatsAppCreds> {
     }
 
     let phoneNumberId = process.env.PHONE_NUMBER_ID || (config.whatsapp && config.whatsapp.phoneNumberId) || '';
-    if (!phoneNumberId) {
-        try {
-            const settings = await SettingsModel.findOne();
-            if (settings && (settings as any).whatsapp && (settings as any).whatsapp.phoneNumberId) {
+    let verifyToken = process.env.VERIFY_TOKEN || (config.whatsapp && config.whatsapp.verifyToken) || '';
+    
+    try {
+        const settings = await SettingsModel.findOne();
+        if (settings && (settings as any).whatsapp) {
+            if (!phoneNumberId && (settings as any).whatsapp.phoneNumberId) {
                 phoneNumberId = (settings as any).whatsapp.phoneNumberId;
             }
-        } catch (err: unknown) {
-            logger.warn('Settings DB lookup failed', { service: "messaging", error: (err as Error).message });
+            if (!verifyToken && (settings as any).whatsapp.verifyToken) {
+                verifyToken = (settings as any).whatsapp.verifyToken;
+            }
         }
+    } catch (err: unknown) {
+        logger.warn('Settings DB lookup failed', { service: "messaging", error: (err as Error).message });
     }
 
     const pdfBaseUrl = (config.whatsapp && config.whatsapp.pdfBaseUrl) || (await (async () => {
@@ -75,13 +81,14 @@ async function resolveWhatsAppCredentials(): Promise<WhatsAppCreds> {
     })()) || '';
 
     cachedAt = Date.now();
-    cachedWhatsApp = { token, phoneNumberId, pdfBaseUrl };
+    cachedWhatsApp = { token, phoneNumberId, pdfBaseUrl, verifyToken };
 
     logger.info('WhatsApp credentials resolved', {
         service: "messaging",
         hasToken: !!token,
         hasPhoneNumberId: !!phoneNumberId,
-        hasPdfBaseUrl: !!pdfBaseUrl
+        hasPdfBaseUrl: !!pdfBaseUrl,
+        hasVerifyToken: !!verifyToken
     });
 
     return cachedWhatsApp;
@@ -940,6 +947,89 @@ router.post('/send-automated-reminders', async (req: Request, res: Response) => 
     } catch (err: unknown) {
         logger.error('Error sending automated reminders:', err);
         res.status(500).json({ message: 'Failed to send automated reminders.', error: (err as Error).message });
+    }
+});
+
+// GET /webhook - WhatsApp Webhook verification
+router.get('/webhook', async (req: Request, res: Response) => {
+    try {
+        const creds = await resolveWhatsAppCredentials();
+        const verifyToken = creds.verifyToken || config.whatsapp.verifyToken || '';
+        
+        const mode = req.query['hub.mode'];
+        const token = req.query['hub.verify_token'];
+        const challenge = req.query['hub.challenge'];
+
+        if (mode === 'subscribe' && token === verifyToken) {
+            logger.info('WhatsApp webhook verified successfully', { service: 'messaging' });
+            return res.status(200).send(challenge);
+        } else {
+            logger.warn('WhatsApp webhook verification failed: Token mismatch', { 
+                service: 'messaging', 
+                receivedToken: token,
+                expectedToken: verifyToken ? 'configured' : 'empty'
+            });
+            return res.sendStatus(403);
+        }
+    } catch (err: any) {
+        logger.error('Error during webhook verification:', err);
+        return res.sendStatus(500);
+    }
+});
+
+// POST /webhook - Handle WhatsApp status updates
+router.post('/webhook', async (req: Request, res: Response) => {
+    const body = req.body;
+
+    // Check if it's a WhatsApp webhook event
+    if (body.object === 'whatsapp_business_account') {
+        try {
+            if (body.entry && Array.isArray(body.entry)) {
+                for (const entry of body.entry) {
+                    if (entry.changes && Array.isArray(entry.changes)) {
+                        for (const change of entry.changes) {
+                            if (change.value && change.value.statuses && Array.isArray(change.value.statuses)) {
+                                for (const statusObj of change.value.statuses) {
+                                    const messageId = statusObj.id;
+                                    const waStatus = statusObj.status; // 'sent' | 'delivered' | 'read' | 'failed'
+                                    
+                                    // Map WhatsApp status to schema format
+                                    let mappedStatus: "Sent" | "Delivered" | "Read" | "Failed" | null = null;
+                                    if (waStatus === 'sent') mappedStatus = 'Sent';
+                                    else if (waStatus === 'delivered') mappedStatus = 'Delivered';
+                                    else if (waStatus === 'read') mappedStatus = 'Read';
+                                    else if (waStatus === 'failed') mappedStatus = 'Failed';
+
+                                    if (mappedStatus && messageId) {
+                                        // Update database record matching this messageId
+                                        const query: any = { messageId };
+                                        const updateData: any = { status: mappedStatus };
+                                        
+                                        if (waStatus === 'failed' && statusObj.errors && statusObj.errors.length > 0) {
+                                            updateData.errorMessage = statusObj.errors[0].message || statusObj.errors[0].title || 'Unknown failure';
+                                        }
+
+                                        const updatedComm = await CommunicationModel.findOneAndUpdate(query, updateData, { new: true });
+                                        if (updatedComm) {
+                                            logger.info(`WhatsApp webhook updated message ${messageId} to status: ${mappedStatus}`, { service: 'messaging' });
+                                        } else {
+                                            logger.debug(`Received WhatsApp status update for unrecognized messageId: ${messageId}`, { service: 'messaging' });
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return res.status(200).send('EVENT_RECEIVED');
+        } catch (error: any) {
+            logger.error('Error handling WhatsApp webhook payload:', error);
+            return res.status(500).send('Webhook processing error');
+        }
+    } else {
+        // Return 404 if event is not from WhatsApp API
+        return res.sendStatus(404);
     }
 });
 

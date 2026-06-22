@@ -244,6 +244,11 @@ class SettingsPreferences {
                         phoneNumberIdInput.value = wa.phoneNumberId;
                     }
 
+                    const verifyTokenInput = document.getElementById('whatsapp-verify-token') as HTMLInputElement;
+                    if (wa.verifyToken && verifyTokenInput) {
+                        verifyTokenInput.value = wa.verifyToken;
+                    }
+
                     const tokenInput = document.getElementById('whatsapp-token') as HTMLInputElement;
 
                     if (wa.phoneNumberId && wa.storedTokenReference) {
@@ -342,6 +347,7 @@ class SettingsPreferences {
 
         const phoneNumberId = (document.getElementById('whatsapp-phone-number-id') as HTMLInputElement).value.trim();
         const token = (document.getElementById('whatsapp-token') as HTMLInputElement).value.trim();
+        const verifyToken = (document.getElementById('whatsapp-verify-token') as HTMLInputElement).value.trim();
 
         if (!phoneNumberId) {
             (window as any).electronAPI.showAlert1('Please enter the Phone Number ID');
@@ -350,7 +356,7 @@ class SettingsPreferences {
             return;
         }
 
-        const savePhoneId = settingsApi.updateWhatsAppPreferences({ phoneNumberId, enabled: true });
+        const savePhoneId = settingsApi.updateWhatsAppPreferences({ phoneNumberId, verifyToken, enabled: true });
 
         let saveToken = Promise.resolve<{ success: boolean; message?: string }>({ success: true });
         if (token && token !== '••••••••••••••••') {

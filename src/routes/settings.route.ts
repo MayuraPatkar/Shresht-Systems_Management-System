@@ -319,13 +319,14 @@ router.patch("/preferences", asyncHandler(async (req: Request, res: Response) =>
 
 router.patch('/preferences/whatsapp', asyncHandler(async (req: Request, res: Response) => {
     try {
-        const { enabled, phoneNumberId, pdfBaseUrl } = req.body;
+        const { enabled, phoneNumberId, pdfBaseUrl, verifyToken } = req.body;
         let settings = await SettingsModel.findOne() as any;
         if (!settings) settings = new SettingsModel({});
         settings.whatsapp = settings.whatsapp || {};
         if (enabled !== undefined) settings.whatsapp.enabled = !!enabled;
         if (phoneNumberId !== undefined) settings.whatsapp.phoneNumberId = String(phoneNumberId);
         if (pdfBaseUrl !== undefined) settings.whatsapp.pdfBaseUrl = String(pdfBaseUrl);
+        if (verifyToken !== undefined) settings.whatsapp.verifyToken = String(verifyToken);
         settings.updatedAt = new Date();
         await settings.save();
         if (invalidateWhatsAppCache) invalidateWhatsAppCache();

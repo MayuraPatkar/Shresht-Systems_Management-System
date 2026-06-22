@@ -953,14 +953,14 @@
 
         if (isTrash) {
             headerRow.innerHTML = `
-                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Date</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">E-Way Bill No</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Invoice ID</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Customer</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Deleted Date</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
-                <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider">Total Value</th>
-                <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider">Actions</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider col-date">Date</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider col-ewaybill-no">E-Way Bill No</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider col-invoice-id">Invoice ID</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider col-customer">Customer</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider col-deleted-date">Deleted Date</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider col-status">Status</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider col-total">Total Value</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider col-actions">Actions</th>
             `;
         } else {
             const sortBy = currentFilters.sortBy || 'date-desc';
@@ -970,16 +970,15 @@
                              '<i class="fas fa-sort ml-1.5 opacity-30 group-hover:opacity-60 transition-opacity"></i>';
 
             headerRow.innerHTML = `
-                <th id="th-date" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-slate-100 hover:text-blue-600 select-none transition-all duration-150 group">
+                <th id="th-date" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-slate-100 hover:text-blue-600 select-none transition-all duration-150 group col-date">
                     <span class="flex items-center">Date ${dateIcon}</span>
                 </th>
-                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">E-Way Bill No</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Invoice ID</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Customer</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
-                <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider">Total Value</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider col-ewaybill-no">E-Way Bill No</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider col-invoice-id">Invoice ID</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider col-customer">Customer</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider col-status">Status</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider col-total">Total Value</th>
             `;
-            
             // Attach event listeners
             const thDate = document.getElementById('th-date');
             if (thDate) {
@@ -1569,21 +1568,21 @@
                 : '-';
 
             row.innerHTML = `
-                <td class="px-4 py-3 text-slate-850 font-medium whitespace-nowrap text-xs text-left">${formattedDate}</td>
-                <td class="px-4 py-3 text-slate-600 font-bold whitespace-nowrap text-xs text-left">${displayId}</td>
-                <td class="px-4 py-3 text-slate-850 font-medium whitespace-nowrap text-xs text-left">${invoiceId}</td>
-                <td class="px-4 py-3 text-slate-700 text-xs max-w-[180px] truncate text-left" title="${customerName}">${customerNameShort}</td>
-                <td class="px-4 py-3 text-red-500 font-medium whitespace-nowrap text-xs text-left">
+                <td class="px-4 py-3 text-slate-850 font-medium whitespace-nowrap text-xs text-left col-date">${formattedDate}</td>
+                <td class="px-4 py-3 text-slate-600 font-bold whitespace-nowrap text-xs text-left col-ewaybill-no">${displayId}</td>
+                <td class="px-4 py-3 text-slate-850 font-medium whitespace-nowrap text-xs text-left col-invoice-id">${invoiceId}</td>
+                <td class="px-4 py-3 text-slate-700 text-xs truncate text-left col-customer" title="${customerName}">${customerNameShort}</td>
+                <td class="px-4 py-3 text-red-500 font-medium whitespace-nowrap text-xs text-left col-deleted-date">
                     <i class="fas fa-trash mr-1 text-[10px]"></i> ${deletedAt}
                 </td>
-                <td class="px-4 py-3 whitespace-nowrap text-left">
+                <td class="px-4 py-3 whitespace-nowrap text-center col-status">
                     <span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusBadgeClass}">${wayBill.ewaybill_status || 'Draft'}</span>
                 </td>
-                <td class="px-4 py-3 text-right font-bold text-xs whitespace-nowrap text-slate-900">
+                <td class="px-4 py-3 text-right font-bold text-xs whitespace-nowrap text-slate-900 col-total">
                     ₹${formatIndian(total, 2)}
                 </td>
-                <td class="px-4 py-2 text-right whitespace-nowrap">
-                    <div class="flex items-center justify-end gap-1.5">
+                <td class="px-4 py-2 text-right whitespace-nowrap col-actions">
+                    <div class="flex items-center justify-end gap-1.5 w-full">
                         <button class="action-btn restore-card-btn px-2.5 py-1 bg-green-50 text-green-700 rounded-md hover:bg-green-100 border border-green-200 hover:border-green-400 font-semibold text-xs flex items-center gap-1" title="Restore">
                             <i class="fas fa-trash-restore text-[10px]"></i> Restore
                         </button>
@@ -1595,19 +1594,19 @@
             `;
         } else {
             row.innerHTML = `
-                <td class="px-4 py-3 text-slate-850 font-medium whitespace-nowrap text-xs text-left">${formattedDate}</td>
-                <td class="px-4 py-3 text-slate-850 font-bold whitespace-nowrap text-xs text-left">
+                <td class="px-4 py-3 text-slate-850 font-medium whitespace-nowrap text-xs text-left col-date">${formattedDate}</td>
+                <td class="px-4 py-3 text-slate-850 font-bold whitespace-nowrap text-xs text-left col-ewaybill-no">
                     <span class="cursor-pointer hover:text-blue-600 copy-text transition-colors" title="Click to copy ID">
                         ${displayId}
                         <i class="fas fa-copy text-[10px] ml-1 opacity-50"></i>
                     </span>
                 </td>
-                <td class="px-4 py-3 text-slate-850 font-medium whitespace-nowrap text-xs text-left">${invoiceId}</td>
-                <td class="px-4 py-3 text-xs max-w-[180px] truncate text-left" title="${customerName}">${customerNameShort}</td>
-                <td class="px-4 py-3 whitespace-nowrap text-left">
+                <td class="px-4 py-3 text-slate-850 font-medium whitespace-nowrap text-xs text-left col-invoice-id">${invoiceId}</td>
+                <td class="px-4 py-3 text-xs truncate text-left col-customer" title="${customerName}">${customerNameShort}</td>
+                <td class="px-4 py-3 whitespace-nowrap text-center col-status">
                     <span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusBadgeClass}">${wayBill.ewaybill_status || 'Draft'}</span>
                 </td>
-                <td class="px-4 py-3 text-right font-bold text-xs whitespace-nowrap text-slate-900">
+                <td class="px-4 py-3 text-right font-bold text-xs whitespace-nowrap text-slate-900 col-total">
                     ₹${formatIndian(total, 2)}
                 </td>
             `;

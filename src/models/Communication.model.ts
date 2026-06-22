@@ -10,7 +10,7 @@ export interface ICommunication extends Document {
     referenceId?: string; // Invoice ID, Quotation ID, etc.
     content?: string; // Message content or parameters
     documentUrl?: string; // Attachment/PDF URL
-    status: "Success" | "Failed" | "Pending";
+    status: "Success" | "Failed" | "Pending" | "Sent" | "Delivered" | "Read";
     errorMessage?: string; // Error detail if failed
     messageId?: string; // WhatsApp API message ID if available
     sentAt: Date;
@@ -58,7 +58,7 @@ const communicationSchema = new Schema<ICommunication>(
         status: {
             type: String,
             required: true,
-            enum: ["Success", "Failed", "Pending"],
+            enum: ["Success", "Failed", "Pending", "Sent", "Delivered", "Read"],
             default: "Pending",
             index: true
         },
