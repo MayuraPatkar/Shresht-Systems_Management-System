@@ -932,7 +932,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         renderTable('communications-list', communications || [], (c: any) => {
             const dateStr = c.sentAt ? formatDate(c.sentAt) + ' ' + new Date(c.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-';
-            const statusClass = c.status === 'Success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700';
+            
+            let statusClass = 'bg-slate-50 text-slate-700';
+            if (c.status === 'Read') statusClass = 'bg-emerald-50 text-emerald-700 border border-emerald-100';
+            else if (c.status === 'Delivered') statusClass = 'bg-blue-50 text-blue-700 border border-blue-100';
+            else if (c.status === 'Sent' || c.status === 'Success') statusClass = 'bg-green-50 text-green-700 border border-green-100';
+            else if (c.status === 'Pending') statusClass = 'bg-amber-50 text-amber-700 border border-amber-100';
+            else if (c.status === 'Failed') statusClass = 'bg-red-50 text-red-700 border border-red-100';
+
             const contentDisplay = c.status === 'Failed' && c.errorMessage ? `${c.content || ''} (Error: ${c.errorMessage})` : (c.content || '');
             const pdfButton = c.documentUrl 
                 ? `<button data-action="view-doc" data-url="${c.documentUrl}" class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg font-bold text-xs hover:bg-blue-100 transition-colors uppercase tracking-wider">View PDF</button>` 

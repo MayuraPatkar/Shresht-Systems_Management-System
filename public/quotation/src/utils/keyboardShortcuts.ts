@@ -319,7 +319,7 @@ function handleQuotationKeyboardShortcuts(event: KeyboardEvent) {
                     break;
                 }
                 case 'r': {
-                    const refreshBtn = document.getElementById('refreshQuotationBtnView');
+                    const refreshBtn = document.getElementById('refresh-btn');
                     if (refreshBtn) {
                         event.preventDefault();
                         event.stopPropagation();

@@ -55,6 +55,7 @@
         .hidden.md\:block.overflow-y-auto thead {
             display: block;
             flex-shrink: 0;
+            overflow-y: auto;
             scrollbar-gutter: stable;
         }
 
@@ -72,20 +73,19 @@
 
         .hidden.md\:block.overflow-y-auto th,
         .hidden.md\:block.overflow-y-auto td {
-            flex: 1;
             min-width: 0;
             display: flex;
             align-items: center;
         }
 
-        .hidden.md\:block.overflow-y-auto th:nth-child(1), .hidden.md\:block.overflow-y-auto td:nth-child(1) { flex: 1.0; }
-        .hidden.md\:block.overflow-y-auto th:nth-child(2), .hidden.md\:block.overflow-y-auto td:nth-child(2) { flex: 1.5; }
-        .hidden.md\:block.overflow-y-auto th:nth-child(3), .hidden.md\:block.overflow-y-auto td:nth-child(3) { flex: 1.2; }
-        .hidden.md\:block.overflow-y-auto th:nth-child(4), .hidden.md\:block.overflow-y-auto td:nth-child(4) { flex: 1.8; }
-        .hidden.md\:block.overflow-y-auto th:nth-child(5), .hidden.md\:block.overflow-y-auto td:nth-child(5) { flex: 1.2; }
-        .hidden.md\:block.overflow-y-auto th:nth-child(6), .hidden.md\:block.overflow-y-auto td:nth-child(6) { flex: 1.0; }
-        .hidden.md\:block.overflow-y-auto th:nth-child(7), .hidden.md\:block.overflow-y-auto td:nth-child(7) { flex: 1.2; justify-content: flex-end; text-align: right; }
-        .hidden.md\:block.overflow-y-auto th:nth-child(8), .hidden.md\:block.overflow-y-auto td:nth-child(8) { flex: 1.5; }
+        .col-date { flex: 1.0; justify-content: flex-start; text-align: left; }
+        .col-ewaybill-no { flex: 1.5; justify-content: flex-start; text-align: left; }
+        .col-invoice-id { flex: 1.2; justify-content: flex-start; text-align: left; }
+        .col-customer { flex: 1.8; justify-content: flex-start; text-align: left; min-width: 0; }
+        .col-deleted-date { flex: 1.2; justify-content: flex-start; text-align: left; }
+        .col-status { flex: 1.2; justify-content: center; text-align: center; }
+        .col-total { flex: 1.2; justify-content: flex-end; text-align: right; }
+        .col-actions { flex: 1.5; justify-content: flex-end; text-align: right; }
     </style>
 </head>
 
@@ -293,12 +293,12 @@
                     <table class="w-full text-sm border-collapse select-none">
                         <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
                             <tr id="table-header-row" class="text-slate-700 border-b border-slate-200">
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Date</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">E-Way Bill No</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Invoice ID</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Customer</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
-                                <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider">Total Value</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider col-date">Date</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider col-ewaybill-no">E-Way Bill No</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider col-invoice-id">Invoice ID</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider col-customer">Customer</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider col-status">Status</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider col-total">Total Value</th>
                             </tr>
                         </thead>
                         <tbody class="records text-xs" id="ewaybill-tbody">

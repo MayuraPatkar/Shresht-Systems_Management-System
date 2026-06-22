@@ -64,6 +64,7 @@ interface SecurityPref {
 interface WhatsAppPref {
     phoneNumberId?: string;
     storedTokenReference?: string;
+    verifyToken?: string;
     enabled?: boolean;
 }
 

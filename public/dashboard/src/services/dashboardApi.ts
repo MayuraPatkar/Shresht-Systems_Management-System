@@ -80,7 +80,7 @@ class DashboardApi {
     }
 
     async getVouchers() {
-        return this.fetchWithRetry('/payment/voucher/list');
+        return this.fetchWithRetry('/voucher/list');
     }
 }
 
