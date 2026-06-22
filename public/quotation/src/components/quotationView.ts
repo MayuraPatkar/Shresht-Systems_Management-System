@@ -789,10 +789,17 @@ async function renderQuotationView(quotation, viewType) {
         }
     };
 
+    const isDeleted = !!(quotation.is_deleted || quotation.deletion?.is_deleted);
+
     const dangerZoneSection = document.getElementById('danger-zone');
     if (dangerZoneSection) {
         dangerZoneSection.classList.remove('hidden');
     }
+
+    const rejectRow = document.getElementById('danger-zone-reject-row');
+    const archiveRow = document.getElementById('danger-zone-archive-row');
+    if (rejectRow) rejectRow.style.display = isDeleted ? 'none' : '';
+    if (archiveRow) archiveRow.style.display = isDeleted ? 'none' : '';
 
     const rejectBtn = document.getElementById('ejectQuotationBtn');
     if (rejectBtn) {
@@ -894,37 +901,82 @@ async function renderQuotationView(quotation, viewType) {
     if (deleteBtn) {
         const newDeleteBtn = deleteBtn.cloneNode(true) as HTMLButtonElement;
         deleteBtn.parentNode?.replaceChild(newDeleteBtn, deleteBtn);
-        newDeleteBtn.addEventListener('click', () => {
-            const electronAPI = (window as any).electronAPI;
-            if (electronAPI?.showAlert2 && electronAPI?.receiveAlertResponse) {
-                electronAPI.showAlert2(`Are you sure you want to delete Quotation "${quotation.quotation_id}"?`);
-                
-                electronAPI.receiveAlertResponse((response: string) => {
-                    if (response === 'Yes') {
-                        if (typeof (window as any).deleteDocument === 'function') {
-                            (window as any).deleteDocument('quotation', quotation.quotation_id, 'Quotation', () => {
-                                const homeBtnEl = document.getElementById('home-btn');
-                                if (homeBtnEl) {
-                                    homeBtnEl.click();
-                                    
-                                    // Refresh the list view automatically
-                                    const refreshBtnEl = document.getElementById('refresh-btn');
-                                    if (refreshBtnEl) refreshBtnEl.click();
-                                } else {
-                                    window.location.reload();
-                                }
-                            });
+
+        const titleEl = document.getElementById('danger-zone-delete-title');
+        const descEl = document.getElementById('danger-zone-delete-desc');
+
+        if (isDeleted) {
+            newDeleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete Permanently';
+            if (titleEl) titleEl.textContent = 'Delete Permanently';
+            if (descEl) descEl.textContent = 'Irreversibly remove this quotation from the system.';
+
+            newDeleteBtn.addEventListener('click', () => {
+                const message = `Permanently delete Quotation "${quotation.quotation_id}"? This cannot be undone.`;
+                const executeDelete = async () => {
+                    try {
+                        const res = await fetch(`/quotation/trash/${encodeURIComponent(quotation.quotation_id)}`, { method: 'DELETE' });
+                        if (!res.ok) throw new Error('Failed to delete');
+                        if (typeof (window as any).showToast === 'function') {
+                            (window as any).showToast(`Quotation ${quotation.quotation_id} permanently deleted`);
+                        }
+                        window.location.href = '/quotation';
+                    } catch (e) {
+                        const electronAPI = (window as any).electronAPI;
+                        if (electronAPI?.showAlert1) {
+                            electronAPI.showAlert1('Failed to permanently delete quotation.');
+                        } else {
+                            alert('Failed to permanently delete quotation.');
                         }
                     }
-                });
-            } else {
-                if (confirm(`Are you sure you want to delete Quotation "${quotation.quotation_id}"?`)) {
-                        (window as any).deleteDocument('quotation', quotation.quotation_id, 'Quotation', () => {
-                            window.location.href = '/quotation';
-                        });
+                };
+
+                const electronAPI = (window as any).electronAPI;
+                if (electronAPI?.showAlert2 && electronAPI?.receiveAlertResponse) {
+                    electronAPI.showAlert2(message);
+                    electronAPI.receiveAlertResponse((response: string) => {
+                        if (response === 'Yes') executeDelete();
+                    });
+                } else if (confirm(message)) {
+                    executeDelete();
                 }
-            }
-        });
+            });
+        } else {
+            newDeleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete Quotation';
+            if (titleEl) titleEl.textContent = 'Delete Quotation';
+            if (descEl) descEl.textContent = 'Move this quotation to the trash folder.';
+
+            newDeleteBtn.addEventListener('click', () => {
+                const electronAPI = (window as any).electronAPI;
+                if (electronAPI?.showAlert2 && electronAPI?.receiveAlertResponse) {
+                    electronAPI.showAlert2(`Are you sure you want to delete Quotation "${quotation.quotation_id}"?`);
+                    
+                    electronAPI.receiveAlertResponse((response: string) => {
+                        if (response === 'Yes') {
+                            if (typeof (window as any).deleteDocument === 'function') {
+                                (window as any).deleteDocument('quotation', quotation.quotation_id, 'Quotation', () => {
+                                    const homeBtnEl = document.getElementById('home-btn');
+                                    if (homeBtnEl) {
+                                        homeBtnEl.click();
+                                        
+                                        // Refresh the list view automatically
+                                        const refreshBtnEl = document.getElementById('refresh-btn');
+                                        if (refreshBtnEl) refreshBtnEl.click();
+                                    } else {
+                                        window.location.reload();
+                                    }
+                                });
+                            }
+                        }
+                    });
+                } else {
+                    if (confirm(`Are you sure you want to delete Quotation "${quotation.quotation_id}"?`)) {
+                            (window as any).deleteDocument('quotation', quotation.quotation_id, 'Quotation', () => {
+                                window.location.href = '/quotation';
+                            });
+                    }
+                }
+            });
+        }
     }
 
     const archiveBtn = document.getElementById('archiveQuotationBtn');
@@ -1263,6 +1315,7 @@ async function viewQuotation(quotationId, viewType) {
 
         // Render the view with fetched data
         await renderQuotationView(quotation, viewType);
+        return quotation;
 
     } catch (error) {
         console.error("Error fetching quotation:", error);

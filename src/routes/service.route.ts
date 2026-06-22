@@ -579,9 +579,16 @@ router.get('/recent-services', async (req: Request, res: Response) => {
 
         const servicesWithInvoiceData = await Promise.all(
             recentServices.map(async (svc: any) => {
-                const invoice = await InvoiceModel.findOne({ invoice_id: svc.invoice_id })
+                let invoice = await InvoiceModel.findOne({ invoice_id: svc.invoice_id })
                     .select('customer_name customer_address customer_phone customer_gstin project_name')
                     .lean() as any;
+                if (!invoice) {
+                    try {
+                        invoice = await InvoiceModel.findById(svc.invoice_id)
+                            .select('customer_name customer_address customer_phone customer_gstin project_name')
+                            .lean() as any;
+                    } catch (e) { /* ignore cast errors */ }
+                }
                 return {
                     ...svc,
                     customer_name: invoice?.customer_name || 'N/A',
@@ -722,9 +729,16 @@ router.get('/search-services/:query', async (req: Request, res: Response) => {
 
         const servicesWithInvoiceData = await Promise.all(
             uniqueServices.map(async (svc: any) => {
-                const invoice = await InvoiceModel.findOne({ invoice_id: svc.invoice_id })
+                let invoice = await InvoiceModel.findOne({ invoice_id: svc.invoice_id })
                     .select('customer_name customer_address customer_phone customer_gstin project_name')
                     .lean() as any;
+                if (!invoice) {
+                    try {
+                        invoice = await InvoiceModel.findById(svc.invoice_id)
+                            .select('customer_name customer_address customer_phone customer_gstin project_name')
+                            .lean() as any;
+                    } catch (e) { /* ignore cast errors */ }
+                }
                 return {
                     ...svc,
                     customer_name: invoice?.customer_name || 'N/A',
@@ -804,7 +818,12 @@ router.post('/toggle-status', async (req: Request, res: Response) => {
     try {
         const { invoiceId, status } = req.body;
 
-        const project = await InvoiceModel.findOne({ invoice_id: invoiceId }) as any;
+        let project = await InvoiceModel.findOne({ invoice_id: invoiceId }) as any;
+        if (!project) {
+            try {
+                project = await InvoiceModel.findById(invoiceId);
+            } catch (e) {}
+        }
         if (!project) return res.status(404).json({ error: "Project not found" });
 
         if (status) {

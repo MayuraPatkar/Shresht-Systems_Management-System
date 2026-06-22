@@ -985,13 +985,27 @@ async function renderInvoiceView(invoice: Invoice, userRole: string, viewType: s
         deleteBtn.parentNode?.replaceChild(newDeleteBtn, deleteBtn);
         newDeleteBtn.addEventListener('click', () => {
             const showConfirm = (window as any).showConfirm;
+            const isWbDeleted = (invoice as any).is_deleted || invoice.deletion?.is_deleted;
+            const confirmMsg = isWbDeleted 
+                ? `Are you sure you want to PERMANENTLY delete Invoice "${invoice.invoice_id}" from the database? This action cannot be undone.`
+                : `Are you sure you want to delete Invoice "${invoice.invoice_id}"? This will move it to trash.`;
+            
             if (showConfirm) {
-                showConfirm(`Are you sure you want to PERMANENTLY delete Invoice "${invoice.invoice_id}"? This action cannot be undone.`, async (response: string) => {
+                showConfirm(confirmMsg, async (response: string) => {
                     if (response === 'Yes') {
                         try {
-                            const res = await fetch(`/invoice/${invoice.invoice_id}`, {
-                                method: 'DELETE'
-                            });
+                            let res;
+                            if (isWbDeleted) {
+                                res = await fetch(`/invoice/hardDeleteItem`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ itemId: invoice.invoice_id })
+                                });
+                            } else {
+                                res = await fetch(`/invoice/${invoice.invoice_id}`, {
+                                    method: 'DELETE'
+                                });
+                            }
                             const data = await res.json();
                             if (res.ok) {
                                 if ((window as any).electronAPI?.showAlert1) {
@@ -1414,11 +1428,6 @@ async function viewInvoice(invoiceId: string, userRole?: string | null) {
         const data = await response.json();
         const invoice = data.invoice as Invoice;
 
-        if (invoice.deletion?.is_deleted) {
-            showDeletedInvoiceAlert();
-            return;
-        }
-
         cachedInvoice = invoice;
         cachedUserRole = role;
         currentInvoiceViewType = type;
@@ -1438,11 +1447,42 @@ async function viewInvoice(invoiceId: string, userRole?: string | null) {
         const viewPaymentBtn = document.getElementById('view-payment-btn');
         const editBtn = document.getElementById('editInvoiceBtnView');
         const duplicateBtn = document.getElementById('duplicateInvoiceBtnView');
+        const sendWhatsAppBtn = document.getElementById('sendWhatsAppBtn');
+        const restoreBtn = document.getElementById('restoreInvoiceBtnView');
 
-        if (viewPaymentBtn) viewPaymentBtn.style.display = 'flex';
-        if (editBtn) editBtn.style.display = 'flex';
-        if (duplicateBtn) duplicateBtn.style.display = 'flex';
+        const isInvoiceDeleted = (invoice as any).is_deleted || invoice.deletion?.is_deleted;
 
+        const cancelRow = document.getElementById('danger-row-cancel');
+        const archiveRow = document.getElementById('danger-row-archive');
+        const deleteTitle = document.getElementById('deleteInvoiceTitle');
+        const deleteDesc = document.getElementById('deleteInvoiceDesc');
+        const deleteBtnText = document.getElementById('deleteInvoiceBtnText');
+
+        if (isInvoiceDeleted) {
+            if (viewPaymentBtn) viewPaymentBtn.style.display = 'none';
+            if (editBtn) editBtn.style.display = 'none';
+            if (duplicateBtn) duplicateBtn.style.display = 'none';
+            if (sendWhatsAppBtn) sendWhatsAppBtn.style.display = 'none';
+            if (restoreBtn) restoreBtn.style.display = 'flex';
+
+            if (cancelRow) cancelRow.style.display = 'none';
+            if (archiveRow) archiveRow.style.display = 'none';
+            if (deleteTitle) deleteTitle.textContent = 'Permanently Delete Invoice';
+            if (deleteDesc) deleteDesc.textContent = 'Permanently delete this invoice from database. This action cannot be undone.';
+            if (deleteBtnText) deleteBtnText.textContent = 'Permanent Delete';
+        } else {
+            if (viewPaymentBtn) viewPaymentBtn.style.display = '';
+            if (editBtn) editBtn.style.display = 'flex';
+            if (duplicateBtn) duplicateBtn.style.display = 'flex';
+            if (sendWhatsAppBtn) sendWhatsAppBtn.style.display = 'flex';
+            if (restoreBtn) restoreBtn.style.display = 'none';
+
+            if (cancelRow) cancelRow.style.display = '';
+            if (archiveRow) archiveRow.style.display = '';
+            if (deleteTitle) deleteTitle.textContent = 'Delete Invoice';
+            if (deleteDesc) deleteDesc.textContent = 'Permanently delete this invoice. This action cannot be undone.';
+            if (deleteBtnText) deleteBtnText.textContent = 'Delete Invoice';
+        }
         await renderInvoiceView(invoice, role, type);
 
     } catch (error) {

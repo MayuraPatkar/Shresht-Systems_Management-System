@@ -1,5 +1,17 @@
 // @ts-nocheck
 (function () {
+    function getPurchaseOrderStatusClass(status: string) {
+        const styles: { [key: string]: string } = {
+            'Draft': 'bg-gray-100 text-gray-700 border-gray-200',
+            'Issued/Sent': 'bg-blue-100 text-blue-700 border-blue-200',
+            'Acknowledged/Accepted': 'bg-green-100 text-green-700 border-green-200',
+            'Rejected': 'bg-red-100 text-red-700 border-red-200',
+            'Shipped': 'bg-purple-100 text-purple-700 border-purple-200',
+            'Invoiced': 'bg-emerald-100 text-emerald-700 border-emerald-200'
+        };
+        return styles[status] || styles['Draft'];
+    }
+
     async function generatePurchaseOrderViewPreview(purchaseOrder: any) {
         // Fetch company data from database
         let companyData: any = {};
@@ -313,12 +325,12 @@
     }
 
     // Print handlers
-    const initializeView = () => {
+    const initializeView = async () => {
         const urlParams = new URLSearchParams(window.location.search);
         const id = urlParams.get('id');
         const hasView = document.getElementById('project-details-view');
         if (id && hasView) {
-            viewPurchaseOrder(id);
+            await viewPurchaseOrder(id);
         }
 
         const printBtn = document.getElementById('print-project');
@@ -359,6 +371,28 @@
     } else {
         initializeView();
     }
+
+    // Setup Header Buttons
+        const homeBtn = document.getElementById("home-btn");
+        if (homeBtn) {
+            homeBtn.addEventListener("click", () => {
+                window.location.href = '/purchaseorder';
+            });
+        }
+
+        // Refresh button
+        const refreshBtn = document.getElementById('refresh-btn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => {
+                const icon = refreshBtn.querySelector('i');
+                if (icon) icon.classList.add('animate-spin');
+                initializeView().finally(() => {
+                    setTimeout(() => {
+                        if (icon) icon.classList.remove('animate-spin');
+                    }, 500);
+                });
+            });
+        }
 
     let currentPurchaseOrder: any = null;
     let isEditingInline = false;
@@ -416,16 +450,174 @@
         }
     }
 
+    function updatePurchaseOrderStatusTracker(purchaseOrder: any) {
+        const trackerEl = document.getElementById('purchaseorder-status-tracker');
+        if (!trackerEl) return;
+
+        const status = purchaseOrder.status || 'Draft';
+
+        let step1State = 'completed';
+        let step2State = 'pending';
+        let step3State = 'pending';
+        let step4State = 'pending';
+        let step5State = 'pending';
+
+        let step3Label = 'Accepted';
+        let step3Subtitle = 'Accepted by supplier';
+        let step3Icon = 'fa-check-circle';
+        let step3ColorClass = 'emerald';
+
+        let progressWidth = '0%';
+
+        if (status === 'Draft') {
+            step1State = 'active';
+            progressWidth = '0%';
+        } else if (status === 'Issued/Sent') {
+            step1State = 'completed';
+            step2State = 'active';
+            progressWidth = '25%';
+        } else if (status === 'Acknowledged/Accepted') {
+            step1State = 'completed';
+            step2State = 'completed';
+            step3State = 'active';
+            progressWidth = '50%';
+        } else if (status === 'Rejected') {
+            step1State = 'completed';
+            step2State = 'completed';
+            step3State = 'warning';
+            step3Label = 'Rejected';
+            step3Subtitle = 'Declined by supplier';
+            step3Icon = 'fa-times-circle';
+            step3ColorClass = 'red';
+            progressWidth = '50%';
+        } else if (status === 'Shipped') {
+            step1State = 'completed';
+            step2State = 'completed';
+            step3State = 'completed';
+            step4State = 'active';
+            progressWidth = '75%';
+        } else if (status === 'Invoiced') {
+            step1State = 'completed';
+            step2State = 'completed';
+            step3State = 'completed';
+            step4State = 'completed';
+            step5State = 'completed';
+            progressWidth = '100%';
+        }
+
+        const renderStepCircle = (state: string, icon: string, color: string, label: string, subtitle: string) => {
+            let circleClass = '';
+            let labelClass = 'text-gray-800';
+            let iconMarkup = `<i class="fas ${icon} text-sm"></i>`;
+
+            if (state === 'completed') {
+                circleClass = 'bg-emerald-500 text-white ring-4 ring-emerald-100';
+                iconMarkup = `<i class="fas fa-check text-sm"></i>`;
+            } else if (state === 'active') {
+                if (color === 'emerald') {
+                    circleClass = 'bg-emerald-500 text-white ring-4 ring-emerald-100';
+                    labelClass = 'text-emerald-600 font-bold';
+                } else {
+                    circleClass = 'bg-blue-600 text-white ring-4 ring-blue-100';
+                    labelClass = 'text-blue-600 font-bold';
+                }
+            } else if (state === 'warning') {
+                if (color === 'red') {
+                    circleClass = 'bg-red-500 text-white ring-4 ring-red-100';
+                    labelClass = 'text-red-600 font-bold';
+                } else {
+                    circleClass = 'bg-amber-500 text-white ring-4 ring-amber-100';
+                    labelClass = 'text-amber-600 font-bold';
+                }
+            } else {
+                circleClass = 'bg-gray-100 text-gray-400 border border-gray-200';
+                labelClass = 'text-gray-400';
+            }
+
+            return `
+                <div class="flex flex-col items-center z-10 flex-1 relative">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${circleClass}">
+                        ${iconMarkup}
+                    </div>
+                    <span class="text-xs font-bold mt-2 ${labelClass}">${label}</span>
+                    <span class="text-[10px] text-gray-500 mt-0.5">${subtitle}</span>
+                </div>
+            `;
+        };
+
+        trackerEl.innerHTML = `
+            <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
+                <i class="fas fa-route text-blue-600 text-xl"></i>
+                <h3 class="text-lg font-bold text-gray-800">Status Tracker</h3>
+            </div>
+            <div class="relative w-full max-w-4xl mx-auto py-6">
+                <!-- Background progress line -->
+                <div class="absolute top-[36px] left-[20px] right-[20px] h-1 bg-gray-100 -translate-y-1/2 z-0 rounded-full">
+                    <div class="h-full bg-gradient-to-r from-emerald-500 to-blue-600 transition-all duration-500 rounded-full" style="width: ${progressWidth}"></div>
+                </div>
+                
+                <!-- Steps Container -->
+                <div class="relative flex justify-between items-center z-10 w-full">
+                    ${renderStepCircle(step1State, 'fa-file-signature', 'blue', 'Draft', 'Created')}
+                    ${renderStepCircle(step2State, 'fa-paper-plane', 'blue', 'Issued/Sent', 'Sent to supplier')}
+                    ${renderStepCircle(step3State, step3Icon, step3ColorClass, step3Label, step3Subtitle)}
+                    ${renderStepCircle(step4State, 'fa-shipping-fast', 'blue', 'Shipped', 'Goods dispatched')}
+                    ${renderStepCircle(step5State, 'fa-file-invoice-dollar', 'emerald', 'Invoiced', 'Billed by supplier')}
+                </div>
+            </div>
+        `;
+        trackerEl.classList.remove('hidden');
+    }
+
     function renderPurchaseOrderDetails(purchaseOrder: any) {
         currentPurchaseOrder = purchaseOrder;
+        updatePurchaseOrderStatusTracker(purchaseOrder);
         const formatIndian = (window as any).formatIndian || ((n, f) => n.toFixed(f));
 
         // Fill Project Details
+        const viewPOId = document.getElementById('view-purchase-order-no');
+        if (viewPOId) {
+            viewPOId.textContent = purchaseOrder.purchase_order_no || '-';
+        }
+
+        const copyBtn = document.getElementById('copy-purchase-order-id-btn');
+        if (copyBtn) {
+            const newCopyBtn = copyBtn.cloneNode(true) as HTMLButtonElement;
+            copyBtn.parentNode?.replaceChild(newCopyBtn, copyBtn);
+            newCopyBtn.addEventListener('click', async () => {
+                const poId = purchaseOrder.purchase_order_no || '';
+                if (poId && poId !== '-') {
+                    try {
+                        await navigator.clipboard.writeText(poId);
+                        const icon = newCopyBtn.querySelector('i');
+                        if (icon) {
+                            icon.className = 'fas fa-check text-green-500 text-lg';
+                            const originalTitle = newCopyBtn.title;
+                            newCopyBtn.title = 'Copied!';
+                            setTimeout(() => {
+                                icon.className = 'far fa-copy text-lg';
+                                newCopyBtn.title = originalTitle;
+                            }, 2000);
+                        }
+                    } catch (err) {
+                        console.error('Failed to copy ID: ', err);
+                    }
+                }
+            });
+        }
+
         const viewDate = document.getElementById('view-purchase-date');
         if (viewDate) {
             viewDate.textContent = (window as any).formatDateDisplay ? 
                 (window as any).formatDateDisplay(purchaseOrder.purchase_date) : 
                 new Date(purchaseOrder.purchase_date).toLocaleDateString();
+        }
+
+        const viewStatus = document.getElementById('view-po-status');
+        if (viewStatus) {
+            const statusVal = purchaseOrder.status || 'Draft';
+            viewStatus.textContent = statusVal;
+            viewStatus.className = `inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getPurchaseOrderStatusClass(statusVal)}`;
         }
 
         // Buyer/Supplier Details
@@ -462,15 +654,28 @@
         const actionHeaders = document.querySelectorAll(".action-header");
         const dangerZoneSection = document.getElementById("danger-zone") || document.getElementById("danger-zone-section");
         
+        const viewEditBtn = document.getElementById('view-edit-btn');
+        const viewSaveBtn = document.getElementById('view-save-btn');
+        const viewCancelBtn = document.getElementById('view-cancel-btn');
+        const viewConvertBtn = document.getElementById('view-convert-purchase-btn') as HTMLButtonElement | null;
+
+        const isPOInvoiced = purchaseOrder.status === 'Invoiced';
+
         if (isEditingInline) {
             editFields.forEach(el => el.classList.remove("hidden"));
             viewFields.forEach(el => el.classList.add("hidden"));
             actionHeaders.forEach(el => el.classList.remove("hidden"));
             if (dangerZoneSection) dangerZoneSection.classList.add("hidden");
             
+            if (viewEditBtn) viewEditBtn.style.display = 'none';
+            if (viewSaveBtn) viewSaveBtn.style.display = 'flex';
+            if (viewCancelBtn) viewCancelBtn.style.display = 'flex';
+            if (viewConvertBtn) viewConvertBtn.style.display = 'none';
+
             // Populating supplier edit fields
             const addr = snapshot.address || {};
             (document.getElementById('edit-purchase-date') as HTMLInputElement).value = purchaseOrder.purchase_date ? purchaseOrder.purchase_date.split('T')[0] : '';
+            (document.getElementById('edit-po-status') as HTMLSelectElement).value = purchaseOrder.status || 'Draft';
             (document.getElementById('edit-supplier-name') as HTMLInputElement).value = snapshot.name || '';
             (document.getElementById('edit-supplier-address-line1') as HTMLInputElement).value = addr.line1 || '';
             (document.getElementById('edit-supplier-address-line2') as HTMLInputElement).value = addr.line2 || '';
@@ -490,6 +695,22 @@
                     dangerZoneSection.classList.remove('hidden');
                 } else {
                     dangerZoneSection.classList.add('hidden');
+                }
+            }
+            if (viewEditBtn) viewEditBtn.style.display = 'flex';
+            if (viewSaveBtn) viewSaveBtn.style.display = 'none';
+            if (viewCancelBtn) viewCancelBtn.style.display = 'none';
+            
+            if (viewConvertBtn) {
+                viewConvertBtn.style.display = 'flex';
+                if (isPOInvoiced) {
+                    viewConvertBtn.disabled = false;
+                    viewConvertBtn.className = "view-mode-btn flex bg-emerald-600 hover:bg-emerald-700 text-white px-4 h-10 rounded-lg items-center justify-center gap-2 font-medium whitespace-nowrap cursor-pointer";
+                    viewConvertBtn.title = "Convert this Invoiced Purchase Order to a Purchase";
+                } else {
+                    viewConvertBtn.disabled = true;
+                    viewConvertBtn.className = "view-mode-btn flex bg-gray-200 text-gray-400 border border-gray-300 px-4 h-10 rounded-lg items-center justify-center gap-2 font-medium whitespace-nowrap opacity-60 cursor-not-allowed";
+                    viewConvertBtn.title = "Only purchase orders with 'Invoiced' status can be converted to purchases.";
                 }
             }
         }
@@ -604,10 +825,10 @@
 
             if (purchaseOrder.is_archived) {
                 newArchiveBtn.innerHTML = '<i class="fas fa-box-open"></i> Restore from Archive';
-                newArchiveBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors cursor-pointer";
+                newArchiveBtn.className = "inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-300 bg-white px-5 py-2.5 text-sm font-semibold text-emerald-700 transition-all hover:border-emerald-500 hover:bg-emerald-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-emerald-200 cursor-pointer";
             } else {
                 newArchiveBtn.innerHTML = '<i class="fas fa-archive"></i> Archive Purchase Order';
-                newArchiveBtn.className = "bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors cursor-pointer";
+                newArchiveBtn.className = "inline-flex items-center justify-center gap-2 rounded-lg border border-orange-300 bg-white px-5 py-2.5 text-sm font-semibold text-orange-700 transition-all hover:border-orange-500 hover:bg-orange-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-orange-200 cursor-pointer";
             }
 
             newArchiveBtn.addEventListener('click', () => {
@@ -627,9 +848,29 @@
             const newDeleteBtn = deleteBtn.cloneNode(true) as HTMLButtonElement;
             deleteBtn.parentNode?.replaceChild(newDeleteBtn, deleteBtn);
 
+            const isDeleted = purchaseOrder.deletion?.is_deleted || purchaseOrder.is_deleted;
+            const deleteTitle = document.getElementById('danger-zone-delete-title');
+            const deleteDesc = document.getElementById('danger-zone-delete-desc');
+
+            if (isDeleted) {
+                if (deleteTitle) deleteTitle.textContent = 'Permanently Delete Purchase Order';
+                if (deleteDesc) deleteDesc.textContent = 'Permanently delete this purchase order from database. This action cannot be undone.';
+                newDeleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete Permanently';
+            } else {
+                if (deleteTitle) deleteTitle.textContent = 'Delete Purchase Order';
+                if (deleteDesc) deleteDesc.textContent = 'Move this purchase order to trash.';
+                newDeleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete Purchase Order';
+            }
+
             newDeleteBtn.addEventListener('click', () => {
-                if (typeof (window as any).handlePurchaseOrderHardDelete === 'function') {
-                    (window as any).handlePurchaseOrderHardDelete(purchaseOrder.purchase_order_no);
+                if (isDeleted) {
+                    if (typeof (window as any).handlePurchaseOrderHardDelete === 'function') {
+                        (window as any).handlePurchaseOrderHardDelete(purchaseOrder.purchase_order_no);
+                    }
+                } else {
+                    if (typeof (window as any).handlePurchaseOrderSoftDelete === 'function') {
+                        (window as any).handlePurchaseOrderSoftDelete(purchaseOrder.purchase_order_no);
+                    }
                 }
             });
         }
@@ -868,6 +1109,7 @@
             purchase_order_no: currentPurchaseOrder.purchase_order_no,
             purchase_invoice_no: '',
             purchase_date: date,
+            status: (document.getElementById('edit-po-status') as HTMLSelectElement).value,
             supplier_id: currentPurchaseOrder.supplier_id || "",
             supplier_snapshot: {
                 name: name,
@@ -928,8 +1170,7 @@
             editBtn.parentNode?.replaceChild(newEditBtn, editBtn);
             newEditBtn.addEventListener("click", () => {
                 if (currentPurchaseOrder) {
-                    setEditingInline(true);
-                    renderPurchaseOrderDetails(currentPurchaseOrder);
+                    window.location.href = `/purchaseOrder/purchaseOrder_form.html?id=${currentPurchaseOrder.purchase_order_no}`;
                 }
             });
         }
@@ -948,6 +1189,17 @@
         if (saveBtn) {
             saveBtn.addEventListener("click", () => {
                 saveInlineChanges();
+            });
+        }
+
+        const convertBtn = document.getElementById("view-convert-purchase-btn");
+        if (convertBtn) {
+            convertBtn.addEventListener("click", () => {
+                if (currentPurchaseOrder && currentPurchaseOrder.status === 'Invoiced') {
+                    sessionStorage.setItem("purchase-order-to-purchase-id", currentPurchaseOrder.purchase_order_no);
+                    sessionStorage.setItem("currentTab-status", "new");
+                    window.location.href = "../purchase/purchase_form.html";
+                }
             });
         }
 

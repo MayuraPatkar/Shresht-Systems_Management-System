@@ -66,6 +66,7 @@ router.get('/overview', async (req: Request, res: Response) => {
                 $match: {
                     'deletion.is_deleted': false,
                     is_archived: { $ne: true },
+                    status: { $nin: ['Invoiced', 'Rejected'] },
                     $or: [
                         { purchase_date: { $gte: startOfMonth, $lt: startNextMon } },
                         { createdAt: { $gte: startOfMonth, $lt: startNextMon } },

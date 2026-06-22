@@ -223,23 +223,29 @@
         }
 
         .filter-tab {
+            display: inline-flex;
+            align-items: center;
             padding: 0.5rem 1rem;
             font-weight: 600;
-            font-size: 0.85rem;
-            color: #6b7280;
+            font-size: 0.75rem;
+            color: #64748b; /* slate-500 */
             cursor: pointer;
-            transition: all 0.2s;
-            border-bottom: 2px solid transparent;
-        }
-
-        .filter-tab.active {
-            color: #2563eb;
-            background: #eff6ff;
-            border-bottom-color: #2563eb;
+            transition: all 0.15s ease-in-out;
+            gap: 0.25rem;
+            outline: none;
+            border-radius: 0.5rem; /* rounded-lg */
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         .filter-tab:hover:not(.active) {
-            background: #f3f4f6;
+            color: #334155; /* slate-700 */
+            background: #f1f5f9; /* slate-100 */
+        }
+
+        .filter-tab.active {
+            color: #2563eb; /* blue-600 */
+            background: #eff6ff; /* blue-50 */
         }
 
         button,
@@ -267,26 +273,26 @@
                 <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
                 <h1 class="text-xl font-bold text-gray-800">Service</h1>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-3">
                 <button id="home-btn"
-                    class="hidden bg-gray-600 text-white px-4 py-2.5 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium h-10"
+                    class="hidden bg-gray-600 text-white px-4 h-10 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium text-sm transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
                     title="Home (Ctrl+H)">
                     <i class="fas fa-home"></i>
                     Home
                 </button>
                 <button id="new-service-btn"
-                    class="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium h-10"
+                    class="bg-blue-600 text-white px-4 h-10 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium text-sm transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
                     title="New Service (Ctrl+N)">
                     <i class="fas fa-plus"></i>
                     New Service
                 </button>
                 <button id="refresh-btn"
-                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 p-2.5 rounded-lg flex items-center justify-center gap-2 font-semibold w-10 h-10 transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
                     title="Refresh List (Ctrl+R)">
                     <i class="fas fa-sync-alt"></i>
                 </button>
                 <button id="shortcuts-btn"
-                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 p-2.5 rounded-lg flex items-center justify-center gap-2 font-semibold w-10 h-10 transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
                     title="Keyboard Shortcuts (?)">
                     <i class="fas fa-keyboard"></i>
                 </button>
@@ -389,7 +395,7 @@
                 <div class="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 bg-slate-50/50 flex-shrink-0">
                     <div class="flex items-center gap-1">
                         <!-- Navigation tabs -->
-                        <div class="flex border-b border-slate-200">
+                        <div class="flex items-center gap-1.5 bg-slate-100/80 p-1 rounded-xl" id="status-tabs-container">
                             <button class="list-tab filter-tab active" data-tab="due">
                                 <i class="fas fa-clock mr-1"></i>Due
                             </button>
@@ -414,6 +420,18 @@
                     </div>
                 </div>
 
+                <!-- Active Filters Info Bar -->
+                <div id="active-filters-info-bar" class="px-6 py-2.5 bg-slate-50 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 hidden text-xs transition-all duration-200 flex-shrink-0">
+                    <div class="flex flex-wrap items-center gap-1.5" id="active-filters-badges">
+                        <span class="font-bold text-slate-500 mr-1 flex items-center gap-1">
+                            <i class="fas fa-filter text-[10px]"></i> Active Filters:
+                        </span>
+                    </div>
+                    <button id="clear-all-filters-shortcut" class="text-blue-600 hover:text-blue-800 font-bold hover:underline flex items-center gap-1 cursor-pointer transition-all duration-150">
+                        <i class="fas fa-times-circle"></i> Clear All
+                    </button>
+                </div>
+
                 <div class="hidden md:block overflow-x-auto overflow-y-auto flex-1 min-h-0">
                     <table class="w-full text-sm border-collapse">
                         <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
@@ -423,7 +441,7 @@
                         </thead>
                         <tbody id="service-tbody">
                             <tr>
-                                <td colspan="9" class="px-4 py-12 text-center text-slate-400">
+                                <td colspan="9" class="w-full px-4 py-12 flex flex-col items-center justify-center text-slate-400">
                                     <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
                                     <p>Loading services...</p>
                                 </td>

@@ -1040,6 +1040,334 @@ if (newSection) newSection.style.display = "block";
         }
     }
 
+    async function loadPurchaseFromPurchaseOrder(poId: string) {
+        try {
+            let data;
+            if ((window as any).purchaseOrderApi) {
+                data = await (window as any).purchaseOrderApi.fetchPurchaseOrderById(poId);
+            } else {
+                const response = await fetch(`/purchaseOrder/${poId}`);
+                if (!response.ok) throw new Error("Failed to fetch purchase order");
+                data = await response.json();
+            }
+
+            const purchaseOrder = data.purchaseOrder;
+            if (!purchaseOrder) throw new Error("Purchase order not found");
+
+            sessionStorage.setItem('currentTab-status', 'new');
+
+            const today = (window as any).getTodayForInput ? (window as any).getTodayForInput() : new Date().toISOString().split('T')[0];
+            const dateInput = document.getElementById("purchase-date") as HTMLInputElement;
+            if (dateInput) dateInput.value = today;
+
+            (document.getElementById("purchase-invoice-id") as HTMLInputElement).value = "";
+            (document.getElementById("id") as HTMLInputElement).value = "";
+            purchaseId = "";
+
+            const snapshot = purchaseOrder.supplier_snapshot || {};
+            (document.getElementById("supplier-id") as HTMLInputElement).value = purchaseOrder.supplier_id || "";
+            (document.getElementById("supplier-search-input") as HTMLInputElement).value = snapshot.name || "";
+            (document.getElementById("supplier-name") as HTMLInputElement).value = snapshot.name || "";
+            const addr = snapshot.address || {};
+            (document.getElementById("supplier-address-line1") as HTMLInputElement).value = addr.line1 || "";
+            (document.getElementById("supplier-address-line2") as HTMLInputElement).value = addr.line2 || "";
+            (document.getElementById("supplier-address-city") as HTMLInputElement).value = addr.city || "";
+            (document.getElementById("supplier-address-state") as HTMLSelectElement).value = addr.state || "Karnataka";
+            (document.getElementById("supplier-address-pincode") as HTMLInputElement).value = addr.pincode || "";
+            (document.getElementById("supplier-phone") as HTMLInputElement).value = snapshot.phone || "";
+            (document.getElementById("supplier-email") as HTMLInputElement).value = snapshot.email || "";
+            (document.getElementById("supplier-GSTIN") as HTMLInputElement).value = snapshot.gstin || "";
+
+            renderSupplierProfileCard();
+
+            const itemsContainer = document.getElementById("items-container");
+            const pricingContainer = document.getElementById("items-container-pricing");
+            const itemsTable = document.getElementById("items-table")?.getElementsByTagName("tbody")[0];
+
+            if (itemsContainer) itemsContainer.innerHTML = "";
+            if (pricingContainer) pricingContainer.innerHTML = "";
+            if (itemsTable) itemsTable.innerHTML = "";
+
+            let sno = 1;
+            (purchaseOrder.items || []).forEach((item: any) => {
+                const description = item.description || "";
+                const hsnSac = item.hsn_sac || item.HSN_SAC || "";
+                const company = item.brand || item.company || "";
+                const type = item.item_type || item.type || "Material";
+                const category = item.category || "";
+                const quantity = item.quantity || "";
+                const unit = item.unit || "";
+                const unitPrice = item.unit_price || "";
+                const rate = item.gst_rate || item.rate || "";
+                const itemId = 'item-' + Math.random().toString(36).substr(2, 9);
+
+                const card = document.createElement("div");
+                card.className = "item-card item-details-row";
+                card.setAttribute("draggable", "true");
+                card.dataset.itemId = itemId;
+
+                card.innerHTML = `
+                    <div class="drag-handle" title="Drag to reorder">
+                        <i class="fas fa-grip-vertical"></i>
+                    </div>
+                    <div class="item-number">${sno}</div>
+                    <div class="item-field description">
+                        <div style="position: relative;">
+                            <input type="text" placeholder="Description" class="item_name" value="${description}" required>
+                            <ul class="suggestions"></ul>
+                        </div>
+                    </div>
+                    <div class="item-field hsn">
+                        <input type="text" placeholder="HSN/SAC" value="${hsnSac}" required>
+                    </div>
+                    <div class="item-field brand">
+                        <div style="position: relative;">
+                            <input type="text" placeholder="Brand" class="item-company" value="${company}">
+                            <ul class="suggestions"></ul>
+                        </div>
+                    </div>
+                    <div class="item-field type">
+                        <select class="w-full px-2 py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <option value="Material" ${type === 'Material' ? 'selected' : ''}>Material</option>
+                            <option value="Asset" ${type === 'Asset' ? 'selected' : ''}>Asset</option>
+                        </select>
+                    </div>
+                    <div class="item-field category">
+                        <div style="position: relative;">
+                            <input type="text" placeholder="Category" class="item-category" value="${category}">
+                            <ul class="suggestions"></ul>
+                        </div>
+                    </div>
+                    <div class="item-field unit">
+                        <select class="w-full px-2 py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 item-unit">
+                            <option value="" disabled ${!unit ? 'selected' : ''}>Select Unit</option>
+                            <option value="pc" ${unit === 'pc' ? 'selected' : ''}>Piece (pc)</option>
+                            <option value="kg" ${unit === 'kg' ? 'selected' : ''}>Kilogram (kg)</option>
+                            <option value="L" ${unit === 'L' ? 'selected' : ''}>Litre (L)</option>
+                            <option value="m" ${unit === 'm' ? 'selected' : ''}>Metre (m)</option>
+                        </select>
+                    </div>
+                    <div class="item-actions">
+                        <button type="button" class="remove-item-btn" title="Remove Item">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                `;
+                if (itemsContainer) itemsContainer.appendChild(card);
+
+                setupCardTabNavigation(card);
+
+                const cardInput = card.querySelector(".item_name") as HTMLInputElement;
+                const cardSuggestions = card.querySelector(".suggestions") as HTMLUListElement;
+
+                if (cardInput && cardSuggestions) {
+                    cardInput.addEventListener("input", function () {
+                        showSuggestionsP(cardInput, cardSuggestions);
+                    });
+                    cardInput.addEventListener("keydown", function (event) {
+                        handleKeyboardNavigationP(event, cardInput, cardSuggestions);
+                    });
+                }
+
+                const cardCompany = card.querySelector(".item-company") as HTMLInputElement;
+                const cardCategory = card.querySelector(".item-category") as HTMLInputElement;
+                if (cardCompany) setupGenericAutocomplete(cardCompany, companySuggestionList);
+                if (cardCategory) setupGenericAutocomplete(cardCategory, categorySuggestionList);
+
+                const pricingCard = document.createElement("div");
+                pricingCard.className = "item-pricing-card item-pricing-row";
+                pricingCard.dataset.itemId = itemId;
+
+                pricingCard.innerHTML = `
+                    <div class="item-number">${sno}</div>
+                    <div class="item-field description">
+                        <input type="text" class="item_name_readonly" readonly placeholder="Description" value="${description}" style="background-color: #f3f4f6; cursor: not-allowed;">
+                    </div>
+                    <div class="item-field qty">
+                        <input type="number" placeholder="Qty" value="${quantity}" min="0.000001" step="any" required>
+                    </div>
+                    <div class="item-field unit-display flex items-center justify-center font-semibold text-gray-600 text-sm">
+                        ${unit ? `(${unit})` : '-'}
+                    </div>
+                    <div class="item-field price">
+                        <input type="number" placeholder="Unit Price" step="0.01" value="${unitPrice}" required>
+                    </div>
+                    <div class="item-field rate">
+                        <input type="number" placeholder="GST %" min="0" step="0.01" value="${rate}">
+                    </div>
+                `;
+                if (pricingContainer) pricingContainer.appendChild(pricingCard);
+
+                const pricingDescInput = pricingCard.querySelector(".item_name_readonly") as HTMLInputElement;
+
+                if (itemsTable) {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td class="text-center"><div class="item-number">${sno}</div></td>
+                        <td>
+                            <div style="position: relative;">
+                                <input type="text" placeholder="Item Description" class="item_name w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500" value="${description}" required>
+                                <ul class="suggestions"></ul>
+                            </div>
+                        </td>
+                        <td><input type="text" placeholder="HSN/SAC" value="${hsnSac}" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+                        <td><input type="text" placeholder="Brand" value="${company}" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+                        <td>
+                            <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                <option value="Material" ${type === 'Material' ? 'selected' : ''}>Material</option>
+                                <option value="Asset" ${type === 'Asset' ? 'selected' : ''}>Asset</option>
+                            </select>
+                        </td>
+                        <td><input type="text" placeholder="Category" value="${category}" class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+                        <td><input type="number" placeholder="Qty" value="${quantity}" min="0.000001" step="any" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+                        <td>
+                            <select class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 item-unit">
+                                <option value="" disabled ${!unit ? 'selected' : ''}>Select Unit</option>
+                                <option value="pc" ${unit === 'pc' ? 'selected' : ''}>Piece (pc)</option>
+                                <option value="kg" ${unit === 'kg' ? 'selected' : ''}>Kilogram (kg)</option>
+                                <option value="L" ${unit === 'L' ? 'selected' : ''}>Litre (L)</option>
+                                <option value="m" ${unit === 'm' ? 'selected' : ''}>Metre (m)</option>
+                            </select>
+                        </td>
+                        <td><input type="number" placeholder="Unit Price" value="${unitPrice}" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+                        <td><input type="number" placeholder="Rate" value="${rate}" min="0.01" step="0.01" required class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></td>
+                        <td><button type="button" class="remove-item-btn table-remove-btn"><i class="fas fa-trash-alt"></i></button></td>
+                    `;
+                    itemsTable.appendChild(row);
+
+                    const tableInput = row.querySelector(".item_name") as HTMLInputElement;
+                    const tableSuggestions = row.querySelector(".suggestions") as HTMLUListElement;
+
+                    if (tableInput && tableSuggestions) {
+                        tableInput.addEventListener("input", function () {
+                            showSuggestionsP(tableInput, tableSuggestions);
+                            if (cardInput) cardInput.value = tableInput.value;
+                            if (pricingDescInput) pricingDescInput.value = tableInput.value;
+                        });
+                        tableInput.addEventListener("keydown", function (event) {
+                            handleKeyboardNavigationP(event, tableInput, tableSuggestions);
+                        });
+                    }
+
+                    const detailsInputs = card.querySelectorAll('input');
+                    const detailsSelects = card.querySelectorAll('select');
+                    const pricingInputs = pricingCard.querySelectorAll('input');
+                    const pricingUnitDisplay = pricingCard.querySelector('.unit-display') as HTMLElement;
+                    const tableInputs = row.querySelectorAll('input');
+                    const tableSelects = row.querySelectorAll('select');
+
+                    cardInput.addEventListener("input", () => {
+                        tableInputs[0].value = cardInput.value;
+                        if (pricingDescInput) pricingDescInput.value = cardInput.value;
+                    });
+                    tableInputs[0].addEventListener("input", () => {
+                        cardInput.value = tableInputs[0].value;
+                        if (pricingDescInput) pricingDescInput.value = tableInputs[0].value;
+                    });
+
+                    detailsInputs[1].addEventListener("input", () => { tableInputs[1].value = detailsInputs[1].value; });
+                    tableInputs[1].addEventListener("input", () => { detailsInputs[1].value = tableInputs[1].value; });
+
+                    detailsInputs[2].addEventListener("input", () => { tableInputs[2].value = detailsInputs[2].value; });
+                    tableInputs[2].addEventListener("input", () => { detailsInputs[2].value = tableInputs[2].value; });
+
+                    detailsSelects[0].addEventListener("change", () => { tableSelects[0].value = detailsSelects[0].value; });
+                    tableSelects[0].addEventListener("change", () => { detailsSelects[0].value = tableSelects[0].value; });
+
+                    detailsInputs[3].addEventListener("input", () => { tableInputs[3].value = detailsInputs[3].value; });
+                    tableInputs[3].addEventListener("input", () => { detailsInputs[3].value = tableInputs[3].value; });
+
+                    const updateUnitDisplays = () => {
+                        const val = detailsSelects[1].value;
+                        tableSelects[1].value = val;
+                        if (pricingUnitDisplay) {
+                            pricingUnitDisplay.textContent = val ? `(${val})` : '-';
+                        }
+                    };
+                    detailsSelects[1].addEventListener("change", updateUnitDisplays);
+                    tableSelects[1].addEventListener("change", () => {
+                        detailsSelects[1].value = tableSelects[1].value;
+                        updateUnitDisplays();
+                    });
+
+                    pricingInputs[1].addEventListener("input", () => { tableInputs[4].value = pricingInputs[1].value; });
+                    tableInputs[4].addEventListener("input", () => { pricingInputs[1].value = tableInputs[4].value; });
+
+                    pricingInputs[2].addEventListener("input", () => { tableInputs[5].value = pricingInputs[2].value; });
+                    tableInputs[5].addEventListener("input", () => { pricingInputs[2].value = tableInputs[5].value; });
+
+                    pricingInputs[3].addEventListener("input", () => { tableInputs[6].value = pricingInputs[3].value; });
+                    tableInputs[6].addEventListener("input", () => { pricingInputs[3].value = tableInputs[6].value; });
+
+                    setupPQuantityDecimalSupport(pricingCard, row);
+                    detailsSelects[1].addEventListener('change', () => {
+                        const event = new Event('change');
+                        tableSelects[1].dispatchEvent(event);
+                    });
+
+                    const cardRemoveBtn = card.querySelector(".remove-item-btn");
+                    if (cardRemoveBtn) {
+                        cardRemoveBtn.addEventListener("click", function () {
+                            card.remove();
+                            pricingCard.remove();
+                            row.remove();
+                            renumberItems();
+                        });
+                    }
+
+                    const tableRemoveBtn = row.querySelector(".remove-item-btn");
+                    if (tableRemoveBtn) {
+                        tableRemoveBtn.addEventListener("click", function () {
+                            card.remove();
+                            pricingCard.remove();
+                            row.remove();
+                            renumberItems();
+                        });
+                    }
+                }
+
+                sno++;
+            });
+
+            if (typeof (window as any).changeStep === 'function') {
+                (window as any).changeStep(1);
+            }
+
+            const viewSection = document.getElementById("view");
+            if (viewSection) viewSection.style.display = "none";
+            const homeSection = document.getElementById("home");
+            if (homeSection) homeSection.style.display = "none";
+            const newSection = document.getElementById("new");
+            if (newSection) newSection.style.display = "block";
+
+            const searchFilterContainer = document.getElementById('search-filter-container');
+            if (searchFilterContainer) searchFilterContainer.style.display = 'none';
+
+            if ((window as any).itemReorder && typeof (window as any).itemReorder.initDragDrop === 'function') {
+                (window as any).itemReorder.initDragDrop('items-container', renumberItems);
+            }
+
+            if (typeof (window as any).markPurchaseFormClean === 'function') {
+                (window as any).markPurchaseFormClean();
+            }
+
+            setTimeout(() => {
+                const firstInput = document.getElementById('purchase-invoice-id') as HTMLInputElement;
+                if (firstInput) {
+                    firstInput.focus();
+                }
+            }, 100);
+
+        } catch (error) {
+            console.error("Error fetching purchase order:", error);
+            if ((window as any).electronAPI) {
+                (window as any).electronAPI.showAlert1("Failed to fetch purchase order details.");
+            } else {
+                alert("Failed to fetch purchase order details.");
+            }
+        }
+    }
+
     async function getId() {
         const purchaseInvoiceIdEl = document.getElementById("purchase-invoice-id") as HTMLInputElement;
         const idEl = document.getElementById('id') as HTMLInputElement;
@@ -1995,7 +2323,11 @@ if (newSection) newSection.style.display = "block";
         const id = urlParams.get('id');
         const action = urlParams.get('action');
 
-        if (id) {
+        const purchaseOrderIdToConvert = sessionStorage.getItem("purchase-order-to-purchase-id");
+        if (purchaseOrderIdToConvert) {
+            sessionStorage.removeItem("purchase-order-to-purchase-id");
+            loadPurchaseFromPurchaseOrder(purchaseOrderIdToConvert);
+        } else if (id) {
             if (action === 'clone') {
                 sessionStorage.setItem('currentTab-status', 'clone');
             } else {
@@ -2127,6 +2459,7 @@ if (newSection) newSection.style.display = "block";
 
     // Expose functionality to window
     (window as any).openPurchase = openPurchase;
+    (window as any).loadPurchaseFromPurchaseOrder = loadPurchaseFromPurchaseOrder;
     (window as any).getId = getId;
     (window as any).populateSpecifications = populateSpecifications;
     (window as any).addPurchaseItem = addPurchaseItem;

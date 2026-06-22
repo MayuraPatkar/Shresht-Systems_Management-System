@@ -163,6 +163,11 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
         const form = document.getElementById('service-form') as HTMLFormElement;
         if (form) form.reset();
 
+        clearStepErrors(1);
+        clearStepErrors(2);
+        clearStepErrors(3);
+        clearStepErrors(4);
+
         const setValue = (id: string, val: string) => {
             const el = document.getElementById(id) as HTMLInputElement;
             if (el) el.value = val;
@@ -756,30 +761,82 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
     // ============================================================================
     async function validateCurrentStep(): Promise<boolean> {
         const currentStep = (window as any).currentStep || 1;
+        let isValid = true;
+
         if (currentStep === 1) {
+            clearStepErrors(1);
+            
             const invIdInput = document.getElementById('form-invoice-id') as HTMLInputElement;
+            const invoiceSearch = document.getElementById('invoice-search') as HTMLInputElement;
             if (!invIdInput?.value) {
-                showToast('Please select an invoice', 'error');
-                return false;
+                if (invoiceSearch) {
+                    showInlineError(invoiceSearch, 'Please search and select an Invoice.');
+                }
+                isValid = false;
             }
 
             const dateInput = document.getElementById('service-date') as HTMLInputElement;
             if (!dateInput?.value) {
-                showToast('Please select a service date', 'error');
-                return false;
+                if (dateInput) {
+                    showInlineError(dateInput, 'Please select a service date.');
+                }
+                isValid = false;
             }
-        } else if (currentStep === 2) {
-            // Validate items
-            const items = document.querySelectorAll('#items-container .item-card, #items-container .item-row');
-            for (const [index, row] of Array.from(items).entries()) {
-                const price = row.querySelector('.item-price') as HTMLInputElement;
-                if (price && (!price.value || parseFloat(price.value) <= 0)) {
-                    showToast(`Item #${index + 1}: Unit Price must be greater than 0`, 'error');
-                    return false;
+
+            const nextServiceSelect = document.getElementById('next-service-select') as HTMLSelectElement;
+            const nextMonthInput = document.getElementById('next-service-month') as HTMLInputElement;
+            if (nextServiceSelect?.value === 'yes' && nextMonthInput) {
+                const months = parseInt(nextMonthInput.value);
+                if (isNaN(months) || months < 0) {
+                    showInlineError(nextMonthInput, 'Please enter valid Service Months (0 or greater).');
+                    isValid = false;
                 }
             }
+        } else if (currentStep === 2) {
+            clearStepErrors(2);
+            
+            // Validate items
+            const items = document.querySelectorAll('#items-container .item-card, #items-container .item-row');
+            items.forEach((row) => {
+                const desc = row.querySelector('.item-desc') as HTMLInputElement;
+                if (desc && !desc.value.trim()) {
+                    showInlineError(desc, 'Required');
+                    isValid = false;
+                }
+
+                const qty = row.querySelector('.item-qty') as HTMLInputElement;
+                if (qty && (!qty.value || parseFloat(qty.value) <= 0)) {
+                    showInlineError(qty, 'Required');
+                    isValid = false;
+                }
+
+                const price = row.querySelector('.item-price') as HTMLInputElement;
+                if (price && (!price.value || parseFloat(price.value) <= 0)) {
+                    showInlineError(price, 'Required');
+                    isValid = false;
+                }
+            });
+        } else if (currentStep === 3) {
+            clearStepErrors(3);
+            
+            // Validate other charges
+            const charges = document.querySelectorAll('#non-items-container .non-item-card, #charges-container .item-row');
+            charges.forEach((row) => {
+                const desc = row.querySelector('.charge-desc') as HTMLInputElement;
+                if (desc && !desc.value.trim()) {
+                    showInlineError(desc, 'Required');
+                    isValid = false;
+                }
+
+                const amount = row.querySelector('.charge-amount') as HTMLInputElement;
+                if (amount && (!amount.value || parseFloat(amount.value) <= 0)) {
+                    showInlineError(amount, 'Required');
+                    isValid = false;
+                }
+            });
         }
-        return true;
+
+        return isValid;
     }
     (window as any).validateCurrentStep = validateCurrentStep;
 
@@ -998,4 +1055,70 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
 
     (window as any).generatePreview = generatePreview;
     (window as any).saveService = saveService;
+
+    // Inline Error Helpers (aligned with Invoice module validation layout)
+    function showInlineError(input: HTMLElement, message: string) {
+        if (!input.id) {
+            input.id = 'input-val-' + Math.random().toString(36).substring(2, 11);
+        }
+        clearInlineError(input);
+
+        // Apply error borders
+        input.style.borderColor = '#ef4444';
+        input.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
+
+        // Accessibility
+        input.setAttribute('aria-invalid', 'true');
+        const errorId = `${input.id}-error`;
+        input.setAttribute('aria-describedby', errorId);
+
+        // Create error message node
+        const errorMsg = document.createElement('div');
+        errorMsg.id = errorId;
+        errorMsg.className = 'error-message-inline';
+        errorMsg.style.cssText = 'font-size: 11px; font-weight: 600; color: #dc2626; margin-top: 4px; transition: all 0.2s ease-in-out;';
+        errorMsg.textContent = message;
+
+        const parent = input.parentElement;
+        if (parent) {
+            parent.appendChild(errorMsg);
+        }
+
+        // Auto-clear on user input
+        const clearHandler = () => {
+            clearInlineError(input);
+            input.removeEventListener('input', clearHandler);
+            input.removeEventListener('change', clearHandler);
+        };
+        input.addEventListener('input', clearHandler);
+        input.addEventListener('change', clearHandler);
+    }
+
+    function clearInlineError(input: HTMLElement) {
+        input.style.borderColor = '';
+        input.style.boxShadow = '';
+        input.removeAttribute('aria-invalid');
+        input.removeAttribute('aria-describedby');
+
+        const errorId = `${input.id}-error`;
+        const errorMsg = document.getElementById(errorId);
+        if (errorMsg) {
+            errorMsg.remove();
+        }
+    }
+
+    function clearStepErrors(stepNumber: number) {
+        const stepEl = document.getElementById(`step-${stepNumber}`);
+        if (!stepEl) return;
+        const errorMsgs = stepEl.querySelectorAll('.error-message-inline');
+        errorMsgs.forEach(el => el.remove());
+
+        const errorInputs = stepEl.querySelectorAll('[aria-invalid="true"]');
+        errorInputs.forEach(input => {
+            (input as HTMLElement).style.borderColor = '';
+            (input as HTMLElement).style.boxShadow = '';
+            input.removeAttribute('aria-invalid');
+            input.removeAttribute('aria-describedby');
+        });
+    }
 })();

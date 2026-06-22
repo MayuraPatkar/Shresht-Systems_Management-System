@@ -170,7 +170,10 @@
             const invVal = params.get('invoice') || params.get('invoiceId') || params.get('invoice_id') || null;
             showNewForm(invVal);
         } else if (params.has('edit')) {
-            const editVal = params.get('edit');
+            let editVal = params.get('edit');
+            if (editVal === 'true') {
+                editVal = params.get('id') || params.get('serviceId');
+            }
             if (editVal) editService(editVal);
         } else {
             showEmptyState();
@@ -250,6 +253,7 @@
 
         const tableContainer = $tableHeader.closest('.hidden.md\\:block.overflow-y-auto') as HTMLElement | null;
         services = applyFilters(services);
+        updateActiveFiltersBar();
 
         if (ServiceState.currentTab === 'completed') {
             if (tableContainer) {
@@ -864,6 +868,39 @@
             renderTabContent();
         });
 
+        document.getElementById('clear-all-filters-shortcut')?.addEventListener('click', () => {
+            ServiceState.filters = { search: '', date: 'all', paymentStatus: 'all', sort: 'date-desc' };
+            const setVal = (id: string, val: string) => {
+                const el = document.getElementById(id) as HTMLInputElement | HTMLSelectElement;
+                if (el) el.value = val;
+            };
+            setVal('search-input', '');
+            if (dateFilter) dateFilter.value = 'all';
+            if (paymentStatusFilter) paymentStatusFilter.value = 'all';
+            if (sortFilter) sortFilter.value = 'date-desc';
+
+            if (dateDropdown) {
+                dateDropdown.querySelectorAll('a').forEach((a, i) => {
+                    a.classList.remove('bg-gray-100', 'font-semibold');
+                    if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                });
+            }
+            if (paymentStatusDropdown) {
+                paymentStatusDropdown.querySelectorAll('a').forEach((a, i) => {
+                    a.classList.remove('bg-gray-100', 'font-semibold');
+                    if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                });
+            }
+            if (sortDropdown) {
+                sortDropdown.querySelectorAll('a').forEach((a, i) => {
+                    a.classList.remove('bg-gray-100', 'font-semibold');
+                    if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                });
+            }
+
+            renderTabContent();
+        });
+
         document.getElementById('shortcuts-btn')?.addEventListener('click', () => {
             document.getElementById('shortcuts-modal')?.classList.remove('hidden');
         });
@@ -924,6 +961,23 @@
 
     function initKeyboardShortcuts() {
         document.addEventListener('keydown', (e: KeyboardEvent) => {
+            const isCtrlPressed = e.ctrlKey || e.metaKey;
+
+            // Allow Ctrl+S keyboard shortcut even when focused on inputs
+            if (isCtrlPressed && e.key.toLowerCase() === 's') {
+                const formEl = document.getElementById('new');
+                const isFormVisible = formEl && !formEl.classList.contains('hidden');
+                if (isFormVisible) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const saveBtn = document.getElementById('save-btn');
+                    if (saveBtn && window.getComputedStyle(saveBtn).display !== 'none') {
+                        (window as any).saveService();
+                    }
+                }
+                return;
+            }
+
             if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) {
                 if (e.key === 'Escape') e.target.blur();
                 return;
@@ -943,13 +997,6 @@
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'n') {
                 e.preventDefault();
                 showNewForm();
-            }
-
-            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
-                e.preventDefault();
-                if (document.getElementById('new') && !document.getElementById('new')?.classList.contains('hidden') && (window as any).currentStep === 3) {
-                    (window as any).saveService();
-                }
             }
 
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
@@ -1001,4 +1048,145 @@
         }, 3000);
     }
     (window as any).showToast = showToast;
+
+    function updateActiveFiltersBar() {
+        const infoBar = document.getElementById('active-filters-info-bar');
+        const badgesContainer = document.getElementById('active-filters-badges');
+        if (!infoBar || !badgesContainer) return;
+
+        // Preserve only the header label span
+        const label = badgesContainer.querySelector('span');
+        badgesContainer.innerHTML = '';
+        if (label) badgesContainer.appendChild(label);
+
+        const activeBadges: { label: string, clearFn: () => void }[] = [];
+
+        // Search Query
+        const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
+        const query = ServiceState.filters.search;
+        if (query) {
+            activeBadges.push({
+                label: `Search: "${query}"`,
+                clearFn: () => {
+                    if (searchInput) {
+                        searchInput.value = '';
+                    }
+                    ServiceState.filters.search = '';
+                    renderTabContent();
+                }
+            });
+        }
+
+        // Date Filter
+        if (ServiceState.filters.date !== 'all') {
+            const dateLabels: Record<string, string> = {
+                today: 'Today',
+                week: 'This Week',
+                month: 'This Month'
+            };
+            const dateLabel = dateLabels[ServiceState.filters.date] || ServiceState.filters.date;
+            activeBadges.push({
+                label: `Date: ${dateLabel}`,
+                clearFn: () => {
+                    ServiceState.filters.date = 'all';
+                    const dateFilter = document.getElementById('date-filter') as HTMLInputElement | null;
+                    if (dateFilter) dateFilter.value = 'all';
+                    const dateDropdown = document.getElementById('dateFilterDropdown');
+                    if (dateDropdown) {
+                        dateDropdown.querySelectorAll('a').forEach((a, i) => {
+                            a.classList.remove('bg-gray-100', 'font-semibold');
+                            if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                        });
+                    }
+                    renderTabContent();
+                }
+            });
+        }
+
+        // Payment Status Filter
+        if (ServiceState.filters.paymentStatus !== 'all') {
+            const paymentLabels: Record<string, string> = {
+                paid: 'Paid',
+                unpaid: 'Unpaid',
+                partial: 'Partial'
+            };
+            const paymentLabel = paymentLabels[ServiceState.filters.paymentStatus] || ServiceState.filters.paymentStatus;
+            activeBadges.push({
+                label: `Payment: ${paymentLabel}`,
+                clearFn: () => {
+                    ServiceState.filters.paymentStatus = 'all';
+                    const paymentStatusFilter = document.getElementById('payment-status-filter') as HTMLInputElement | null;
+                    if (paymentStatusFilter) paymentStatusFilter.value = 'all';
+                    const paymentStatusDropdown = document.getElementById('paymentStatusFilterDropdown');
+                    if (paymentStatusDropdown) {
+                        paymentStatusDropdown.querySelectorAll('a').forEach((a, i) => {
+                            a.classList.remove('bg-gray-100', 'font-semibold');
+                            if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                        });
+                    }
+                    renderTabContent();
+                }
+            });
+        }
+
+        // Sort Filter
+        if (ServiceState.filters.sort !== 'date-desc') {
+            const sortLabels: Record<string, string> = {
+                'date-asc': 'Oldest First',
+                'amount-desc': 'Amount: High-Low',
+                'amount-asc': 'Amount: Low-High'
+            };
+            const sortLabel = sortLabels[ServiceState.filters.sort] || ServiceState.filters.sort;
+            activeBadges.push({
+                label: `Sort: ${sortLabel}`,
+                clearFn: () => {
+                    ServiceState.filters.sort = 'date-desc';
+                    const sortFilter = document.getElementById('sort-filter') as HTMLInputElement | null;
+                    if (sortFilter) sortFilter.value = 'date-desc';
+                    const sortDropdown = document.getElementById('sortFilterDropdown');
+                    if (sortDropdown) {
+                        sortDropdown.querySelectorAll('a').forEach((a, i) => {
+                            a.classList.remove('bg-gray-100', 'font-semibold');
+                            if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                        });
+                    }
+                    renderTabContent();
+                }
+            });
+        }
+
+        // Style the filter button (highlight if filters are active)
+        const filterBtn = document.getElementById('filter-btn');
+        const hasActiveFilters = ServiceState.filters.date !== 'all' || 
+                                 ServiceState.filters.paymentStatus !== 'all' || 
+                                 ServiceState.filters.sort !== 'date-desc';
+        if (filterBtn) {
+            if (hasActiveFilters) {
+                filterBtn.className = 'bg-blue-600 text-white border border-blue-600 px-3 py-2 rounded-lg transition-all duration-150 flex items-center justify-center flex-shrink-0 active:scale-95 cursor-pointer shadow-md shadow-blue-100';
+            } else {
+                filterBtn.className = 'bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 px-3 py-2 rounded-lg transition-all duration-150 flex items-center justify-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500/20 active:scale-95 cursor-pointer';
+            }
+        }
+
+        if (activeBadges.length > 0) {
+            infoBar.classList.remove('hidden');
+            activeBadges.forEach(badgeData => {
+                const badge = document.createElement('span');
+                badge.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100 shadow-sm transition-all duration-150';
+                badge.innerHTML = `
+                    <span>${badgeData.label}</span>
+                    <button class="text-blue-400 hover:text-blue-700 ml-0.5 focus:outline-none cursor-pointer text-[10px]" title="Remove filter">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                badge.querySelector('button')?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    badgeData.clearFn();
+                });
+                badgesContainer.appendChild(badge);
+            });
+        } else {
+            infoBar.classList.add('hidden');
+        }
+    }
 })();

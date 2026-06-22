@@ -293,6 +293,12 @@
                 }
 
                 suggestionsList.style.display = 'block';
+
+                // Clamp the dropdown height so it never extends past the viewport bottom
+                const inputRect = input.getBoundingClientRect();
+                const spaceBelow = window.innerHeight - inputRect.bottom - 12; // 12px margin
+                const maxAllowed = Math.max(spaceBelow, 120); // min 120px so it's still useful
+                suggestionsList.style.maxHeight = `${Math.min(maxAllowed, 240)}px`;
                 
                 currentSuppliers.forEach((supplier, index) => {
                     const li = document.createElement('li');
@@ -401,6 +407,11 @@
 
             // Render profile card
             renderSupplierProfileCard();
+
+            // Mark form dirty — supplier was explicitly selected
+            if (typeof (window as any).markPurchaseOrderFormDirty === 'function') {
+                (window as any).markPurchaseOrderFormDirty();
+            }
         }
     }
 
@@ -653,6 +664,7 @@
                 }
                 const today = (window as any).getTodayForInput ? (window as any).getTodayForInput() : new Date().toISOString().split('T')[0];
                 (document.getElementById("purchase-date") as HTMLInputElement).value = today;
+                (document.getElementById("po-status") as HTMLSelectElement).value = "Draft";
             } else {
                 (document.getElementById("id") as HTMLInputElement).value = purchaseOrder.purchase_order_no || "";
                 purchaseOrderId = purchaseOrder.purchase_order_no;
@@ -662,6 +674,7 @@
                     (window as any).formatDateInput(purchaseDateStr) :
                     new Date(purchaseDateStr).toISOString().split('T')[0];
                 (document.getElementById("purchase-date") as HTMLInputElement).value = formattedPurchaseDate;
+                (document.getElementById("po-status") as HTMLSelectElement).value = purchaseOrder.status || "Draft";
             }
 
             const snapshot = purchaseOrder.supplier_snapshot || {};
@@ -990,6 +1003,7 @@
             purchase_order_no: (document.getElementById("id") as HTMLInputElement)?.value || "",
             purchase_invoice_no: "",
             purchase_date: (document.getElementById("purchase-date") as HTMLInputElement)?.value || "",
+            status: (document.getElementById("po-status") as HTMLSelectElement)?.value || "Draft",
             supplier_id: (document.getElementById("supplier-id") as HTMLInputElement)?.value || "",
             supplier_snapshot: {
                 name: (document.getElementById("supplier-name") as HTMLInputElement)?.value || "",
@@ -1585,6 +1599,11 @@
                 const today = new Date().toISOString().split('T')[0];
                 purchaseDateInput.value = today;
             }
+
+            // Add one default empty item row
+            if (typeof addPurchaseOrderItem === 'function') {
+                addPurchaseOrderItem();
+            }
             
             // Focus on first input
             setTimeout(() => {
@@ -1600,6 +1619,10 @@
         const homeBtn = document.getElementById("home-btn");
         if (homeBtn) {
             homeBtn.addEventListener("click", () => {
+                const guardNavigation = (window as any).guardPurchaseOrderNavigation;
+                if (typeof guardNavigation === 'function' && guardNavigation('/purchaseorder')) {
+                    return; // blocked by unsaved changes modal
+                }
                 window.location.href = '/purchaseorder';
             });
         }

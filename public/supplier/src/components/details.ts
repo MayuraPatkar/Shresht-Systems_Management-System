@@ -436,7 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const originalHtml = btn.innerHTML;
             exportOptBtns.forEach(b => (b as HTMLButtonElement).disabled = true);
 
-            if (format === 'pdf') {
+            if (format === 'save-pdf') {
                 btn.classList.add('processing-pdf');
                 btn.innerHTML = `
                     <div class="flex items-center gap-3 w-full animate-fade-in">
@@ -446,6 +446,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="flex-1 min-w-0">
                             <p class="text-xs font-extrabold text-rose-700 truncate">Generating PDF Report...</p>
                             <p class="text-[10px] text-rose-500 mt-0.5 truncate font-medium">Preparing supplier profile, purchases, and ledger</p>
+                        </div>
+                    </div>
+                `;
+            } else if (format === 'print') {
+                btn.classList.add('processing-pdf');
+                btn.innerHTML = `
+                    <div class="flex items-center gap-3 w-full animate-fade-in">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-sm shadow-sm shrink-0">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-extrabold text-blue-700 truncate">Preparing Print Window...</p>
+                            <p class="text-[10px] text-blue-500 mt-0.5 truncate font-medium">Formatting summary details for printing</p>
                         </div>
                     </div>
                 `;
@@ -502,7 +515,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.body.appendChild(downloadAnchor);
                     downloadAnchor.click();
                     downloadAnchor.remove();
-                } else if (format === 'pdf') {
+                } else if (format === 'save-pdf' || format === 'print') {
                     // For PDF, generate a clean, structured print report
                     const printContainer = document.getElementById('print-report-container');
                     if (printContainer) {
@@ -583,8 +596,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <div class="print-meta-value">${data.supplier.supplier_id || 'ID Pending'}</div>
                                 </div>
                                 <div>
-                                    <div class="print-meta-label">Company Name</div>
-                                    <div class="print-meta-value">${data.supplier.company_name || 'N/A'}</div>
+                                    <div class="print-meta-label">Supplier Type</div>
+                                    <div class="print-meta-value">${data.supplier.supplier_type || 'Vendor'}</div>
                                 </div>
                                 <div>
                                     <div class="print-meta-label">Profile Status</div>
@@ -592,11 +605,15 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </div>
                                 <div>
                                     <div class="print-meta-label">Primary Phone</div>
-                                    <div class="print-meta-value">${data.supplier.phone || 'N/A'}</div>
+                                    <div class="print-meta-value">${data.supplier.supplier?.phone || 'N/A'}</div>
+                                </div>
+                                <div>
+                                    <div class="print-meta-label">Alternate Phone</div>
+                                    <div class="print-meta-value">${data.supplier.supplier?.alternate_phone || 'N/A'}</div>
                                 </div>
                                 <div>
                                     <div class="print-meta-label">Email Address</div>
-                                    <div class="print-meta-value">${data.supplier.email || 'N/A'}</div>
+                                    <div class="print-meta-value">${data.supplier.supplier?.email || 'N/A'}</div>
                                 </div>
                                 <div>
                                     <div class="print-meta-label">GSTIN / TAX ID</div>
@@ -608,46 +625,26 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </div>
                             </div>
 
-                            <h2 class="print-section-title">2. Registered & Billing Address</h2>
+                            <h2 class="print-section-title">2. Address & Physical Location</h2>
                             <div class="print-grid">
                                 <div style="grid-column: span 2;">
-                                    <div class="print-meta-label">Address</div>
+                                    <div class="print-meta-label">Postal Address</div>
                                     <div class="print-meta-value">
-                                        ${data.supplier.billing_address?.line1 || ''}
-                                        ${data.supplier.billing_address?.line2 ? ', ' + data.supplier.billing_address.line2 : ''}
+                                        ${data.supplier.address?.line1 || ''}
+                                        ${data.supplier.address?.line2 ? ', ' + data.supplier.address.line2 : ''}
                                     </div>
                                 </div>
                                 <div>
                                     <div class="print-meta-label">City</div>
-                                    <div class="print-meta-value">${data.supplier.billing_address?.city || 'N/A'}</div>
+                                    <div class="print-meta-value">${data.supplier.address?.city || 'N/A'}</div>
                                 </div>
                                 <div>
                                     <div class="print-meta-label">State & Pincode</div>
-                                    <div class="print-meta-value">${data.supplier.billing_address?.state || 'N/A'} - ${data.supplier.billing_address?.pincode || 'N/A'}</div>
+                                    <div class="print-meta-value">${data.supplier.address?.state || 'N/A'} - ${data.supplier.address?.pincode || 'N/A'}</div>
                                 </div>
                             </div>
 
-                            <h2 class="print-section-title">3. Bank Account Information</h2>
-                            <div class="print-grid">
-                                <div>
-                                    <div class="print-meta-label">Account Holder Name</div>
-                                    <div class="print-meta-value">${data.supplier.bank_details?.account_name || 'N/A'}</div>
-                                </div>
-                                <div>
-                                    <div class="print-meta-label">Bank Name</div>
-                                    <div class="print-meta-value">${data.supplier.bank_details?.bank_name || 'N/A'}</div>
-                                </div>
-                                <div>
-                                    <div class="print-meta-label">Account Number</div>
-                                    <div class="print-meta-value">${data.supplier.bank_details?.account_number || 'N/A'}</div>
-                                </div>
-                                <div>
-                                    <div class="print-meta-label">IFSC Code</div>
-                                    <div class="print-meta-value">${data.supplier.bank_details?.ifsc || 'N/A'}</div>
-                                </div>
-                            </div>
-
-                            <h2 class="print-section-title">4. Financial Ledger Summary</h2>
+                            <h2 class="print-section-title">3. Financial Ledger Summary</h2>
                             <div class="print-grid" style="grid-template-columns: repeat(4, minmax(0, 1fr)) !important; text-align: center; background-color:#f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 25px;">
                                 <div>
                                     <div class="print-meta-label">Purchases</div>
@@ -662,17 +659,17 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <div class="print-meta-value" style="color:#16a34a; font-size:12pt; font-weight:800; margin-top:4px;">₹${totalPaidAmt.toLocaleString()}</div>
                                 </div>
                                 <div>
-                                    <div class="print-meta-label">Outstanding Balance</div>
+                                    <div class="print-meta-label">Outstanding</div>
                                     <div class="print-meta-value" style="color:#dc2626; font-size:12pt; font-weight:800; margin-top:4px;">₹${outstandingAmt.toLocaleString()}</div>
                                 </div>
                             </div>
 
-                            <h2 class="print-section-title">5. Purchase Order History</h2>
+                            <h2 class="print-section-title" style="page-break-before: always;">4. Purchase History</h2>
                             <table class="print-table">
                                 <thead>
                                     <tr>
-                                        <th>Purchase Order ID</th>
-                                        <th>Order Date</th>
+                                        <th>Purchase ID</th>
+                                        <th>Date</th>
                                         <th>Status</th>
                                         <th>Grand Total</th>
                                     </tr>
@@ -682,7 +679,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </tbody>
                             </table>
 
-                            <h2 class="print-section-title">6. Payment History</h2>
+                            <h2 class="print-section-title">5. Payment History</h2>
                             <table class="print-table">
                                 <thead>
                                     <tr>
@@ -702,13 +699,29 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         `;
                     }
-                    window.print();
+                    
+                    const html = printContainer ? printContainer.innerHTML : '';
+                    const filename = `SupplierLedger_${data.supplier.supplier_id || 'export'}`;
+
+                    if (format === 'save-pdf') {
+                        if ((window as any).electronAPI?.handlePrintEvent) {
+                            (window as any).electronAPI.handlePrintEvent(html, "savePDF", filename);
+                        } else {
+                            window.print();
+                        }
+                    } else if (format === 'print') {
+                        if ((window as any).electronAPI?.handlePrintEvent) {
+                            (window as any).electronAPI.handlePrintEvent(html, "print", filename);
+                        } else {
+                            window.print();
+                        }
+                    }
                 }
 
                 // Show Success State on the button
                 btn.classList.remove('processing-pdf');
                 btn.classList.add('success-pdf');
-                if (format === 'pdf') {
+                if (format === 'save-pdf') {
                     btn.innerHTML = `
                         <div class="flex items-center gap-3 w-full animate-fade-in">
                             <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm font-bold shadow-sm shrink-0">
@@ -717,6 +730,18 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="flex-1 min-w-0">
                                 <p class="text-xs font-extrabold text-emerald-700 truncate">PDF Exported Successfully</p>
                                 <p class="text-[10px] text-emerald-500 mt-0.5 truncate font-medium">Report is fully generated and ready for print</p>
+                            </div>
+                        </div>
+                    `;
+                } else if (format === 'print') {
+                    btn.innerHTML = `
+                        <div class="flex items-center gap-3 w-full animate-fade-in">
+                            <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm font-bold shadow-sm shrink-0">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs font-extrabold text-emerald-700 truncate">Sent to Printer</p>
+                                <p class="text-[10px] text-emerald-500 mt-0.5 truncate font-medium">Printing dialog has been requested</p>
                             </div>
                         </div>
                     `;

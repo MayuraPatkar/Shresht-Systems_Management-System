@@ -38,7 +38,6 @@
                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Project</th>
                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Customer</th>
                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Deleted Date</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
                     <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider">Total</th>
                     <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider">Actions</th>
                 `;
@@ -135,6 +134,17 @@
 
             tbody.innerHTML = "";
             if (mobileContainer) mobileContainer.innerHTML = "";
+
+            const tableContainer = document.querySelector(".hidden.md\\:block.overflow-y-auto");
+            if (tableContainer) {
+                if (isTrash) {
+                    tableContainer.classList.add("trash-view");
+                    tableContainer.classList.remove("active-view");
+                } else {
+                    tableContainer.classList.add("active-view");
+                    tableContainer.classList.remove("trash-view");
+                }
+            }
 
             // Always update the header
             this.updateTableHeader(isTrash);
@@ -290,17 +300,12 @@
                 row.innerHTML = `
                     <td class="px-4 py-3 text-slate-850 font-medium whitespace-nowrap text-xs">${formattedDate}</td>
                     <td class="px-4 py-3 text-slate-600 font-bold whitespace-nowrap text-xs">${invoice.invoice_id}</td>
-                    <td class="px-4 py-3 text-slate-900 font-semibold text-xs max-w-[150px] truncate" title="${invoice.project_name || '-'}">
+                    <td class="px-4 py-3 text-slate-900 font-semibold text-xs max-w-[260px] truncate" title="${invoice.project_name || '-'}">
                         ${invoice.project_name || '-'}
                     </td>
-                    <td class="px-4 py-3 text-slate-700 text-xs max-w-[180px] truncate" title="${invoice.customer_name || ''}">${invoice.customer_name || ''}</td>
+                    <td class="px-4 py-3 text-slate-700 text-xs max-w-[300px] truncate" title="${invoice.customer_name || ''}">${invoice.customer_name || ''}</td>
                     <td class="px-4 py-3 text-red-500 font-medium whitespace-nowrap text-xs">
                         <i class="fas fa-trash mr-1 text-[10px]"></i> ${deletedAt}
-                    </td>
-                    <td class="px-4 py-3 whitespace-nowrap">
-                        <span class="px-2 py-0.5 rounded-md text-xs font-semibold ${statusClass}">
-                            ${statusLabel}
-                        </span>
                     </td>
                     <td class="px-4 py-3 text-right font-bold text-xs whitespace-nowrap text-slate-900">
                         ₹${formatIndian(total, 2)}
@@ -325,12 +330,11 @@
                             <i class="fas fa-copy text-[10px] ml-1 opacity-50"></i>
                         </span>
                     </td>
-                    <td class="px-4 py-3 text-slate-900 font-semibold text-xs max-w-[150px] truncate" title="${invoice.project_name || '-'}">
+                    <td class="px-4 py-3 text-slate-900 font-semibold text-xs max-w-[260px] truncate" title="${invoice.project_name || '-'}">
                         ${invoice.project_name || '-'}
                     </td>
-                    <td class="px-4 py-3 text-xs max-w-[180px] truncate">
+                    <td class="px-4 py-3 text-xs max-w-[300px] truncate">
                         <div class="font-medium text-slate-800 truncate" title="${invoice.customer_name || ''}">${invoice.customer_name || ''}</div>
-                        <div class="text-[10px] text-slate-400 truncate" title="${invoice.customer_address || ''}">${invoice.customer_address || ''}</div>
                     </td>
                     <td class="px-4 py-3 whitespace-nowrap">
                         <span class="px-2 py-0.5 rounded-md text-xs font-semibold ${statusClass}">
@@ -378,10 +382,8 @@
             }
 
             row.addEventListener('click', () => {
-                if (!isTrash) {
-                    sessionStorage.setItem('view-invoice', 'duplicate');
-                    viewInvoice(invoice.invoice_id, userRole);
-                }
+                sessionStorage.setItem('view-invoice', 'duplicate');
+                viewInvoice(invoice.invoice_id, userRole);
             });
 
             // Enrich total values if zero asynchronously:

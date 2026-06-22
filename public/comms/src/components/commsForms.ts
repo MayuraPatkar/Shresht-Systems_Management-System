@@ -10,9 +10,13 @@ class CommsForms {
     private selectedCustomer: any = null;
     private customerQuotations: any[] = [];
     private customerInvoices: any[] = [];
+    private customerPayments: any[] = [];
+    private customerVouchers: any[] = [];
     private selectedQuotation: any = null;
     private selectedInvoice: any = null;
     private selectedReminderInvoice: any = null;
+    private selectedPayment: any = null;
+    private selectedVoucher: any = null;
     private allInvoices: any[] = [];
 
     init() {
@@ -21,11 +25,15 @@ class CommsForms {
         this.setupQuotationSelectListener();
         this.setupInvoiceSelectListener();
         this.setupReminderInvoiceSelectListener();
+        this.setupReceiptSelectListener();
+        this.setupVoucherSelectListener();
         this.setupMessageCharCounter();
         this.setupMessageSubmit();
         this.setupQuotationSubmit();
         this.setupInvoiceSubmit();
         this.setupReminderSubmit();
+        this.setupReceiptSubmit();
+        this.setupVoucherSubmit();
         this.setupKeyboardShortcuts();
         
         // Initial setup
@@ -214,11 +222,15 @@ class CommsForms {
             const data = await commsApi.getCustomerDetails(customer._id);
             this.customerQuotations = data.quotations || [];
             this.customerInvoices = data.invoices || [];
+            this.customerPayments = data.payments || [];
+            this.customerVouchers = data.vouchers || [];
 
             // Populate selectors
             this.populateQuotationSelect();
             this.populateInvoiceSelect();
             this.populateReminderInvoiceSelect();
+            this.populateReceiptSelect();
+            this.populateVoucherSelect();
 
             // Enable inputs/buttons
             this.updateFormFieldsDisabledState();
@@ -231,9 +243,13 @@ class CommsForms {
         this.selectedCustomer = null;
         this.customerQuotations = [];
         this.customerInvoices = [];
+        this.customerPayments = [];
+        this.customerVouchers = [];
         this.selectedQuotation = null;
         this.selectedInvoice = null;
         this.selectedReminderInvoice = null;
+        this.selectedPayment = null;
+        this.selectedVoucher = null;
 
         const phoneInput = document.getElementById('customer-phone-input') as HTMLInputElement;
         if (phoneInput) phoneInput.value = '';
@@ -241,6 +257,8 @@ class CommsForms {
         this.populateQuotationSelect();
         this.populateInvoiceSelect();
         this.populateReminderInvoiceSelect();
+        this.populateReceiptSelect();
+        this.populateVoucherSelect();
         this.hidePreviews();
         this.updateFormFieldsDisabledState();
     }
@@ -337,6 +355,66 @@ class CommsForms {
             const text = `${inv.invoice_id} - ${dateStr} - Due: ₹${balance.toLocaleString('en-IN')} (Total: ₹${total.toLocaleString('en-IN')})`;
             const opt = document.createElement('option');
             opt.value = inv.invoice_id;
+            opt.textContent = text;
+            select.appendChild(opt);
+        });
+    }
+
+    private populateReceiptSelect() {
+        const select = document.getElementById('receipt-select') as HTMLSelectElement;
+        if (!select) return;
+
+        select.innerHTML = '';
+        if (!this.selectedCustomer) {
+            select.innerHTML = '<option value="">Select a customer first...</option>';
+            select.disabled = true;
+            return;
+        }
+
+        if (this.customerPayments.length === 0) {
+            select.innerHTML = '<option value="">No payments found for this customer</option>';
+            select.disabled = true;
+            return;
+        }
+
+        select.disabled = false;
+        select.innerHTML = '<option value="">Select a payment receipt...</option>';
+        this.customerPayments.forEach(p => {
+            const dateStr = this.formatDate(p.payment_date);
+            const amtStr = this.formatCurrency(p.amount);
+            const text = `${p._id.substring(p._id.length - 6).toUpperCase()} - ${dateStr} - ${amtStr} (${p.mode || 'Cash'})`;
+            const opt = document.createElement('option');
+            opt.value = p._id;
+            opt.textContent = text;
+            select.appendChild(opt);
+        });
+    }
+
+    private populateVoucherSelect() {
+        const select = document.getElementById('voucher-select') as HTMLSelectElement;
+        if (!select) return;
+
+        select.innerHTML = '';
+        if (!this.selectedCustomer) {
+            select.innerHTML = '<option value="">Select a customer first...</option>';
+            select.disabled = true;
+            return;
+        }
+
+        if (this.customerVouchers.length === 0) {
+            select.innerHTML = '<option value="">No vouchers found for this customer</option>';
+            select.disabled = true;
+            return;
+        }
+
+        select.disabled = false;
+        select.innerHTML = '<option value="">Select a payment voucher...</option>';
+        this.customerVouchers.forEach(v => {
+            const dateStr = this.formatDate(v.date);
+            const amtStr = this.formatCurrency(v.amount);
+            const text = `${v.voucherNumber} - ${dateStr} - ${amtStr} (${v.paymentMethod || 'Cash'})`;
+            const opt = document.createElement('option');
+            opt.value = v.voucherNumber;
             opt.textContent = text;
             select.appendChild(opt);
         });
@@ -503,6 +581,74 @@ class CommsForms {
             document.getElementById('reminder-preview-total')!.textContent = `₹${total.toLocaleString('en-IN')}`;
             document.getElementById('reminder-preview-balance')!.textContent = `₹${balance.toLocaleString('en-IN')}`;
 
+        });
+    }
+
+    private setupReceiptSelectListener() {
+        const select = document.getElementById('receipt-select') as HTMLSelectElement;
+        const previewContainer = document.getElementById('receipt-preview-container');
+        if (!select || !previewContainer) return;
+
+        select.addEventListener('change', () => {
+            const paymentId = select.value;
+            if (!paymentId) {
+                previewContainer.classList.add('hidden');
+                this.selectedPayment = null;
+                this.updateFormFieldsDisabledState();
+                return;
+            }
+
+            const payment = this.customerPayments.find(p => p._id === paymentId);
+            if (!payment) return;
+
+            this.selectedPayment = payment;
+            previewContainer.classList.remove('hidden');
+
+            const dateStr = this.formatDate(payment.payment_date);
+            const amtStr = this.formatCurrency(payment.amount);
+            const numToWords = (window as any).numberToWords;
+            const words = numToWords ? `${numToWords(payment.amount)} Rupees Only` : '-';
+
+            document.getElementById('preview-r-no')!.textContent = `#${payment._id.substring(payment._id.length - 6).toUpperCase()}`;
+            document.getElementById('preview-r-date')!.textContent = dateStr;
+            document.getElementById('preview-r-mode')!.textContent = payment.mode || 'Cash';
+            document.getElementById('preview-r-amount')!.textContent = amtStr;
+            document.getElementById('preview-r-words')!.textContent = words;
+
+            this.updateFormFieldsDisabledState();
+        });
+    }
+
+    private setupVoucherSelectListener() {
+        const select = document.getElementById('voucher-select') as HTMLSelectElement;
+        const previewContainer = document.getElementById('voucher-preview-container');
+        if (!select || !previewContainer) return;
+
+        select.addEventListener('change', () => {
+            const voucherNo = select.value;
+            if (!voucherNo) {
+                previewContainer.classList.add('hidden');
+                this.selectedVoucher = null;
+                this.updateFormFieldsDisabledState();
+                return;
+            }
+
+            const voucher = this.customerVouchers.find(v => v.voucherNumber === voucherNo);
+            if (!voucher) return;
+
+            this.selectedVoucher = voucher;
+            previewContainer.classList.remove('hidden');
+
+            const dateStr = this.formatDate(voucher.date);
+            const amtStr = this.formatCurrency(voucher.amount);
+
+            document.getElementById('preview-v-no')!.textContent = voucher.voucherNumber;
+            document.getElementById('preview-v-date')!.textContent = dateStr;
+            document.getElementById('preview-v-method')!.textContent = voucher.paymentMethod || 'Cash';
+            document.getElementById('preview-v-amount')!.textContent = amtStr;
+            document.getElementById('preview-v-towards')!.textContent = voucher.paidTowards || '-';
+            document.getElementById('preview-v-words')!.textContent = voucher.amountInWords || '-';
+
             this.updateFormFieldsDisabledState();
         });
     }
@@ -555,6 +701,18 @@ class CommsForms {
         const btnRem = document.getElementById('btn-send-single-reminder') as HTMLButtonElement;
         if (btnRem) {
             btnRem.disabled = !hasCustomer || !this.selectedReminderInvoice;
+        }
+
+        // Receipt submit
+        const btnRec = document.getElementById('btn-send-receipt') as HTMLButtonElement;
+        if (btnRec) {
+            btnRec.disabled = !hasCustomer || !this.selectedPayment;
+        }
+
+        // Voucher submit
+        const btnVou = document.getElementById('btn-send-voucher') as HTMLButtonElement;
+        if (btnVou) {
+            btnVou.disabled = !hasCustomer || !this.selectedVoucher;
         }
     }
 
@@ -762,14 +920,786 @@ class CommsForms {
         });
     }
 
+
+    private setupReceiptSubmit() {
+        const form = document.getElementById('receipt-tab-form') as HTMLFormElement;
+        if (!form) return;
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const phoneInput = document.getElementById('customer-phone-input') as HTMLInputElement;
+            const phone = phoneInput ? phoneInput.value.trim() : '';
+            const select = document.getElementById('receipt-select') as HTMLSelectElement;
+            const btn = document.getElementById('btn-send-receipt') as HTMLButtonElement;
+
+            if (!phone || !this.selectedPayment || !this.selectedCustomer) return;
+
+            const formattedPhone = commsUtils.formatPhoneNumber(phone);
+            const customerName = this.selectedCustomer.customer?.name || `${this.selectedCustomer.customer?.first_name || ''} ${this.selectedCustomer.customer?.last_name || ''}`.trim();
+            const payment = this.selectedPayment;
+            const paymentIdStr = payment._id.substring(payment._id.length - 6).toUpperCase();
+
+            try {
+                commsUtils.setLoading(btn, true);
+
+                // Fetch company info dynamically
+                const companyInfo = (window as any).companyConfig ? await (window as any).companyConfig.getCompanyInfo() : null;
+
+                // Extract/Construct party details
+                const partyDetails = {
+                    name: customerName,
+                    phone: this.selectedCustomer.customer?.phone || '-',
+                    gstin: this.selectedCustomer.customer?.gstin || '-',
+                    email: this.selectedCustomer.customer?.email || '-',
+                    address: [
+                        this.selectedCustomer.customer?.billing_address?.line1,
+                        this.selectedCustomer.customer?.billing_address?.line2,
+                        this.selectedCustomer.customer?.billing_address?.city,
+                        this.selectedCustomer.customer?.billing_address?.state,
+                        this.selectedCustomer.customer?.billing_address?.pincode
+                    ].filter(Boolean).join(', ') || '-'
+                };
+
+                // Build refDetails if payment is settled against an invoice
+                let refDetails = null;
+                if (payment.reference_id && payment.reference_type && payment.reference_type === 'Invoice') {
+                    const invoice = this.customerInvoices.find(inv => inv.invoice_id === payment.reference_id || inv._id === payment.reference_id);
+                    if (invoice) {
+                        const total = invoice.total_amount_original || invoice.total_amount_duplicate || 0;
+                        const paid = invoice.total_paid_amount || 0;
+                        refDetails = {
+                            id: invoice.invoice_id,
+                            date: invoice.invoice_date ? new Date(invoice.invoice_date).toLocaleDateString('en-IN') : '-',
+                            amount: total,
+                            paid: paid,
+                            refunded: 0,
+                            balance: Math.max(total - paid, 0),
+                            status: invoice.payment_status || '-'
+                        };
+                    }
+                }
+
+                const htmlContent = this.getReceiptHTML(payment, companyInfo, partyDetails, refDetails);
+
+                const res = await fetch('/comms/send-payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        phone: formattedPhone,
+                        paymentId: `Receipt-${paymentIdStr}`,
+                        htmlContent: htmlContent,
+                        documentType: 'payment receipt',
+                        partyName: partyDetails.name,
+                        amount: payment.amount,
+                        date: payment.payment_date
+                    })
+                });
+
+                const result = await res.json();
+                if (!res.ok) {
+                    throw new Error(result.message || result.error || 'Failed to send receipt.');
+                }
+
+                commsUtils.showNotification(result.message || 'Receipt sent successfully!', 'success');
+                this.addLog('receipt', customerName, phone, `Receipt #${paymentIdStr} sent`, 'success');
+
+                select.value = '';
+                document.getElementById('receipt-preview-container')!.classList.add('hidden');
+                this.selectedPayment = null;
+            } catch (err: any) {
+                commsUtils.showNotification(err.message || 'Failed to send receipt.', 'error');
+                this.addLog('receipt', customerName, phone, `Failed to send receipt #${paymentIdStr}`, 'failed');
+            } finally {
+                commsUtils.setLoading(btn, false);
+                this.updateFormFieldsDisabledState();
+            }
+        });
+    }
+
+    private setupVoucherSubmit() {
+        const form = document.getElementById('voucher-tab-form') as HTMLFormElement;
+        if (!form) return;
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const phoneInput = document.getElementById('customer-phone-input') as HTMLInputElement;
+            const phone = phoneInput ? phoneInput.value.trim() : '';
+            const select = document.getElementById('voucher-select') as HTMLSelectElement;
+            const btn = document.getElementById('btn-send-voucher') as HTMLButtonElement;
+
+            if (!phone || !this.selectedVoucher || !this.selectedCustomer) return;
+
+            const formattedPhone = commsUtils.formatPhoneNumber(phone);
+            const customerName = this.selectedCustomer.customer?.name || `${this.selectedCustomer.customer?.first_name || ''} ${this.selectedCustomer.customer?.last_name || ''}`.trim();
+            const voucher = this.selectedVoucher;
+            const voucherNo = voucher.voucherNumber;
+
+            try {
+                commsUtils.setLoading(btn, true);
+
+                // Fetch company info dynamically or use config
+                const configRes = await fetch('/api/settings/company-info');
+                const configData = await configRes.json();
+                const companyInfo = configRes.ok ? configData.company : {
+                    name: 'SHRESHT SYSTEMS',
+                    address: 'Company Address',
+                    phone: '0000000000',
+                    email: 'email@company.com'
+                };
+
+                const htmlContent = this.generateVoucherPrintHTML(voucher, companyInfo);
+
+                const res = await fetch('/comms/send-payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        phone: formattedPhone,
+                        paymentId: `Voucher-${voucherNo}`,
+                        htmlContent: htmlContent,
+                        documentType: 'payment voucher',
+                        partyName: voucher.partyName,
+                        amount: voucher.amount,
+                        date: voucher.date
+                    })
+                });
+
+                const result = await res.json();
+                if (!res.ok) {
+                    throw new Error(result.message || result.error || 'Failed to send voucher.');
+                }
+
+                commsUtils.showNotification(result.message || 'Voucher sent successfully!', 'success');
+                this.addLog('voucher', customerName, phone, `Voucher ${voucherNo} sent`, 'success');
+
+                select.value = '';
+                document.getElementById('voucher-preview-container')!.classList.add('hidden');
+                this.selectedVoucher = null;
+            } catch (err: any) {
+                commsUtils.showNotification(err.message || 'Failed to send voucher.', 'error');
+                this.addLog('voucher', customerName, phone, `Failed to send voucher ${voucherNo}`, 'failed');
+            } finally {
+                commsUtils.setLoading(btn, false);
+                this.updateFormFieldsDisabledState();
+            }
+        });
+    }
+
+    private getTransactionTypeLabel(p: any): string {
+        if (p.is_refund) {
+            return p.direction === 'IN' ? 'Refund Received' : 'Refund Issued';
+        }
+        if (p.is_advance) {
+            return p.direction === 'IN' ? 'Advance Received' : 'Advance Paid';
+        }
+        return p.direction === 'IN' ? 'Payment Received' : 'Payment Sent';
+    }
+
+    private formatCurrency(n: number): string {
+        return Number(n || 0).toLocaleString('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            minimumFractionDigits: 2
+        });
+    }
+
+    private formatDate(d: any): string {
+        if (!d) return '-';
+        return new Date(d).toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        });
+    }
+
+    private getReceiptHTML(
+        payment: any,
+        companyInfo: any = null,
+        partyDetails: { name: string; phone: string; gstin: string; email: string; address: string } | null = null,
+        refDetails: { id: string; date: string; amount: number; paid: number; refunded: number; balance: number; status: string } | null = null
+    ): string {
+        const type = this.getTransactionTypeLabel(payment);
+        const amountStr = this.formatCurrency(payment.amount);
+        const dateStr = this.formatDate(payment.payment_date);
+        
+        // Company branding fallbacks
+        const company = companyInfo || {
+            company_name: 'SHRESHT SYSTEMS',
+            address: { line1: 'Company Address', line2: '', city: '', state: '', pincode: '', country: 'India' },
+            phone: { ph1: '0000000000', ph2: '' },
+            email: 'email@company.com',
+            website: 'www.company.com',
+            gstin: 'GSTIN Number'
+        };
+        const companyName = (company.company_name || 'SHRESHT SYSTEMS').toUpperCase();
+        const companyAddress = typeof company.address === 'string'
+            ? company.address
+            : [company.address?.line1, company.address?.line2, company.address?.city, company.address?.state ? company.address.state + (company.address.pincode ? ' - ' + company.address.pincode : '') : ''].filter(Boolean).join(', ') || 'Company Address';
+        const companyPhone = company.phone ? `${company.phone.ph1}${company.phone.ph2 ? ' / ' + company.phone.ph2 : ''}` : '';
+        
+        // Status resolution
+        let statusLabel = 'PAID';
+        let statusBadgeClass = 'badge-paid';
+        if (payment.is_refund) {
+            statusLabel = 'REFUND';
+            statusBadgeClass = 'badge-refunded';
+        } else if (payment.is_already_refunded) {
+            statusLabel = 'REFUNDED';
+            statusBadgeClass = 'badge-refunded';
+        } else if (payment.is_advance) {
+            statusLabel = 'ADVANCE';
+            statusBadgeClass = 'badge-partial'; // amber
+        } else if (payment.status) {
+            const statusLower = payment.status.toLowerCase();
+            if (statusLower === 'partially paid' || statusLower === 'partial') {
+                statusLabel = 'PARTIALLY PAID';
+                statusBadgeClass = 'badge-partial';
+            } else if (statusLower === 'pending') {
+                statusLabel = 'PENDING';
+                statusBadgeClass = 'badge-pending';
+            }
+        }
+
+        // Amount in Words
+        const numToWords = (window as any).numberToWords;
+        const amountInWords = numToWords ? `${numToWords(payment.amount)} Rupees Only` : '';
+
+        // Mode badge class
+        let modeBadgeClass = 'mode-cash';
+        const modeVal = payment.mode || 'Cash';
+        if (modeVal === 'UPI') modeBadgeClass = 'mode-upi';
+        else if (modeVal === 'Bank Transfer') modeBadgeClass = 'mode-bank';
+        else if (modeVal === 'Cheque') modeBadgeClass = 'mode-cheque';
+
+        // Party fields
+        const partyName = partyDetails?.name || payment.party_name || '-';
+        const partyPhone = partyDetails?.phone || '-';
+        const partyGstin = partyDetails?.gstin || '-';
+        const partyEmail = partyDetails?.email || '-';
+        const partyAddress = partyDetails?.address || '-';
+
+        // Settlement table
+        let settlementHTML = '';
+        if (refDetails && payment.reference_type === 'Invoice') {
+            const outstanding = refDetails.balance;
+            const isSettled = outstanding <= 0;
+            const settlementStatusLabel = isSettled ? 'FULLY SETTLED' : 'OUTSTANDING';
+            const settlementStatusClass = isSettled ? 'status-badge badge-paid' : 'status-badge badge-partial';
+            
+            settlementHTML = `
+                <div class="settlement-card">
+                    <div class="card-title">Invoice Settlement Summary</div>
+                    <table class="settlement-table">
+                        <thead>
+                            <tr>
+                                <th>Invoice Number</th>
+                                <th class="amount-col">Invoice Amount</th>
+                                <th class="amount-col">Amount Paid</th>
+                                <th class="amount-col">Balance Amount</th>
+                                <th style="text-align: center; width: 140px;">Settlement Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="strong">${refDetails.id}</td>
+                                <td class="amount-col">₹&nbsp;${this.formatCurrency(refDetails.amount).replace('₹', '').trim()}</td>
+                                <td class="amount-col">₹&nbsp;${this.formatCurrency(refDetails.paid).replace('₹', '').trim()}</td>
+                                <td class="amount-col strong">₹&nbsp;${this.formatCurrency(outstanding).replace('₹', '').trim()}</td>
+                                <td style="text-align: center;">
+                                    <span class="${settlementStatusClass}" style="padding: 3px 10px; font-size: 9px;">${settlementStatusLabel}</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        const printTimeStr = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+        
+        return `
+            <html>
+            <head>
+                <title>Payment Receipt - ${payment._id}</title>
+                <style>
+                    body {
+                        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+                        margin: 0;
+                        padding: 0;
+                        color: #1e293b;
+                        background-color: #ffffff;
+                        line-height: 1.5;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                    h1, h2, h3, p { margin: 0; }
+                    .receipt-container {
+                        max-width: 800px;
+                        margin: 0 auto;
+                        padding: 40px;
+                        background: #ffffff;
+                    }
+                    .header-section {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: flex-start;
+                        border-bottom: 2px solid #e2e8f0;
+                        padding-bottom: 25px;
+                        margin-bottom: 30px;
+                    }
+                    .company-logo-area {
+                        display: flex;
+                        align-items: center;
+                        gap: 15px;
+                    }
+                    .company-logo-placeholder {
+                        width: 48px;
+                        height: 48px;
+                        background: #2563eb;
+                        color: #fff;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-weight: 900;
+                        border-radius: 8px;
+                        font-size: 20px;
+                    }
+                    .company-title {
+                        font-size: 22px;
+                        font-weight: 800;
+                        color: #0f172a;
+                        letter-spacing: -0.5px;
+                        line-height: 1.2;
+                    }
+                    .company-subtitle {
+                        font-size: 11px;
+                        color: #64748b;
+                        margin-top: 3px;
+                    }
+                    .receipt-meta {
+                        text-align: right;
+                    }
+                    .meta-badge {
+                        display: inline-block;
+                        padding: 6px 14px;
+                        font-size: 11px;
+                        font-weight: 700;
+                        border-radius: 6px;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                        margin-bottom: 12px;
+                    }
+                    .badge-paid { background-color: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+                    .badge-refunded { background-color: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+                    .badge-partial { background-color: #fffbeb; color: #92400e; border: 1px solid #fef3c7; }
+                    .badge-pending { background-color: #f8fafc; color: #475569; border: 1px solid #e2e8f0; }
+                    .meta-row {
+                        font-size: 12px;
+                        color: #475569;
+                        margin-bottom: 4px;
+                    }
+                    .meta-row span {
+                        font-weight: 600;
+                        color: #0f172a;
+                    }
+                    .address-block {
+                        display: grid;
+                        grid-template-cols: 1fr 1fr;
+                        gap: 40px;
+                        margin-bottom: 35px;
+                    }
+                    .address-card {
+                        background-color: #f8fafc;
+                        border-radius: 8px;
+                        padding: 16px;
+                        border: 1px solid #f1f5f9;
+                    }
+                    .address-title {
+                        font-size: 11px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                        color: #64748b;
+                        margin-bottom: 8px;
+                        border-bottom: 1px solid #e2e8f0;
+                        padding-bottom: 6px;
+                    }
+                    .address-name {
+                        font-size: 14px;
+                        font-weight: 700;
+                        color: #0f172a;
+                        margin-bottom: 4px;
+                    }
+                    .address-text {
+                        font-size: 12px;
+                        color: #475569;
+                        line-height: 1.4;
+                    }
+                    .payment-details-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-bottom: 30px;
+                    }
+                    .payment-details-table th {
+                        background-color: #f1f5f9;
+                        color: #475569;
+                        font-size: 11px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                        text-align: left;
+                        padding: 12px 16px;
+                        border-bottom: 1px solid #e2e8f0;
+                    }
+                    .payment-details-table td {
+                        padding: 16px;
+                        font-size: 13px;
+                        border-bottom: 1px solid #f1f5f9;
+                    }
+                    .payment-details-table td.strong {
+                        font-weight: 700;
+                        color: #0f172a;
+                    }
+                    .mode-badge {
+                        display: inline-block;
+                        padding: 4px 10px;
+                        font-size: 11px;
+                        font-weight: 600;
+                        border-radius: 4px;
+                        text-transform: uppercase;
+                    }
+                    .mode-cash { background-color: #ecfdf5; color: #047857; }
+                    .mode-upi { background-color: #eff6ff; color: #1d4ed8; }
+                    .mode-bank { background-color: #f5f3ff; color: #6d28d9; }
+                    .mode-cheque { background-color: #fff7ed; color: #c2410c; }
+                    .amount-summary-section {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        background: #f8fafc;
+                        border: 1px solid #e2e8f0;
+                        border-radius: 8px;
+                        padding: 20px 24px;
+                        margin-bottom: 35px;
+                    }
+                    .words-block {
+                        max-width: 60%;
+                    }
+                    .words-label {
+                        font-size: 10px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        color: #64748b;
+                        margin-bottom: 4px;
+                    }
+                    .words-value {
+                        font-size: 12px;
+                        font-weight: 600;
+                        color: #334155;
+                        font-style: italic;
+                    }
+                    .amount-display-box {
+                        text-align: right;
+                    }
+                    .amount-label {
+                        font-size: 11px;
+                        font-weight: 700;
+                        color: #64748b;
+                        text-transform: uppercase;
+                        margin-bottom: 4px;
+                    }
+                    .amount-value {
+                        font-size: 24px;
+                        font-weight: 800;
+                        color: #0f172a;
+                    }
+                    .settlement-card {
+                        background: #ffffff;
+                        border: 1px solid #e2e8f0;
+                        border-radius: 8px;
+                        padding: 20px;
+                        margin-bottom: 40px;
+                    }
+                    .settlement-card .card-title {
+                        font-size: 13px;
+                        font-weight: 700;
+                        color: #334155;
+                        margin-bottom: 12px;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                    }
+                    .settlement-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                    }
+                    .settlement-table th {
+                        font-size: 10px;
+                        color: #64748b;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        padding: 8px 12px;
+                        border-bottom: 1px solid #e2e8f0;
+                        background: #f8fafc;
+                        text-align: left;
+                    }
+                    .settlement-table td {
+                        padding: 12px;
+                        font-size: 12px;
+                        border-bottom: 1px solid #f1f5f9;
+                    }
+                    .settlement-table th.amount-col,
+                    .settlement-table td.amount-col {
+                        text-align: right;
+                    }
+                    .settlement-table td.strong {
+                        font-weight: 700;
+                        color: #0f172a;
+                    }
+                    .status-badge {
+                        display: inline-block;
+                        padding: 3px 8px;
+                        font-size: 10px;
+                        font-weight: 700;
+                        border-radius: 4px;
+                        text-transform: uppercase;
+                    }
+                    .sig-section {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-top: 60px;
+                        font-size: 12px;
+                        color: #64748b;
+                        padding: 0 10px;
+                    }
+                    .sig-box {
+                        text-align: center;
+                        width: 200px;
+                    }
+                    .sig-line {
+                        border-bottom: 1px solid #cbd5e1;
+                        margin-bottom: 8px;
+                        height: 40px;
+                    }
+                    .footer-note {
+                        text-align: center;
+                        font-size: 11px;
+                        color: #94a3b8;
+                        margin-top: 50px;
+                        border-top: 1px solid #f1f5f9;
+                        padding-top: 15px;
+                    }
+                    @media print {
+                        body { background: #fff; }
+                        .receipt-container { padding: 0; max-width: 100%; }
+                        .address-card { background: #fff; border: 1px solid #cbd5e1; }
+                        .amount-summary-section { background: #fff; border: 1px solid #cbd5e1; }
+                        .settlement-card { background: #fff; border: 1px solid #cbd5e1; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="receipt-container">
+                    <div class="header-section">
+                        <div class="company-logo-area">
+                            <div class="company-logo-placeholder">S</div>
+                            <div>
+                                <div class="company-title">${companyName}</div>
+                                <div class="company-subtitle">Professional Engineering Services & Systems</div>
+                            </div>
+                        </div>
+                        <div class="receipt-meta">
+                            <div class="meta-badge ${statusBadgeClass}">${statusLabel}</div>
+                            <div class="meta-row">Receipt ID: <span>#${payment._id.substring(payment._id.length - 6).toUpperCase()}</span></div>
+                            <div class="meta-row">Date: <span>${dateStr}</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="address-block">
+                        <div class="address-card">
+                            <div class="address-title">From (Company)</div>
+                            <div class="address-name">${companyName}</div>
+                            <div class="address-text">
+                                ${companyAddress}<br>
+                                Phone: ${companyPhone}<br>
+                                Email: ${company.email || ''}<br>
+                                GSTIN: ${company.gstin || '-'}
+                            </div>
+                        </div>
+                        <div class="address-card">
+                            <div class="address-title">Received From (Client)</div>
+                            <div class="address-name">${partyName}</div>
+                            <div class="address-text">
+                                ${partyAddress}<br>
+                                Phone: ${partyPhone}<br>
+                                Email: ${partyEmail}<br>
+                                GSTIN: ${partyGstin}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <table class="payment-details-table">
+                        <thead>
+                            <tr>
+                                <th>Transaction Type</th>
+                                <th>Payment Method</th>
+                                <th>Reference Type</th>
+                                <th>Reference Number</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="strong">${type}</td>
+                                <td>
+                                    <span class="mode-badge ${modeBadgeClass}">${modeVal}</span>
+                                </td>
+                                <td>${payment.reference_type || 'Advance / General'}</td>
+                                <td class="strong">${payment.reference_id || '-'}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="amount-summary-section">
+                        <div class="words-block">
+                            <div class="words-label">Amount In Words</div>
+                            <div class="words-value">${amountInWords || 'Rupees ' + amountStr}</div>
+                        </div>
+                        <div class="amount-display-box">
+                            <div class="amount-label">Total Amount Paid</div>
+                            <div class="amount-value">${amountStr}</div>
+                        </div>
+                    </div>
+                    
+                    ${settlementHTML}
+                    
+                    <div class="sig-section">
+                        <div class="sig-box">
+                            <div class="sig-line"></div>
+                            Authorized Signatory
+                        </div>
+                        <div class="sig-box">
+                            <div class="sig-line"></div>
+                            Client Signature
+                        </div>
+                    </div>
+                    
+                    <div class="footer-note">
+                        This is a computer-generated payment receipt and does not require a physical signature.<br>
+                        Printed on ${printTimeStr}
+                    </div>
+                </div>
+            </body>
+            </html>
+        `;
+    }
+
+    private generateVoucherPrintHTML(v: any, c: any): string {
+        const formatDate = (d: any) => d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+        const formatIndian = (n: any) => Number(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        let methodDetails = v.paymentMethod;
+        if (v.paymentMethod === 'Cheque') {
+            methodDetails += ` (Cheque No: ${v.chequeNumber || '-'}, Bank: ${v.bankName || '-'}, Date: ${formatDate(v.chequeDate)})`;
+        } else if (v.paymentMethod === 'Bank Transfer') {
+            methodDetails += ` (Bank: ${v.bankName || '-'}, Ref: ${v.referenceNumber || '-'})`;
+        } else if (v.paymentMethod === 'UPI') {
+            methodDetails += ` (UPI Ref: ${v.referenceNumber || '-'})`;
+        }
+
+        return `
+        <html>
+        <head>
+            <title>Payment Voucher - ${v.voucherNumber}</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 30px; color: #333; background-color: #fff; margin: 0; }
+                .voucher-container { border: 2px solid #333; padding: 24px; max-width: 800px; margin: 0 auto; background: #fff; }
+                .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px double #333; padding-bottom: 15px; margin-bottom: 20px; }
+                .company-info h1 { font-size: 20px; font-weight: bold; margin: 0; color: #000; text-transform: uppercase; }
+                .company-info p { font-size: 11px; margin: 3px 0 0 0; color: #555; }
+                .voucher-title-box { text-align: center; margin: 15px 0; }
+                .voucher-title { font-size: 16px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; border: 2px solid #000; padding: 6px 16px; display: inline-block; }
+                .content-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+                .content-table td { padding: 12px 8px; font-size: 13px; vertical-align: top; }
+                .content-table tr { border-bottom: 1px solid #eee; }
+                .label { font-weight: bold; width: 25%; color: #000; }
+                .value { border-bottom: 1px dashed #333; }
+                .amount-row { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; margin-bottom: 40px; }
+                .amount-box { border: 2px solid #000; padding: 10px 20px; font-size: 18px; font-weight: bold; background-color: #f8fafc; display: inline-block; }
+                .amount-words-box { font-size: 12px; font-style: italic; width: 65%; border-bottom: 1px dashed #333; padding-bottom: 5px; }
+                .signature-row { display: flex; justify-content: space-between; margin-top: 50px; font-size: 12px; font-weight: bold; }
+                .sig-col { width: 40%; text-align: center; }
+                .sig-line { border-bottom: 1px solid #000; margin-bottom: 8px; height: 30px; }
+                @media print { body { padding: 0; } .voucher-container { border: 2px solid #000; } }
+            </style>
+        </head>
+        <body>
+            <div class="voucher-container">
+                <div class="header">
+                    <div class="company-info">
+                        <h1>${c.company_name || c.name}</h1>
+                        <p>${c.address?.line1 || c.address || ''}</p>
+                        <p>Phone: ${c.phone?.ph1 || c.phone || ''} | Email: ${c.email || ''}</p>
+                    </div>
+                    <div style="text-align: right; font-family: monospace;">
+                        <div style="font-weight: bold; font-size: 14px;">Voucher No: <span style="color: #c2410c;">${v.voucherNumber}</span></div>
+                        <div style="margin-top: 5px; font-size: 12px;">Date: ${formatDate(v.date)}</div>
+                    </div>
+                </div>
+
+                <div class="voucher-title-box">
+                    <div class="voucher-title">Payment Voucher</div>
+                </div>
+
+                <table class="content-table">
+                    <tr>
+                        <td class="label">Paid To (Payee)</td>
+                        <td class="value">${v.partyName} (${v.partyType})</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Payment Method</td>
+                        <td class="value">${methodDetails}</td>
+                    </tr>
+                    <tr style="border-bottom: none;">
+                        <td class="label">Paid Towards</td>
+                        <td class="value" style="white-space: pre-wrap;">${v.paidTowards}</td>
+                    </tr>
+                </table>
+
+                <div class="amount-row">
+                    <div class="amount-words-box">
+                        <strong>Amount in Words:</strong><br>
+                        ${v.amountInWords}
+                    </div>
+                    <div class="amount-box">
+                        ₹ ${formatIndian(v.amount)}
+                    </div>
+                </div>
+
+                <div class="signature-row">
+                    <div class="sig-col">
+                        <div class="sig-line"></div>
+                        Paid By
+                    </div>
+                    <div class="sig-col">
+                        <div class="sig-line"></div>
+                        Receiver Signature
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>`;
+    }
+
     private hidePreviews() {
         const qContainer = document.getElementById('quotation-preview-container');
         const iContainer = document.getElementById('invoice-preview-container');
         const rContainer = document.getElementById('reminder-preview-container');
+        const recContainer = document.getElementById('receipt-preview-container');
+        const vContainer = document.getElementById('voucher-preview-container');
 
         if (qContainer) qContainer.classList.add('hidden');
         if (iContainer) iContainer.classList.add('hidden');
         if (rContainer) rContainer.classList.add('hidden');
+        if (recContainer) recContainer.classList.add('hidden');
+        if (vContainer) vContainer.classList.add('hidden');
     }
 
     private getRecentLogs(): any[] {
@@ -838,6 +1768,8 @@ class CommsForms {
                 log.type === 'message' ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-100"><i class="fas fa-comment-alt text-[10px]"></i>Message</span>` :
                 log.type === 'quotation' ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100"><i class="fas fa-file-alt text-[10px]"></i>Quotation</span>` :
                 log.type === 'invoice' ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-100"><i class="fas fa-file-invoice-dollar text-[10px]"></i>Invoice</span>` :
+                log.type === 'receipt' ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100"><i class="fas fa-receipt text-[10px]"></i>Receipt</span>` :
+                log.type === 'voucher' ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-50 text-cyan-700 border border-cyan-100"><i class="fas fa-ticket-alt text-[10px]"></i>Voucher</span>` :
                 `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-50 text-orange-700 border border-orange-100"><i class="fas fa-bell text-[10px]"></i>Reminder</span>`;
 
             const statusBadge = log.status === 'success' ? 
@@ -892,6 +1824,18 @@ class CommsForms {
                     setTimeout(() => {
                         document.getElementById('reminder-invoice-select')?.focus();
                     }, 50);
+                } else if (key === 'c') {
+                    e.preventDefault();
+                    this.switchTab('receipt');
+                    setTimeout(() => {
+                        document.getElementById('receipt-select')?.focus();
+                    }, 50);
+                } else if (key === 'v') {
+                    e.preventDefault();
+                    this.switchTab('voucher');
+                    setTimeout(() => {
+                        document.getElementById('voucher-select')?.focus();
+                    }, 50);
                 } else if (key === 'f') {
                     e.preventDefault();
                     document.getElementById('customer-search-input')?.focus();
@@ -936,6 +1880,16 @@ class CommsForms {
         } else if (this.activeTab === 'reminder') {
             const form = document.getElementById('reminder-tab-form') as HTMLFormElement;
             if (form && !document.getElementById('btn-send-single-reminder')?.hasAttribute('disabled')) {
+                form.requestSubmit();
+            }
+        } else if (this.activeTab === 'receipt') {
+            const form = document.getElementById('receipt-tab-form') as HTMLFormElement;
+            if (form && !document.getElementById('btn-send-receipt')?.hasAttribute('disabled')) {
+                form.requestSubmit();
+            }
+        } else if (this.activeTab === 'voucher') {
+            const form = document.getElementById('voucher-tab-form') as HTMLFormElement;
+            if (form && !document.getElementById('btn-send-voucher')?.hasAttribute('disabled')) {
                 form.requestSubmit();
             }
         }

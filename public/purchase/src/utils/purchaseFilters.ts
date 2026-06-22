@@ -17,7 +17,8 @@
             all: 0,
             Paid: 0,
             Partial: 0,
-            Unpaid: 0
+            Unpaid: 0,
+            archived: 0
         };
 
         const sourceList = (window as any).allPurchases || [];
@@ -29,6 +30,12 @@
                 counts[status]++;
             }
         });
+        
+        // Count archived count from badge or fetch it directly
+        const archivedBadge = document.getElementById('archived-count-badge');
+        if (archivedBadge) {
+            counts.archived = parseInt(archivedBadge.textContent || '0', 10);
+        }
 
         statusTabs.forEach(tab => {
             const status = (tab as HTMLElement).dataset.status || 'all';
@@ -53,8 +60,28 @@
         updatePurchaseTabCounts();
         updateActiveFiltersBar();
 
+        let status = currentFilters.status || 'all';
+        if (status === 'archived') {
+            if ((window as any).statusFilter !== 'archived') {
+                (window as any).statusFilter = 'archived';
+                (window as any).showDeletedItems = false;
+                if ((window as any).loadRecentPurchases) {
+                    (window as any).loadRecentPurchases();
+                }
+                return;
+            }
+        } else {
+            if ((window as any).statusFilter === 'archived') {
+                (window as any).statusFilter = '';
+                if ((window as any).loadRecentPurchases) {
+                    (window as any).loadRecentPurchases();
+                }
+                return;
+            }
+        }
+
         let source = [...((window as any).allPurchases || [])];
-        if (currentFilters.status && currentFilters.status !== 'all') {
+        if (currentFilters.status && currentFilters.status !== 'all' && currentFilters.status !== 'archived') {
             source = source.filter(p => (p.payment_status || 'Unpaid') === currentFilters.status);
         }
 
@@ -156,8 +183,15 @@
                     currentFilters.dateFilter = 'all';
                     currentFilters.customStartDate = null;
                     currentFilters.customEndDate = null;
-                    const dateSelect = document.getElementById('date-filter') as HTMLSelectElement | null;
+                    const dateSelect = document.getElementById('date-filter') as HTMLInputElement | null;
                     if (dateSelect) dateSelect.value = 'all';
+                    const dateDropdown = document.getElementById('dateFilterDropdown');
+                    if (dateDropdown) {
+                        dateDropdown.querySelectorAll('a').forEach((a, i) => {
+                            a.classList.remove('bg-gray-100', 'font-semibold');
+                            if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                        });
+                    }
                     applyPurchaseFilters();
                 }
             });
@@ -175,8 +209,15 @@
                 label: `Sort: ${sortLabels[currentFilters.sortBy] || currentFilters.sortBy}`,
                 clearFn: () => {
                     currentFilters.sortBy = 'date-desc';
-                    const sortSelect = document.getElementById('sort-filter') as HTMLSelectElement | null;
+                    const sortSelect = document.getElementById('sort-filter') as HTMLInputElement | null;
                     if (sortSelect) sortSelect.value = 'date-desc';
+                    const sortDropdown = document.getElementById('sortFilterDropdown');
+                    if (sortDropdown) {
+                        sortDropdown.querySelectorAll('a').forEach((a, i) => {
+                            a.classList.remove('bg-gray-100', 'font-semibold');
+                            if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                        });
+                    }
                     applyPurchaseFilters();
                 }
             });
@@ -208,12 +249,14 @@
     function initPurchaseFilters() {
         const filterBtn = document.getElementById('filter-btn') as HTMLButtonElement;
         const filterPopover = document.getElementById('filter-popover') as HTMLElement;
-        const dateFilter = document.getElementById('date-filter') as HTMLSelectElement;
-        const sortFilter = document.getElementById('sort-filter') as HTMLSelectElement;
+        const dateFilter = document.getElementById('date-filter') as HTMLInputElement;
+        const sortFilter = document.getElementById('sort-filter') as HTMLInputElement;
         const clearFiltersBtn = document.getElementById('clear-filters-btn') as HTMLButtonElement;
-        const applyFiltersBtn = document.getElementById('apply-filters-btn') as HTMLButtonElement;
         const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
         const clearAllShortcut = document.getElementById('clear-all-filters-shortcut') as HTMLButtonElement | null;
+
+        const dateDropdown = document.getElementById('dateFilterDropdown');
+        const sortDropdown = document.getElementById('sortFilterDropdown');
 
         // Toggle filter popover
         if (filterBtn && filterPopover) {
@@ -269,6 +312,19 @@
                 if (dateFilter) dateFilter.value = 'all';
                 if (sortFilter) sortFilter.value = 'date-desc';
                 
+                if (dateDropdown) {
+                    dateDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
+                if (sortDropdown) {
+                    sortDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
+
                 // Reset status tabs
                 const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
                 statusTabs.forEach(t => {
@@ -284,32 +340,56 @@
             });
         }
 
-        // Handle date filter custom option
-        if (dateFilter) {
-            dateFilter.addEventListener('change', (e) => {
-                const value = (e.target as HTMLSelectElement).value;
+        // Handle date filter custom options & clicks
+        if (dateDropdown && dateFilter) {
+            dateDropdown.addEventListener('click', (e: Event) => {
+                const target = e.target as HTMLElement;
+                const link = target.closest('a');
+                if (!link) return;
+
+                e.preventDefault();
+
+                const value = link.getAttribute('data-date-filter') || 'all';
                 if (value === 'custom') {
                     (window as any).showCustomDateModal((startDate: string, endDate: string) => {
+                        dateDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+                        link.classList.add('bg-gray-100', 'font-semibold');
+
                         currentFilters.dateFilter = 'custom';
                         currentFilters.customStartDate = startDate;
                         currentFilters.customEndDate = endDate;
+                        dateFilter.value = 'custom';
                         applyPurchaseFilters();
                     });
+                } else {
+                    dateDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+                    link.classList.add('bg-gray-100', 'font-semibold');
+
+                    currentFilters.dateFilter = value;
+                    currentFilters.customStartDate = null;
+                    currentFilters.customEndDate = null;
+                    dateFilter.value = value;
+                    applyPurchaseFilters();
                 }
             });
         }
 
-        // Apply filters button
-        if (applyFiltersBtn) {
-            applyFiltersBtn.addEventListener('click', () => {
-                if (dateFilter && dateFilter.value !== 'custom') {
-                    currentFilters.dateFilter = dateFilter.value;
-                    currentFilters.customStartDate = null;
-                    currentFilters.customEndDate = null;
-                }
-                if (sortFilter) currentFilters.sortBy = sortFilter.value;
+        // Handle sort filter clicks
+        if (sortDropdown && sortFilter) {
+            sortDropdown.addEventListener('click', (e: Event) => {
+                const target = e.target as HTMLElement;
+                const link = target.closest('a');
+                if (!link) return;
+
+                e.preventDefault();
+
+                sortDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+                link.classList.add('bg-gray-100', 'font-semibold');
+
+                const value = link.getAttribute('data-sort-filter') || 'date-desc';
+                currentFilters.sortBy = value;
+                sortFilter.value = value;
                 applyPurchaseFilters();
-                if (filterPopover) filterPopover.classList.add('hidden');
             });
         }
 
@@ -325,6 +405,18 @@
                 };
                 if (dateFilter) dateFilter.value = 'all';
                 if (sortFilter) sortFilter.value = 'date-desc';
+                if (dateDropdown) {
+                    dateDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
+                if (sortDropdown) {
+                    sortDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
                 
                 // Reset status tabs
                 const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');

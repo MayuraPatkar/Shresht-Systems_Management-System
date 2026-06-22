@@ -105,19 +105,19 @@
         modalDiv.setAttribute('aria-label', 'Keyboard Shortcuts');
 
         modalDiv.innerHTML = `
-            <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl max-w-xl w-full mx-4 max-h-[85vh] overflow-y-auto shortcuts-panel">
-                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-10">
+            <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl max-w-xl w-full mx-4 max-h-[85vh] overflow-hidden isolate shortcuts-panel flex flex-col">
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-white/95 backdrop-blur-md z-10">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
                             <i class="fas fa-keyboard text-lg"></i>
                         </div>
-                        <h2 class="text-base font-extrabold text-slate-800 tracking-tight">Keyboard Shortcuts</h2>
+                        <h2 class="text-base font-extrabold text-slate-800 tracking-tight">Keyboard Shortcuts Help</h2>
                     </div>
                     <button id="close-shortcuts" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-200" aria-label="Close shortcuts help modal">
                         <i class="fas fa-times text-sm"></i>
                     </button>
                 </div>
-                <div id="shortcuts-content" class="p-6 space-y-5"></div>
+                <div id="shortcuts-content" class="p-6 space-y-5 overflow-y-auto flex-1"></div>
             </div>
         `;
         document.body.appendChild(modalDiv);
@@ -368,9 +368,30 @@
                 filterPopover.classList.add('hidden');
                 return;
             }
-            
-            if (isFormActive() && typeof (window as any).closeAllSuggestions === 'function') {
-                (window as any).closeAllSuggestions();
+
+            // If any suggestion dropdown is currently visible, close it and stop — 
+            // do NOT proceed to the unsaved changes guard (avoids false modal on Esc in search).
+            if (isFormActive()) {
+                const suggestions = Array.from(document.querySelectorAll('.suggestions')) as HTMLElement[];
+                const supplierSuggestions = document.getElementById('supplier-suggestions') as HTMLElement | null;
+                const hasVisibleSuggestions =
+                    suggestions.some(s => s.style.display === 'block') ||
+                    (supplierSuggestions && supplierSuggestions.style.display === 'block');
+
+                if (hasVisibleSuggestions) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (typeof (window as any).closeAllSuggestions === 'function') {
+                        (window as any).closeAllSuggestions();
+                    }
+                    if (supplierSuggestions) supplierSuggestions.style.display = 'none';
+                    return;
+                }
+
+                // No suggestions open — close any stragglers and proceed
+                if (typeof (window as any).closeAllSuggestions === 'function') {
+                    (window as any).closeAllSuggestions();
+                }
             }
             
             // If unsaved changes modal is open, let it handle Escape
@@ -533,6 +554,15 @@
 
     // Set up document-level keydown listener
     document.addEventListener('keydown', handlePurchaseOrderKeyboardShortcuts, true);
+
+    // Auto-initialize the shortcuts modal on all purchase order pages.
+    // main.ts also calls this on the list page, but on the form and details pages
+    // main.ts bails early and never calls it — so we do it here automatically.
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initShortcutsModal);
+    } else {
+        initShortcutsModal();
+    }
 
     (window as any).initPurchaseOrderShortcutsModal = initShortcutsModal;
 })();

@@ -602,6 +602,16 @@
                     data-tab="payments">
                     <i class="fas fa-money-bill-wave text-xs"></i> Payments
                 </button>
+                <button
+                    class="tab-btn px-5 py-3 font-semibold text-xs uppercase tracking-wider text-slate-600 hover:text-blue-600 transition-all flex items-center gap-1.5"
+                    data-tab="vouchers">
+                    <i class="fas fa-receipt text-xs"></i> Vouchers
+                </button>
+                <button
+                    class="tab-btn px-5 py-3 font-semibold text-xs uppercase tracking-wider text-slate-600 hover:text-blue-600 transition-all flex items-center gap-1.5"
+                    data-tab="communications">
+                    <i class="fas fa-comments text-xs"></i> Communications
+                </button>
             </div>
 
             <!-- Tab Contents -->
@@ -743,6 +753,49 @@
                                 </tr>
                             </thead>
                             <tbody id="payments-list" class="divide-y divide-gray-100">
+                                <!-- Data populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Vouchers Tab -->
+                <div id="vouchers" class="tab-content">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 text-gray-500 uppercase text-xs font-bold tracking-wider">
+                                <tr>
+                                    <th class="px-6 py-4">Voucher No</th>
+                                    <th class="px-6 py-4">Date</th>
+                                    <th class="px-6 py-4">Amount</th>
+                                    <th class="px-6 py-4">Method</th>
+                                    <th class="px-6 py-4">Paid Towards</th>
+                                    <th class="px-6 py-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vouchers-list" class="divide-y divide-gray-100">
+                                <!-- Data populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Communications Tab -->
+                <div id="communications" class="tab-content">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 text-gray-500 uppercase text-xs font-bold tracking-wider">
+                                <tr>
+                                    <th class="px-6 py-4 text-xs font-bold tracking-wider">Date & Time</th>
+                                    <th class="px-6 py-4 text-xs font-bold tracking-wider">Recipient</th>
+                                    <th class="px-6 py-4 text-xs font-bold tracking-wider">Message Type</th>
+                                    <th class="px-6 py-4 text-xs font-bold tracking-wider">Reference ID</th>
+                                    <th class="px-6 py-4 text-xs font-bold tracking-wider">Status</th>
+                                    <th class="px-6 py-4 text-xs font-bold tracking-wider">Message / Error</th>
+                                    <th class="px-6 py-4 text-xs font-bold tracking-wider">PDF Link</th>
+                                </tr>
+                            </thead>
+                            <tbody id="communications-list" class="divide-y divide-gray-100">
                                 <!-- Data populated via JS -->
                             </tbody>
                         </table>
@@ -981,16 +1034,30 @@
                 customer's profile, contact info, transactions, and complete service histories.</p>
 
             <div class="space-y-3 mb-6">
-                <!-- PDF option -->
-                <button data-format="pdf"
+                <!-- Save PDF option -->
+                <button data-format="save-pdf"
                     class="export-opt-btn w-full p-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 hover:border-slate-300 rounded-xl flex items-center justify-between transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-left active:scale-[0.99] cursor-pointer">
                     <div class="flex items-center gap-3">
                         <div
                             class="w-10 h-10 rounded-lg bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center text-sm font-bold shadow-sm">
-                            PDF</div>
+                            <i class="fas fa-file-pdf"></i></div>
                         <div>
-                            <p class="text-xs font-bold text-slate-800">Portable Document Format (.pdf)</p>
-                            <p class="text-[10px] text-slate-400 mt-0.5">Best for official summaries and printing</p>
+                            <p class="text-xs font-bold text-slate-800">Save as PDF Document</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Download offline account ledger file</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-xs text-slate-400"></i>
+                </button>
+                <!-- Print Details option -->
+                <button data-format="print"
+                    class="export-opt-btn w-full p-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 hover:border-slate-300 rounded-xl flex items-center justify-between transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-left active:scale-[0.99] cursor-pointer">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center text-sm font-bold shadow-sm">
+                            <i class="fas fa-print"></i></div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-800">Print Account Details</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Send summary directly to printer</p>
                         </div>
                     </div>
                     <i class="fas fa-chevron-right text-xs text-slate-400"></i>

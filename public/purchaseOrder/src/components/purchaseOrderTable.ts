@@ -1,5 +1,17 @@
 // @ts-nocheck
 (function () {
+    function getPurchaseOrderStatusClass(status: string) {
+        const styles = {
+            'Draft': 'bg-gray-100 text-gray-700 border-gray-200',
+            'Issued/Sent': 'bg-blue-100 text-blue-700 border-blue-200',
+            'Acknowledged/Accepted': 'bg-green-100 text-green-700 border-green-200',
+            'Rejected': 'bg-red-100 text-red-700 border-red-200',
+            'Shipped': 'bg-purple-100 text-purple-700 border-purple-200',
+            'Invoiced': 'bg-emerald-100 text-emerald-700 border-emerald-200'
+        };
+        return styles[status] || styles['Draft'];
+    }
+
     class PurchaseOrderTable {
         tbody: HTMLElement | null;
         mobileContainer: HTMLElement | null;
@@ -23,6 +35,7 @@
                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Purchase Order ID</th>
                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Supplier Name</th>
                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Deleted Date</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
                     <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider">Total</th>
                     <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider">Actions</th>
                 `;
@@ -39,7 +52,7 @@
                     </th>
                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Purchase Order ID</th>
                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Supplier Name</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Supplier Location</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
                     <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider">Total</th>
                 `;
 
@@ -198,6 +211,8 @@
                 
             const supplierName = purchaseOrder.supplier_snapshot?.name || 'N/A';
             const supplierAddress = purchaseOrder.supplier_snapshot?.address?.line1 || 'N/A';
+            const status = purchaseOrder.status || 'Draft';
+            const statusClass = getPurchaseOrderStatusClass(status);
             
             if (isTrash) {
                 tr.innerHTML = `
@@ -210,6 +225,11 @@
                     </td>
                     <td class="px-4 py-3.5 font-semibold text-gray-800">${supplierName}</td>
                     <td class="px-4 py-3.5 whitespace-nowrap text-rose-600 font-medium">${deletedDateStr}</td>
+                    <td class="px-4 py-3.5 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${statusClass}">
+                            ${status}
+                        </span>
+                    </td>
                     <td class="px-4 py-3.5 text-right font-bold text-gray-900 whitespace-nowrap">₹ ${totalAmount}</td>
                     <td class="px-4 py-3.5 text-right whitespace-nowrap">
                         <div class="flex items-center justify-end gap-1.5" onclick="event.stopPropagation()">
@@ -241,7 +261,11 @@
                             ` : ''}
                         </div>
                     </td>
-                    <td class="px-4 py-3.5 text-gray-500 max-w-xs truncate" title="${supplierAddress}">${supplierAddress}</td>
+                    <td class="px-4 py-3.5 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${statusClass}">
+                            ${status}
+                        </span>
+                    </td>
                     <td class="px-4 py-3.5 text-right font-bold text-gray-900 whitespace-nowrap">₹ ${totalAmount}</td>
                 `;
             }
@@ -312,6 +336,9 @@
             const supplierName = purchaseOrder.supplier_snapshot?.name || 'N/A';
             const supplierAddress = purchaseOrder.supplier_snapshot?.address?.line1 || 'N/A';
 
+            const status = purchaseOrder.status || 'Draft';
+            const statusClass = getPurchaseOrderStatusClass(status);
+
             div.innerHTML = `
                 <div class="flex items-center justify-between">
                     <div class="flex-1 min-w-0 pr-3">
@@ -322,6 +349,9 @@
                         <div class="flex items-center gap-2 text-[10px] text-gray-500 flex-wrap">
                             <span class="font-mono bg-slate-50 px-1 py-0.5 rounded copy-id cursor-pointer">${poId}</span>
                             <span>${dateStr}</span>
+                            <span class="inline-flex items-center px-1.5 py-0.2 rounded-full text-[9px] font-semibold border ${statusClass}">
+                                ${status}
+                            </span>
                         </div>
                     </div>
                     <div class="text-right shrink-0">

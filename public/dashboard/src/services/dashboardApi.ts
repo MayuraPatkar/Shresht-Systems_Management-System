@@ -51,6 +51,10 @@ class DashboardApi {
         return this.fetchWithRetry('/purchaseOrder/recent-purchase-orders');
     }
 
+    async getPurchases() {
+        return this.fetchWithRetry('/purchase/recent-purchases');
+    }
+
     async getStock() {
         return this.fetchWithRetry('/stock/all');
     }
@@ -61,6 +65,22 @@ class DashboardApi {
 
     async getPendingPayments() {
         return this.fetchWithRetry('/service/pending-payments');
+    }
+
+    async getCustomers() {
+        return this.fetchWithRetry('/customer');
+    }
+
+    async getSuppliers() {
+        return this.fetchWithRetry('/supplier');
+    }
+
+    async getPayments() {
+        return this.fetchWithRetry('/payment/all');
+    }
+
+    async getVouchers() {
+        return this.fetchWithRetry('/payment/voucher/list');
     }
 }
 

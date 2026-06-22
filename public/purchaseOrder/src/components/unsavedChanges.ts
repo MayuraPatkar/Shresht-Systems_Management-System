@@ -42,12 +42,20 @@
         const form = document.getElementById('purchase-order');
         if (!form) return;
 
-        // Delegated input/change events on the form catch all typed inputs + dropdown changes
-        form.addEventListener('input', () => {
-            if (isFormVisible()) markDirty();
+        // Delegated input/change events on the form catch all typed inputs + dropdown changes.
+        // Exclude 'supplier-search-input' since it is a search/autocomplete UI element —
+        // only the hidden supplier-id field getting a value (via selectSupplier()) marks it dirty.
+        form.addEventListener('input', (e) => {
+            if (!isFormVisible()) return;
+            const target = e.target as HTMLElement;
+            if (target && target.id === 'supplier-search-input') return;
+            markDirty();
         });
-        form.addEventListener('change', () => {
-            if (isFormVisible()) markDirty();
+        form.addEventListener('change', (e) => {
+            if (!isFormVisible()) return;
+            const target = e.target as HTMLElement;
+            if (target && target.id === 'supplier-search-input') return;
+            markDirty();
         });
 
         // Item add buttons also dirty the form

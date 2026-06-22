@@ -75,86 +75,395 @@
         return p.direction === 'IN' ? 'Payment Received' : 'Payment Sent';
     }
 
-    function getReceiptHTML(payment: IPaymentRecord): string {
+
+
+    function getReceiptHTML(
+        payment: IPaymentRecord,
+        companyInfo: any = null,
+        partyDetails: { name: string; phone: string; gstin: string; email: string; address: string } | null = null,
+        refDetails: { id: string; date: string; amount: number; paid: number; refunded: number; balance: number; status: string } | null = null
+    ): string {
         const type = getTransactionTypeLabel(payment);
-        const party = (payment as any).party_name || payment.party_display_id || payment.party_id || '-';
         const amountStr = formatCurrency(payment.amount);
         const dateStr = formatDate(payment.payment_date);
+        
+        // Company branding fallbacks
+        const company = companyInfo || {
+            company_name: 'SHRESHT SYSTEMS',
+            address: { line1: 'Company Address', line2: '', city: '', state: '', pincode: '', country: 'India' },
+            phone: { ph1: '0000000000', ph2: '' },
+            email: 'email@company.com',
+            website: 'www.company.com',
+            gstin: 'GSTIN Number'
+        };
+        const companyName = (company.company_name || 'SHRESHT SYSTEMS').toUpperCase();
+        const companyAddress = typeof company.address === 'string'
+            ? company.address
+            : [company.address?.line1, company.address?.line2, company.address?.city, company.address?.state ? company.address.state + (company.address.pincode ? ' - ' + company.address.pincode : '') : ''].filter(Boolean).join(', ') || 'Company Address';
+        const companyPhone = company.phone ? `${company.phone.ph1}${company.phone.ph2 ? ' / ' + company.phone.ph2 : ''}` : '';
+        
+        // Status resolution
+        let statusLabel = 'PAID';
+        let statusBadgeClass = 'badge-paid';
+        if (payment.is_refund) {
+            statusLabel = 'REFUND';
+            statusBadgeClass = 'badge-refunded';
+        } else if (payment.is_already_refunded) {
+            statusLabel = 'REFUNDED';
+            statusBadgeClass = 'badge-refunded';
+        } else if (payment.is_advance) {
+            statusLabel = 'ADVANCE';
+            statusBadgeClass = 'badge-partial'; // amber
+        } else if (payment.status) {
+            const statusLower = payment.status.toLowerCase();
+            if (statusLower === 'partially paid' || statusLower === 'partial') {
+                statusLabel = 'PARTIALLY PAID';
+                statusBadgeClass = 'badge-partial';
+            } else if (statusLower === 'pending') {
+                statusLabel = 'PENDING';
+                statusBadgeClass = 'badge-pending';
+            }
+        }
 
+        // Amount in Words
+        const numToWords = (window as any).numberToWords;
+        const amountInWords = numToWords ? `${numToWords(payment.amount)} Rupees Only` : '';
+
+        // Mode badge class
+        let modeBadgeClass = 'mode-cash';
+        const modeVal = payment.mode || 'Cash';
+        if (modeVal === 'UPI') modeBadgeClass = 'mode-upi';
+        else if (modeVal === 'Bank Transfer') modeBadgeClass = 'mode-bank';
+        else if (modeVal === 'Cheque') modeBadgeClass = 'mode-cheque';
+
+        // Party fields
+        const partyName = partyDetails?.name || payment.party_name || '-';
+        const partyPhone = partyDetails?.phone || '-';
+        const partyGstin = partyDetails?.gstin || '-';
+        const partyEmail = partyDetails?.email || '-';
+        const partyAddress = partyDetails?.address || '-';
+
+        // Settlement table
+        let settlementHTML = '';
+        if (refDetails && payment.reference_type === 'Invoice') {
+            const outstanding = refDetails.balance;
+            const isSettled = outstanding <= 0;
+            const settlementStatusLabel = isSettled ? 'FULLY SETTLED' : 'OUTSTANDING';
+            const settlementStatusClass = isSettled ? 'status-badge badge-paid' : 'status-badge badge-partial';
+            
+            settlementHTML = `
+                <div class="settlement-card">
+                    <div class="card-title">Invoice Settlement Summary</div>
+                    <table class="settlement-table">
+                        <thead>
+                            <tr>
+                                <th>Invoice Number</th>
+                                <th class="amount-col">Invoice Amount</th>
+                                <th class="amount-col">Amount Paid</th>
+                                <th class="amount-col">Balance Amount</th>
+                                <th style="text-align: center; width: 140px;">Settlement Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="strong">${refDetails.id}</td>
+                                <td class="amount-col">₹&nbsp;${formatCurrency(refDetails.amount).replace('₹', '').trim()}</td>
+                                <td class="amount-col">₹&nbsp;${formatCurrency(refDetails.paid).replace('₹', '').trim()}</td>
+                                <td class="amount-col strong">₹&nbsp;${formatCurrency(outstanding).replace('₹', '').trim()}</td>
+                                <td style="text-align: center;">
+                                    <span class="${settlementStatusClass}" style="padding: 3px 10px; font-size: 9px;">${settlementStatusLabel}</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        const printTimeStr = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+        
         return `
             <html>
             <head>
                 <title>Payment Receipt - ${payment._id}</title>
                 <style>
-                    body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
-                    .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
-                    .logo { font-size: 24px; font-weight: bold; color: #1e3a8a; margin-bottom: 5px; }
-                    .subtitle { font-size: 14px; color: #666; }
-                    .receipt-title { font-size: 18px; font-weight: bold; text-transform: uppercase; margin-top: 20px; margin-bottom: 20px; letter-spacing: 1px; }
-                    .details-table { w-full border-collapse: collapse; margin-top: 20px; width: 100%; }
-                    .details-table td { padding: 12px 8px; border-bottom: 1px solid #eee; font-size: 14px; }
-                    .details-table td.label { font-weight: bold; color: #555; width: 35%; }
-                    .amount-box { margin-top: 30px; padding: 15px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; text-align: right; }
-                    .amount-val { font-size: 20px; font-weight: bold; color: #1e3a8a; }
-                    .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 20px; }
+                    body {
+                        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+                        margin: 0;
+                        padding: 0;
+                        color: #1e293b;
+                        background-color: #ffffff;
+                        line-height: 1.5;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                    h1, h2, h3, p { margin: 0; }
+                    .receipt-container {
+                        width: 210mm;
+                        max-width: 210mm;
+                        min-height: 297mm;
+                        margin: 30px auto;
+                        padding: 30px;
+                        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                        border: 1px solid #e2e8f0;
+                        border-radius: 8px;
+                        box-sizing: border-box;
+                        position: relative;
+                        background: #ffffff url("../assets/icon2.png") no-repeat center/40%;
+                    }
                     @media print {
-                        body { padding: 0; }
+                        @page {
+                            margin: 0;
+                        }
+                        body {
+                            margin: 0;
+                            padding: 0;
+                        }
+                        .receipt-container {
+                            margin: 0;
+                            padding: 30px;
+                            box-shadow: none;
+                            border: none;
+                            border-radius: 0;
+                            width: 100%;
+                            max-width: 100%;
+                            min-height: 100%;
+                        }
+                    }
+                    
+                    /* Exact Invoice Header Banner styles */
+                    .header {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        padding: 20px 30px;
+                        margin-bottom: 24px;
+                        background: #1a365d;
+                        border-radius: 12px;
+                        color: #ffffff;
+                        border: none;
+                        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+                        box-sizing: border-box;
+                    }
+                    .quotation-brand {
+                        display: flex;
+                        align-items: center;
+                        gap: 20px;
+                    }
+                    .logo {
+                        width: 80px;
+                        height: 80px;
+                        background: #ffffff;
+                        border-radius: 12px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        flex-shrink: 0;
+                        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                        box-sizing: border-box;
+                    }
+                    .logo img {
+                        width: 50px;
+                        height: 50px;
+                        object-fit: contain;
+                    }
+                    .quotation-brand-text h1 {
+                        margin: 0;
+                        color: #ffffff;
+                        font-size: 26px;
+                        letter-spacing: -0.5px;
+                        font-weight: 800;
+                        line-height: 1.1;
+                    }
+                    .quotation-tagline {
+                        margin: 4px 0 0 0;
+                        color: #e2e8f0;
+                        font-size: 13px;
+                        font-weight: 500;
+                        letter-spacing: 0.5px;
+                        text-transform: uppercase;
+                    }
+                    .company-details {
+                        text-align: right;
+                        line-height: 1.6;
+                    }
+                    .company-details p {
+                        margin: 0;
+                        color: #f1f5f9;
+                        font-size: 12px;
+                        font-weight: 500;
+                    }
+                    
+                    /* Title & Badge Row */
+                    .receipt-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+                    .receipt-title-box h2 { font-size: 24px; font-weight: 800; color: #1e3a66; letter-spacing: -0.5px; text-transform: uppercase; }
+                    .receipt-meta { font-size: 12px; color: #64748b; margin-top: 4px; font-weight: 500; }
+                    .receipt-meta span { color: #1e293b; font-weight: 600; }
+                    
+                    /* Badges */
+                    .status-badge { padding: 6px 14px; border-radius: 9999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; display: inline-block; text-align: center; }
+                    .badge-paid { background-color: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
+                    .badge-partial { background-color: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
+                    .badge-pending { background-color: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+                    .badge-refunded { background-color: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+                    
+                    /* Two-Column Grid */
+                    .info-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 20px; margin-bottom: 24px; }
+                    .info-card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+                    .card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px; }
+                    
+                    /* Customer Info */
+                    .party-details { font-size: 12px; line-height: 1.6; }
+                    .party-name { font-size: 14px; font-weight: 700; color: #1e3a66; margin-bottom: 4px; }
+                    .party-info-row { display: flex; margin-top: 4px; }
+                    .party-info-label { color: #64748b; width: 60px; flex-shrink: 0; font-weight: 600; }
+                    .party-info-value { color: #1e293b; font-weight: 550; }
+                    
+                    /* Amount Box */
+                    .amount-card { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px dashed #cbd5e1; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+                    .amount-title { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+                    .amount-value { font-size: 30px; font-weight: 950; color: #1e3a66; letter-spacing: -0.5px; }
+                    .amount-words-box { font-size: 10px; color: #64748b; font-style: italic; font-weight: 600; margin-top: 6px; max-width: 100%; text-transform: capitalize; }
+                    
+                    /* Details Grid */
+                    .details-grid-card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 24px; }
+                    .details-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; row-gap: 12px; }
+                    .detail-row { display: flex; justify-content: space-between; font-size: 12px; border-bottom: 1px solid #f8fafc; padding-bottom: 6px; }
+                    .detail-label { color: #64748b; font-weight: 600; }
+                    .detail-value { color: #1e293b; font-weight: 600; text-align: right; }
+                    
+                    /* Mode Badges */
+                    .mode-badge { font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
+                    .mode-cash { background-color: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+                    .mode-upi { background-color: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd; }
+                    .mode-bank { background-color: #faf5ff; color: #7c3aed; border: 1px solid #e9d5ff; }
+                    .mode-cheque { background-color: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+                    
+                    /* Settlement Table */
+                    .settlement-card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 24px; }
+                    .settlement-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+                    .settlement-table th { text-align: left; padding: 8px 10px; background-color: #f8fafc; color: #64748b; font-weight: 700; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; }
+                    .settlement-table td { padding: 10px; border-bottom: 1px solid #f1f5f9; font-weight: 500; color: #334155; }
+                    .settlement-table td.strong { font-weight: 700; color: #1e293b; }
+                    .settlement-table td.amount-col { text-align: right; }
+                    .settlement-table th.amount-col { text-align: right; }
+                    
+                    /* Footer */
+                    .footer-note { border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 32px; text-align: center; font-size: 10px; color: #94a3b8; font-weight: 500; }
+                    
+                    @media print {
                         button { display: none; }
                     }
                 </style>
             </head>
             <body>
-                <div class="header">
-                    <div class="logo">SHRESHT SYSTEMS</div>
-                    <div class="subtitle">Management System - Payment Receipt</div>
-                </div>
-                <div style="text-align: center;">
-                    <div class="receipt-title">${type} Acknowledgement</div>
-                </div>
-                <table class="details-table">
-                    <tr>
-                        <td class="label">Payment ID</td>
-                        <td>${payment._id}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Date</td>
-                        <td>${dateStr}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Party Name</td>
-                        <td>${party}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Transaction Type</td>
-                        <td>${type}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Payment Mode</td>
-                        <td>${payment.mode}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Reference Document</td>
-                        <td>${payment.reference_type ? `${payment.reference_type} (${payment.reference_id || '-'})` : '-'}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Transaction Details</td>
-                        <td>${payment.transaction_details || '-'}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Remarks / Description</td>
-                        <td>${payment.remarks || '-'}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Status</td>
-                        <td>${payment.status || 'Completed'}</td>
-                    </tr>
-                </table>
-                <div class="amount-box">
-                    <span style="font-size: 14px; font-weight: bold; color: #666; margin-right: 10px;">Total Amount:</span>
-                    <span class="amount-val">${amountStr}</span>
-                </div>
-                <div class="footer">
-                    This is a system-generated transaction acknowledgement receipt.
+                <div class="receipt-container">
+                    <!-- Brand Navy Header (Exact Invoice Style) -->
+                    <div class="header">
+                        <div class="quotation-brand">
+                            <div class="logo">
+                                <img src="../assets/icon.png" alt="SSMS Logo">
+                            </div>
+                            <div class="quotation-brand-text">
+                                <h1>${companyName}</h1>
+                                <p class="quotation-tagline">CCTV & Energy Solutions</p>
+                            </div>
+                        </div>
+                        <div class="company-details">
+                            <p>${companyAddress}</p>
+                            <p>Ph: ${companyPhone}</p>
+                            <p>GSTIN: ${company.gstin}</p>
+                            <p>Email: ${company.email}</p>
+                            <p>Website: ${company.website}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Title row -->
+                    <div class="receipt-header-row">
+                        <div class="receipt-title-box">
+                            <h2>Payment Receipt</h2>
+                            <div class="receipt-meta">
+                                Receipt No: <span>${payment._id.substring(payment._id.length - 6).toUpperCase()}</span> &nbsp;|&nbsp; 
+                                Date: <span>${dateStr}</span>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="status-badge ${statusBadgeClass}">${statusLabel}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Two Column Section (Party & Amount) -->
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <div class="card-title">Received From</div>
+                            <div class="party-details">
+                                <div class="party-name">${partyName}</div>
+                                <div class="party-info-row">
+                                    <span class="party-info-label">Address:</span>
+                                    <span class="party-info-value">${partyAddress}</span>
+                                </div>
+                                <div class="party-info-row">
+                                    <span class="party-info-label">Phone:</span>
+                                    <span class="party-info-value">${partyPhone}</span>
+                                </div>
+                                <div class="party-info-row">
+                                    <span class="party-info-label">GSTIN:</span>
+                                    <span class="party-info-value">${partyGstin}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="amount-card">
+                            <div class="amount-title">Amount Received</div>
+                            <div class="amount-value">${amountStr}</div>
+                            ${amountInWords ? `<div class="amount-words-box">${amountInWords}</div>` : ''}
+                        </div>
+                    </div>
+                    
+                    <!-- Transaction Details Grid Card -->
+                    <div class="details-grid-card">
+                        <div class="card-title">Transaction Details</div>
+                        <div class="details-grid">
+                            <div class="detail-row">
+                                <span class="detail-label">Transaction ID:</span>
+                                <span class="detail-value">${payment.transaction_details || payment._id}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Payment Date:</span>
+                                <span class="detail-value">${dateStr}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Payment Mode:</span>
+                                <span class="detail-value">
+                                    <span class="mode-badge ${modeBadgeClass}">${modeVal}</span>
+                                </span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Transaction Type:</span>
+                                <span class="detail-value">${type}</span>
+                            </div>
+                            <div class="detail-row" style="grid-column: span 2;">
+                                <span class="detail-label">Reference Document:</span>
+                                <span class="detail-value">
+                                    ${payment.reference_type ? `${payment.reference_type} (${payment.reference_id || '-'})` : '-'}
+                                </span>
+                            </div>
+                            ${payment.remarks ? `
+                            <div class="detail-row" style="grid-column: span 2; border-bottom: none;">
+                                <span class="detail-label">Remarks:</span>
+                                <span class="detail-value" style="text-align: left; font-weight: 500;">${payment.remarks}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                    
+                    <!-- Settlement summary section -->
+                    ${settlementHTML}
+                    
+                    <!-- Footer Note -->
+                    <div class="footer-note">
+                        This receipt confirms successful receipt of payment. Generated by SSMS ERP on ${printTimeStr}.
+                    </div>
                 </div>
             </body>
             </html>
@@ -568,10 +877,13 @@
         $detailsCreated.textContent = formatDate(payment.createdAt);
         
         const vNo = (payment as any).voucher_no;
+        const $sendVoucherBtn = document.getElementById('details-send-voucher-btn');
         if (vNo) {
             $detailsVoucher.innerHTML = `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">${escapeHtml(vNo)}</span>`;
+            if ($sendVoucherBtn) $sendVoucherBtn.classList.remove('hidden');
         } else {
             $detailsVoucher.textContent = '-';
+            if ($sendVoucherBtn) $sendVoucherBtn.classList.add('hidden');
         }
 
         $detailsRemarks.textContent = valOrDash(payment.remarks);
@@ -791,10 +1103,43 @@
         window.location.href = `/payment?id=${paymentId}&refund=true`;
     });
 
-    $detailsPdfBtn?.addEventListener('click', () => {
+    $detailsPdfBtn?.addEventListener('click', async () => {
         if (!currentPayment) return;
-        const htmlContent = getReceiptHTML(currentPayment);
-        const filename = `PaymentReceipt-${currentPayment._id}`;
+        
+        // Fetch company info dynamically
+        const companyInfo = (window as any).companyConfig ? await (window as any).companyConfig.getCompanyInfo() : null;
+        
+        // Extract party details from the DOM elements
+        const partyDetails = {
+            name: $detailsPartyName.textContent || '-',
+            phone: $detailsPartyPhone.textContent || '-',
+            gstin: $detailsPartyGstin.textContent || '-',
+            email: $detailsPartyEmail.textContent || '-',
+            address: $detailsPartyAddress.textContent || '-'
+        };
+        
+        // Extract reference details if available
+        let refDetails = null;
+        if (currentPayment.reference_id && currentPayment.reference_type && currentPayment.reference_type !== 'Adjustment') {
+            const paidText = document.getElementById('details-ref-paid')?.textContent || '0';
+            const refundedText = document.getElementById('details-ref-refunded')?.textContent || '0';
+            const balanceText = document.getElementById('details-ref-balance')?.textContent || '0';
+            
+            refDetails = {
+                id: $detailsRefId.textContent || '-',
+                date: $detailsRefDate.textContent || '-',
+                amount: parseFloat(($detailsRefAmount.textContent || '0').replace(/[^0-9.-]/g, '')) || 0,
+                paid: parseFloat(paidText.replace(/[^0-9.-]/g, '')) || 0,
+                refunded: parseFloat(refundedText.replace(/[^0-9.-]/g, '')) || 0,
+                balance: parseFloat(balanceText.replace(/[^0-9.-]/g, '')) || 0,
+                status: $detailsRefStatus.textContent || '-'
+            };
+        }
+        
+        const htmlContent = getReceiptHTML(currentPayment, companyInfo, partyDetails, refDetails);
+        const cleanPartyName = (currentPayment.party_name || currentPayment.party_display_id || 'Receipt').replace(/[^a-zA-Z0-9-_]/g, '_');
+        const paymentDate = currentPayment.payment_date ? currentPayment.payment_date.split('T')[0] : '';
+        const filename = `PaymentReceipt-${cleanPartyName}${paymentDate ? '-' + paymentDate : ''}`;
         
         const electronAPI = (window as any).electronAPI;
         if (electronAPI && typeof electronAPI.handlePrintEvent === 'function') {
@@ -907,6 +1252,349 @@
             return;
         }
     });
+
+    // Send Receipt button handler
+    const $detailsSendReceiptBtn = document.getElementById('details-send-receipt-btn') as HTMLButtonElement | null;
+    $detailsSendReceiptBtn?.addEventListener('click', async () => {
+        if (!currentPayment) return;
+        const payment = currentPayment;
+
+        // Fetch company info dynamically
+        const companyInfo = (window as any).companyConfig ? await (window as any).companyConfig.getCompanyInfo() : null;
+
+        // Extract party details from the DOM elements
+        const partyDetails = {
+            name: $detailsPartyName.textContent || '-',
+            phone: $detailsPartyPhone.textContent || '-',
+            gstin: $detailsPartyGstin.textContent || '-',
+            email: $detailsPartyEmail.textContent || '-',
+            address: $detailsPartyAddress.textContent || '-'
+        };
+
+        // Extract reference details if available
+        let refDetails = null;
+        if (payment.reference_id && payment.reference_type && payment.reference_type !== 'Adjustment') {
+            const paidText = document.getElementById('details-ref-paid')?.textContent || '0';
+            const refundedText = document.getElementById('details-ref-refunded')?.textContent || '0';
+            const balanceText = document.getElementById('details-ref-balance')?.textContent || '0';
+
+            refDetails = {
+                id: $detailsRefId.textContent || '-',
+                date: $detailsRefDate.textContent || '-',
+                amount: parseFloat(($detailsRefAmount.textContent || '0').replace(/[^0-9.-]/g, '')) || 0,
+                paid: parseFloat(paidText.replace(/[^0-9.-]/g, '')) || 0,
+                refunded: parseFloat(refundedText.replace(/[^0-9.-]/g, '')) || 0,
+                balance: parseFloat(balanceText.replace(/[^0-9.-]/g, '')) || 0,
+                status: $detailsRefStatus.textContent || '-'
+            };
+        }
+
+        const htmlContent = getReceiptHTML(payment, companyInfo, partyDetails, refDetails);
+        const defaultPhone = partyDetails.phone && partyDetails.phone !== '-' ? partyDetails.phone : '';
+        const paymentIdStr = payment._id.substring(payment._id.length - 6).toUpperCase();
+
+        showWhatsAppPromptModal(defaultPhone, async (phone: string) => {
+            const cleanPhone = phone.replace(/\D/g, '');
+            if (cleanPhone.length < 10 || cleanPhone.length > 15) {
+                alert('Please enter a valid phone number (10 to 15 digits).');
+                return;
+            }
+
+            let formattedPhone = cleanPhone;
+            if (!formattedPhone.startsWith('91') && formattedPhone.length === 10) {
+                formattedPhone = '91' + formattedPhone;
+            }
+
+            if ($detailsSendReceiptBtn) {
+                $detailsSendReceiptBtn.disabled = true;
+                $detailsSendReceiptBtn.classList.add('opacity-70', 'cursor-not-allowed');
+                $detailsSendReceiptBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            }
+
+            try {
+                const res = await fetch('/comms/send-payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        phone: formattedPhone,
+                        paymentId: `Receipt-${paymentIdStr}`,
+                        htmlContent: htmlContent,
+                        documentType: 'payment receipt',
+                        partyName: partyDetails.name,
+                        amount: payment.amount,
+                        date: payment.payment_date
+                    })
+                });
+
+                const result = await res.json();
+                if (!res.ok) {
+                    throw new Error(result.message || result.error || 'Failed to send receipt.');
+                }
+
+                showToast('Receipt sent via WhatsApp successfully!');
+            } catch (err: any) {
+                console.error('WhatsApp receipt send error:', err);
+                alert(err.message || 'Error occurred while sending receipt.');
+            } finally {
+                if ($detailsSendReceiptBtn) {
+                    $detailsSendReceiptBtn.disabled = false;
+                    $detailsSendReceiptBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+                    $detailsSendReceiptBtn.innerHTML = '<i class="fab fa-whatsapp text-emerald-500 text-xs"></i> Send Receipt';
+                }
+            }
+        });
+    });
+
+    // Send Voucher button handler
+    const $detailsSendVoucherBtn = document.getElementById('details-send-voucher-btn') as HTMLButtonElement | null;
+    $detailsSendVoucherBtn?.addEventListener('click', async () => {
+        if (!currentPayment || !currentPayment.voucher_no) return;
+
+        if ($detailsSendVoucherBtn) {
+            $detailsSendVoucherBtn.disabled = true;
+            $detailsSendVoucherBtn.classList.add('opacity-70', 'cursor-not-allowed');
+            $detailsSendVoucherBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching...';
+        }
+
+        try {
+            // Fetch voucher details from server
+            const res = await fetch(`/payment/voucher/by-no/${currentPayment.voucher_no}`);
+            const data = await res.json();
+
+            if (!res.ok || !data.success) {
+                throw new Error(data.message || 'Failed to fetch voucher details.');
+            }
+
+            const htmlContent = generateVoucherPrintHTML(data.voucher, data.company);
+            const partyPhone = data.voucher.partyPhone || $detailsPartyPhone.textContent || '';
+            const defaultPhone = partyPhone && partyPhone !== '-' ? partyPhone : '';
+
+            showWhatsAppPromptModal(defaultPhone, async (phone: string) => {
+                const cleanPhone = phone.replace(/\D/g, '');
+                if (cleanPhone.length < 10 || cleanPhone.length > 15) {
+                    alert('Please enter a valid phone number (10 to 15 digits).');
+                    return;
+                }
+
+                let formattedPhone = cleanPhone;
+                if (!formattedPhone.startsWith('91') && formattedPhone.length === 10) {
+                    formattedPhone = '91' + formattedPhone;
+                }
+
+                if ($detailsSendVoucherBtn) {
+                    $detailsSendVoucherBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                }
+
+                try {
+                    const sendRes = await fetch('/comms/send-payment', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            phone: formattedPhone,
+                            paymentId: `Voucher-${data.voucher.voucherNumber}`,
+                            htmlContent: htmlContent,
+                            documentType: 'payment voucher',
+                            partyName: data.voucher.partyName,
+                            amount: data.voucher.amount,
+                            date: data.voucher.date
+                        })
+                    });
+
+                    const sendResult = await sendRes.json();
+                    if (!sendRes.ok) {
+                        throw new Error(sendResult.message || sendResult.error || 'Failed to send voucher.');
+                    }
+
+                    showToast('Voucher sent via WhatsApp successfully!');
+                } catch (err: any) {
+                    console.error('WhatsApp voucher send error:', err);
+                    alert(err.message || 'Error occurred while sending voucher.');
+                } finally {
+                    if ($detailsSendVoucherBtn) {
+                        $detailsSendVoucherBtn.disabled = false;
+                        $detailsSendVoucherBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+                        $detailsSendVoucherBtn.innerHTML = '<i class="fab fa-whatsapp text-emerald-500 text-xs"></i> Send Voucher';
+                    }
+                }
+            });
+        } catch (err: any) {
+            console.error('Voucher fetch / send error:', err);
+            alert(err.message || 'Failed to prepare voucher for sending.');
+            if ($detailsSendVoucherBtn) {
+                $detailsSendVoucherBtn.disabled = false;
+                $detailsSendVoucherBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+                $detailsSendVoucherBtn.innerHTML = '<i class="fab fa-whatsapp text-emerald-500 text-xs"></i> Send Voucher';
+            }
+        }
+    });
+
+    function generateVoucherPrintHTML(v: any, c: any): string {
+        const formatDate = (d: any) => d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+        const formatIndian = (n: any) => Number(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        let methodDetails = v.paymentMethod;
+        if (v.paymentMethod === 'Cheque') {
+            methodDetails += ` (Cheque No: ${v.chequeNumber || '-'}, Bank: ${v.bankName || '-'}, Date: ${formatDate(v.chequeDate)})`;
+        } else if (v.paymentMethod === 'Bank Transfer') {
+            methodDetails += ` (Bank: ${v.bankName || '-'}, Ref: ${v.referenceNumber || '-'})`;
+        } else if (v.paymentMethod === 'UPI') {
+            methodDetails += ` (UPI Ref: ${v.referenceNumber || '-'})`;
+        }
+
+        return `
+        <html>
+        <head>
+            <title>Payment Voucher - ${v.voucherNumber}</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 30px; color: #333; background-color: #fff; margin: 0; }
+                .voucher-container { border: 2px solid #333; padding: 24px; max-width: 800px; margin: 0 auto; background: #fff; }
+                .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px double #333; padding-bottom: 15px; margin-bottom: 20px; }
+                .company-info h1 { font-size: 20px; font-weight: bold; margin: 0; color: #000; text-transform: uppercase; }
+                .company-info p { font-size: 11px; margin: 3px 0 0 0; color: #555; }
+                .voucher-title-box { text-align: center; margin: 15px 0; }
+                .voucher-title { font-size: 16px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; border: 2px solid #000; padding: 6px 16px; display: inline-block; }
+                .content-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+                .content-table td { padding: 12px 8px; font-size: 13px; vertical-align: top; }
+                .content-table tr { border-bottom: 1px solid #eee; }
+                .label { font-weight: bold; width: 25%; color: #000; }
+                .value { border-bottom: 1px dashed #333; }
+                .amount-row { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; margin-bottom: 40px; }
+                .amount-box { border: 2px solid #000; padding: 10px 20px; font-size: 18px; font-weight: bold; background-color: #f8fafc; display: inline-block; }
+                .amount-words-box { font-size: 12px; font-style: italic; width: 65%; border-bottom: 1px dashed #333; padding-bottom: 5px; }
+                .signature-row { display: flex; justify-content: space-between; margin-top: 50px; font-size: 12px; font-weight: bold; }
+                .sig-col { width: 40%; text-align: center; }
+                .sig-line { border-bottom: 1px solid #000; margin-bottom: 8px; height: 30px; }
+                @media print { body { padding: 0; } .voucher-container { border: 2px solid #000; } }
+            </style>
+        </head>
+        <body>
+            <div class="voucher-container">
+                <div class="header">
+                    <div class="company-info">
+                        <h1>${c.name}</h1>
+                        <p>${c.address || ''}</p>
+                        <p>Phone: ${c.phone || ''} | Email: ${c.email || ''}</p>
+                    </div>
+                    <div style="text-align: right; font-family: monospace;">
+                        <div style="font-weight: bold; font-size: 14px;">Voucher No: <span style="color: #c2410c;">${v.voucherNumber}</span></div>
+                        <div style="margin-top: 5px; font-size: 12px;">Date: ${formatDate(v.date)}</div>
+                    </div>
+                </div>
+
+                <div class="voucher-title-box">
+                    <div class="voucher-title">Payment Voucher</div>
+                </div>
+
+                <table class="content-table">
+                    <tr>
+                        <td class="label">Paid To (Payee)</td>
+                        <td class="value">${v.partyName} (${v.partyType})</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Payment Method</td>
+                        <td class="value">${methodDetails}</td>
+                    </tr>
+                    <tr style="border-bottom: none;">
+                        <td class="label">Paid Towards</td>
+                        <td class="value" style="white-space: pre-wrap;">${v.paidTowards}</td>
+                    </tr>
+                </table>
+
+                <div class="amount-row">
+                    <div class="amount-words-box">
+                        <strong>Amount in Words:</strong><br>
+                        ${v.amountInWords}
+                    </div>
+                    <div class="amount-box">
+                        ₹ ${formatIndian(v.amount)}
+                    </div>
+                </div>
+
+                <div class="signature-row">
+                    <div class="sig-col">
+                        <div class="sig-line"></div>
+                        Paid By
+                    </div>
+                    <div class="sig-col">
+                        <div class="sig-line"></div>
+                        Receiver Signature
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>`;
+    }
+
+    function showWhatsAppPromptModal(defaultPhone: string, callback: (phone: string) => void) {
+        const modalHTML = `
+            <div id="whatsapp-prompt-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-[4px] z-[999] flex items-center justify-center transition-all duration-200">
+                <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden border border-slate-100 flex flex-col">
+                    <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i class="fab fa-whatsapp text-emerald-500 text-xl"></i>
+                            <h3 class="text-lg font-bold text-slate-800">Send via WhatsApp</h3>
+                        </div>
+                        <button id="close-whatsapp-modal" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-200 cursor-pointer">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div>
+                            <label for="whatsapp-prompt-phone" class="block text-sm font-medium text-slate-700 mb-2">
+                                Enter Client's WhatsApp Number
+                            </label>
+                            <input type="tel" id="whatsapp-prompt-phone" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium transition-all" 
+                                placeholder="e.g., 9876543210 or 919876543210" value="${defaultPhone}">
+                            <p class="text-xs text-slate-400 mt-2">Specify the number with country code if outside India.</p>
+                        </div>
+                    </div>
+                    <div class="p-6 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
+                        <button id="cancel-whatsapp-modal" class="px-5 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 font-semibold text-sm transition-all cursor-pointer">
+                            Cancel
+                        </button>
+                        <button id="submit-whatsapp-modal" class="px-5 py-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 font-semibold text-sm transition-all cursor-pointer shadow-sm shadow-emerald-500/10 flex items-center gap-2">
+                            <i class="fas fa-paper-plane text-xs"></i> Send
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const existingModal = document.getElementById('whatsapp-prompt-modal');
+        if (existingModal) existingModal.remove();
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        const modal = document.getElementById('whatsapp-prompt-modal')!;
+        const closeBtn = document.getElementById('close-whatsapp-modal')!;
+        const cancelBtn = document.getElementById('cancel-whatsapp-modal')!;
+        const submitBtn = document.getElementById('submit-whatsapp-modal')!;
+        const phoneInput = document.getElementById('whatsapp-prompt-phone') as HTMLInputElement;
+
+        const closeModal = () => modal.remove();
+
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        submitBtn.addEventListener('click', () => {
+            callback(phoneInput.value);
+            closeModal();
+        });
+
+        phoneInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                callback(phoneInput.value);
+                closeModal();
+            } else if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        setTimeout(() => phoneInput.focus(), 50);
+    }
 
     // ── Init ───────────────────────────────────────────────
     initShortcutsModal();

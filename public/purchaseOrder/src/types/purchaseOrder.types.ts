@@ -44,6 +44,7 @@ interface IPurchase {
     purchase_date: string | Date;
     due_date?: string | Date;
     purchase_status?: "Draft" | "Ordered" | "Received" | "Cancelled" | "Expired";
+    status?: "Draft" | "Issued/Sent" | "Acknowledged/Accepted" | "Rejected" | "Shipped" | "Invoiced";
     purchase_type?: "Local" | "Interstate" | "Import";
     supplier_id?: string;
     supplier_snapshot?: ISupplierSnapshot;

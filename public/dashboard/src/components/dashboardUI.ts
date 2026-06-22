@@ -181,15 +181,30 @@ class DashboardUI {
     }
 
     private loadRecentActivity() {
+        const container = document.getElementById('recent-activity');
+        if (container) {
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center h-full py-12 text-slate-400 gap-3">
+                    <i class="fas fa-spinner fa-spin text-2xl text-blue-500"></i>
+                    <span class="text-xs font-semibold">Loading recent activity...</span>
+                </div>
+            `;
+        }
+
         Promise.all([
             dashboardApi.getQuotations().catch(() => []),
             dashboardApi.getInvoices().catch(() => []),
             dashboardApi.getEwaybills().catch(() => ({ eWayBill: [] })),
             dashboardApi.getServices().catch(() => ({ services: [] })),
             dashboardApi.getReports().catch(() => ({ reports: [] })),
-            dashboardApi.getPurchaseOrders().catch(() => ({ purchaseOrder: [] }))
+            dashboardApi.getPurchaseOrders().catch(() => ({ purchaseOrders: [] })),
+            dashboardApi.getPurchases().catch(() => ({ purchases: [] })),
+            dashboardApi.getCustomers().catch(() => []),
+            dashboardApi.getSuppliers().catch(() => []),
+            dashboardApi.getPayments().catch(() => ({ payments: [] })),
+            dashboardApi.getVouchers().catch(() => ({ vouchers: [] }))
         ])
-            .then(([quotations, invoices, waybillsData, services, reportsData, purchaseOrdersData]) => {
+            .then(([quotations, invoices, waybillsData, services, reportsData, purchaseOrdersData, purchasesData, customers, suppliers, paymentsData, vouchersData]) => {
                 const activities: ActivityItem[] = [];
 
                 (quotations || []).slice(0, 5).forEach((q: any) => {
@@ -252,16 +267,81 @@ class DashboardUI {
                     });
                 });
 
-                const purchaseOrders = purchaseOrdersData?.purchaseOrder || purchaseOrdersData || [];
+                const purchaseOrders = purchaseOrdersData?.purchaseOrders || purchaseOrdersData?.purchaseOrder || (Array.isArray(purchaseOrdersData) ? purchaseOrdersData : []);
                 (Array.isArray(purchaseOrders) ? purchaseOrders : []).slice(0, 5).forEach((p: any) => {
                     activities.push({
-                        type: 'purchase',
+                        type: 'purchase_order',
                         icon: 'fa-shopping-cart',
-                        color: 'red',
-                        title: `Purchase #${p.purchase_order_id || 'N/A'}`,
-                        description: p.supplier_name || 'No supplier',
+                        color: 'rose',
+                        title: `Purchase Order #${p.purchase_order_no || 'N/A'}`,
+                        description: p.supplier_snapshot?.name || 'No supplier',
                         time: p.updatedAt || p.createdAt || p.purchase_date || new Date(),
-                        link: `../purchaseOrder/purchaseOrder.html?view=${encodeURIComponent(p.purchase_order_id || '')}`
+                        link: `../purchaseOrder/purchaseOrder.html?view=${encodeURIComponent(p._id || '')}`
+                    });
+                });
+
+                const purchases = purchasesData?.purchases || (Array.isArray(purchasesData) ? purchasesData : []);
+                (Array.isArray(purchases) ? purchases : []).slice(0, 5).forEach((p: any) => {
+                    activities.push({
+                        type: 'purchase',
+                        icon: 'fa-shopping-bag',
+                        color: 'red',
+                        title: `Purchase Bill #${p.purchase_no || 'N/A'}`,
+                        description: p.supplier_snapshot?.name || 'No supplier',
+                        time: p.updatedAt || p.createdAt || p.purchase_date || new Date(),
+                        link: `../purchase/purchase.html?view=${encodeURIComponent(p._id || '')}`
+                    });
+                });
+
+                (customers || []).slice(0, 5).forEach((c: any) => {
+                    const custName = c.customer?.name || [c.customer?.first_name, c.customer?.last_name].filter(Boolean).join(' ') || 'Unnamed Customer';
+                    activities.push({
+                        type: 'customer',
+                        icon: 'fa-user',
+                        color: 'sky',
+                        title: `New Customer: ${custName}`,
+                        description: c.customer?.email || c.customer?.phone || 'Customer Profile Created',
+                        time: c.createdAt || c.updatedAt || new Date(),
+                        link: `../customer/customer_details.html?id=${encodeURIComponent(c._id || '')}`
+                    });
+                });
+
+                (suppliers || []).slice(0, 5).forEach((s: any) => {
+                    activities.push({
+                        type: 'supplier',
+                        icon: 'fa-truck',
+                        color: 'indigo',
+                        title: `New Supplier: ${s.supplier_name || 'Unnamed Supplier'}`,
+                        description: s.email || s.phone || 'Supplier Profile Created',
+                        time: s.createdAt || s.updatedAt || new Date(),
+                        link: `../supplier/supplier_details.html?id=${encodeURIComponent(s._id || '')}`
+                    });
+                });
+
+                const payments = paymentsData?.payments || (Array.isArray(paymentsData) ? paymentsData : []);
+                (Array.isArray(payments) ? payments : []).slice(0, 5).forEach((p: any) => {
+                    const dirLabel = p.direction === 'IN' ? 'Received' : 'Paid';
+                    activities.push({
+                        type: 'payment',
+                        icon: 'fa-money-bill-wave',
+                        color: 'teal',
+                        title: `Payment ${dirLabel}: ₹${(window as any).formatIndian(p.amount || 0)}`,
+                        description: `To/From: ${p.party_name || 'Unknown Party'} (${p.mode || 'Cash'})`,
+                        time: p.createdAt || p.updatedAt || p.payment_date || new Date(),
+                        link: `../payment/payment_details.html?id=${encodeURIComponent(p._id || '')}`
+                    });
+                });
+
+                const vouchers = vouchersData?.vouchers || (Array.isArray(vouchersData) ? vouchersData : []);
+                (Array.isArray(vouchers) ? vouchers : []).slice(0, 5).forEach((v: any) => {
+                    activities.push({
+                        type: 'voucher',
+                        icon: 'fa-receipt',
+                        color: 'violet',
+                        title: `Voucher #${v.voucherNumber || 'N/A'}`,
+                        description: `${v.partyType || 'Party'}: ${v.partyName || 'Unknown'} (₹${(window as any).formatIndian(v.amount || 0)})`,
+                        time: v.createdAt || v.updatedAt || v.date || new Date(),
+                        link: `../payment/payment.html?voucher=${encodeURIComponent(v.voucherNumber || '')}`
                     });
                 });
 
@@ -319,17 +399,41 @@ class DashboardUI {
         container.innerHTML = `
             <div class="relative pl-6 border-l border-slate-100 space-y-4">
                 ${activities.map(activity => {
-                    const initials = activity.title.split('#')[1]?.substring(0, 2) || activity.type.substring(0, 2).toUpperCase();
+                    let initials = activity.type.substring(0, 2).toUpperCase();
+                    if (activity.title.includes('#')) {
+                        initials = activity.title.split('#')[1]?.substring(0, 2) || initials;
+                    } else if (activity.type === 'customer') {
+                        initials = 'CU';
+                    } else if (activity.type === 'supplier') {
+                        initials = 'SU';
+                    } else if (activity.type === 'payment') {
+                        initials = 'PM';
+                    } else if (activity.type === 'voucher') {
+                        initials = 'VC';
+                    }
+
                     let bgClass = 'bg-blue-50 text-blue-600 border-blue-100';
                     if (activity.type === 'invoice') bgClass = 'bg-emerald-50 text-emerald-600 border-emerald-100';
                     else if (activity.type === 'purchase' || activity.type === 'purchase_order') bgClass = 'bg-rose-50 text-rose-600 border-rose-100';
                     else if (activity.type === 'waybill') bgClass = 'bg-purple-50 text-purple-600 border-purple-100';
                     else if (activity.type === 'service') bgClass = 'bg-amber-50 text-amber-600 border-amber-100';
+                    else if (activity.type === 'customer') bgClass = 'bg-sky-50 text-sky-600 border-sky-100';
+                    else if (activity.type === 'supplier') bgClass = 'bg-indigo-50 text-indigo-600 border-indigo-100';
+                    else if (activity.type === 'payment') bgClass = 'bg-teal-50 text-teal-600 border-teal-100';
+                    else if (activity.type === 'voucher') bgClass = 'bg-violet-50 text-violet-600 border-violet-100';
+
+                    let indicatorColor = 'bg-blue-500';
+                    if (activity.type === 'invoice') indicatorColor = 'bg-emerald-500';
+                    else if (activity.type === 'payment' || activity.type === 'voucher') indicatorColor = 'bg-teal-500';
+                    else if (activity.type === 'purchase' || activity.type === 'purchase_order') indicatorColor = 'bg-rose-500';
+                    else if (activity.type === 'waybill') indicatorColor = 'bg-purple-500';
+                    else if (activity.type === 'customer') indicatorColor = 'bg-sky-500';
+                    else if (activity.type === 'supplier') indicatorColor = 'bg-indigo-500';
 
                     return `
                     <div class="relative">
                         <span class="absolute -left-[29px] top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white border border-slate-200">
-                            <span class="h-1.5 w-1.5 rounded-full ${activity.type === 'invoice' ? 'bg-emerald-500' : 'bg-blue-500'}"></span>
+                            <span class="h-1.5 w-1.5 rounded-full ${indicatorColor}"></span>
                         </span>
                         
                         <div class="flex items-start justify-between gap-3 min-w-0">
@@ -380,6 +484,11 @@ class DashboardUI {
                     stockHealthSummaryEl.textContent = `${outOfStockCount} Critical / ${lowCount} Low`;
                 }
 
+                const stockHealthStatusEl = document.getElementById('stock-health-status');
+                if (stockHealthStatusEl) {
+                    stockHealthStatusEl.textContent = lowStock.length > 0 ? 'Requires restock' : 'Stock levels healthy';
+                }
+
                 const criticalStockBar = document.getElementById('critical-stock-bar');
                 const warningStockBar = document.getElementById('warning-stock-bar');
                 if (criticalStockBar && warningStockBar) {
@@ -397,7 +506,7 @@ class DashboardUI {
                 let potentialSalesCost = 0;
                 const outOfStockItems = lowStock.filter(item => (parseInt(item.stock_quantity) || 0) === 0);
                 outOfStockItems.forEach(item => {
-                    const qtyToRestock = Math.max(parseInt(item.min_stock_quantity) || 0, 10);
+                    const qtyToRestock = parseInt(item.min_stock_quantity) || 0;
                     const price = parseFloat(item.selling_price) || parseFloat(item.purchase_price) || 0;
                     potentialSalesCost += price * qtyToRestock;
                 });

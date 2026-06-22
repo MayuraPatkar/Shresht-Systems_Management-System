@@ -58,7 +58,23 @@ function createAlertWindow(
 ipcMain.on("show-alert1", (event, message: string) => {
     const parentWindow = BrowserWindow.fromWebContents(event.sender);
     if (parentWindow) {
-        createAlertWindow(parentWindow, message, "alert/notification.html");
+        const alertWindow = createAlertWindow(parentWindow, message, "alert/notification.html");
+        if (alertWindow) {
+            const responseHandler = (_: any) => {
+                const senderWindow = BrowserWindow.fromWebContents(_.sender);
+                if (senderWindow === alertWindow) {
+                    if (alertWindow && !alertWindow.isDestroyed()) {
+                        alertWindow.close();
+                    }
+                    ipcMain.off("send-response", responseHandler);
+                }
+            };
+            ipcMain.on("send-response", responseHandler);
+
+            alertWindow.on("closed", () => {
+                ipcMain.off("send-response", responseHandler);
+            });
+        }
     }
 });
 
@@ -70,13 +86,22 @@ ipcMain.on("show-alert2", (event, message: string) => {
     const alertWindow = createAlertWindow(parentWindow, message, "alert/confirmation.html");
 
     if (alertWindow) {
-        ipcMain.once("send-response", (_, response: unknown) => {
-            if (parentWindow && !parentWindow.isDestroyed()) {
-                parentWindow.webContents.send("receive-response", response);
+        const responseHandler = (_: any, response: unknown) => {
+            const senderWindow = BrowserWindow.fromWebContents(_.sender);
+            if (senderWindow === alertWindow) {
+                if (parentWindow && !parentWindow.isDestroyed()) {
+                    parentWindow.webContents.send("receive-response", response);
+                }
+                if (alertWindow && !alertWindow.isDestroyed()) {
+                    alertWindow.close();
+                }
+                ipcMain.off("send-response", responseHandler);
             }
-            if (alertWindow && !alertWindow.isDestroyed()) {
-                alertWindow.close();
-            }
+        };
+        ipcMain.on("send-response", responseHandler);
+
+        alertWindow.on("closed", () => {
+            ipcMain.off("send-response", responseHandler);
         });
     }
 });

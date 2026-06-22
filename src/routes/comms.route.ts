@@ -2,11 +2,12 @@ import { Router, Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
 import axios from 'axios';
-import { QuotationModel, InvoiceModel, AdminModel, SettingsModel } from '../models';
+import { QuotationModel, InvoiceModel, AdminModel, SettingsModel, CommunicationModel } from '../models';
 import config from '../config/config';
 import logger from '../utils/logger';
 import secureStore from '../utils/secureStore';
 import { formatDateReadable as formatDateForTemplate } from '../utils/dateUtils';
+import { quotationPrintHandler } from '../utils/quotationPrintHandler';
 
 // Lazy-loaded utilities (may not be available in all environments)
 let pdfGenerator: any;
@@ -112,6 +113,34 @@ async function getCompanyInfo(): Promise<Record<string, string>> {
     }
 }
 
+async function logCommunication(options: {
+    recipient: string;
+    messageType: "Invoice" | "Quotation" | "Manual Reminder" | "Automated Reminder" | "Document" | "Custom Message";
+    referenceId?: string;
+    content?: string;
+    documentUrl?: string;
+    status: "Success" | "Failed";
+    errorMessage?: string;
+    messageId?: string;
+}) {
+    try {
+        await CommunicationModel.create({
+            recipient: options.recipient,
+            type: "WhatsApp",
+            messageType: options.messageType,
+            referenceId: options.referenceId,
+            content: options.content,
+            documentUrl: options.documentUrl,
+            status: options.status,
+            errorMessage: options.errorMessage,
+            messageId: options.messageId,
+            sentAt: new Date()
+        });
+    } catch (err) {
+        logger.error("Failed to save communication log to database:", err);
+    }
+}
+
 function getWhatsAppApiUrl(phoneNumberId: string, endpoint: string = 'messages'): string {
     if (!phoneNumberId) {
         throw new Error('WhatsApp Phone Number ID is not configured');
@@ -153,7 +182,7 @@ async function sendWhatsAppMessage(phone: string, message: string): Promise<any>
     }
 }
 
-async function sendPaymentReminder(phone: string, amount_due: string): Promise<void> {
+async function sendPaymentReminder(phone: string, amount_due: string): Promise<any> {
     const payload = {
         messaging_product: 'whatsapp',
         to: phone,
@@ -175,11 +204,12 @@ async function sendPaymentReminder(phone: string, amount_due: string): Promise<v
     try {
         const creds = await resolveWhatsAppCredentials();
         if (!creds.token || !creds.phoneNumberId) throw new Error('WhatsApp is not configured');
-        await axios.post(
+        const { data } = await axios.post(
             getWhatsAppApiUrl(creds.phoneNumberId, 'messages'),
             payload,
             { headers: { Authorization: `Bearer ${creds.token}` } }
         );
+        return data;
     } catch (err: any) {
         logger.error(
             'WhatsApp API error:',
@@ -198,6 +228,7 @@ router.post('/send-manual-reminder', async (req: Request, res: Response) => {
     if (!invoiceId)
         return res.status(400).json({ message: 'Invoice ID is required.' });
 
+    let amountDue = 0;
     try {
         const invoice = await InvoiceModel.findOne({ invoice_id: invoiceId }) as any;
         if (!invoice)
@@ -210,9 +241,19 @@ router.post('/send-manual-reminder', async (req: Request, res: Response) => {
 
         const totalDue = invoice.total_amount_original || 0;
         const totalPaid = invoice.total_paid_amount || 0;
-        const amountDue = Math.max(totalDue - totalPaid, 0);
+        amountDue = Math.max(totalDue - totalPaid, 0);
 
-        await sendPaymentReminder(phoneNumber, amountDue.toFixed(2));
+        const result = await sendPaymentReminder(phoneNumber, amountDue.toFixed(2));
+        const messageId = result?.messages?.[0]?.id;
+
+        await logCommunication({
+            recipient: phoneNumber,
+            messageType: "Manual Reminder",
+            referenceId: invoiceId,
+            content: `Payment reminder for Invoice ${invoiceId}. Amount due: ₹${amountDue.toFixed(2)}`,
+            status: "Success",
+            messageId
+        });
 
         return res.json({ message: 'Manual payment reminder sent successfully.' });
     } catch (err: any) {
@@ -220,6 +261,15 @@ router.post('/send-manual-reminder', async (req: Request, res: Response) => {
             'WhatsApp API error:',
             err?.response?.data || err.message || err
         );
+        const errMsg = err?.response?.data ? JSON.stringify(err.response.data) : err.message || String(err);
+        await logCommunication({
+            recipient: phoneNumber,
+            messageType: "Manual Reminder",
+            referenceId: invoiceId,
+            content: `Payment reminder for Invoice ${invoiceId}. Amount due: ₹${amountDue.toFixed(2)}`,
+            status: "Failed",
+            errorMessage: errMsg
+        });
         return res.status(500).json({
             message: 'Failed to send manual reminder.',
             error: err?.response?.data || err.message,
@@ -361,6 +411,7 @@ router.post('/send-invoice', async (req: Request, res: Response) => {
     const { phone, invoiceId, documentUrl: providedUrl, htmlContent } = req.body;
     if (!phone || !invoiceId) return res.status(400).json({ message: 'Phone and Invoice ID required.' });
 
+    let documentUrl = providedUrl;
     try {
         const invoice = await InvoiceModel.findOne({ invoice_id: invoiceId }) as any;
         if (!invoice) {
@@ -368,20 +419,44 @@ router.post('/send-invoice', async (req: Request, res: Response) => {
             return res.status(404).json({ message: `Invoice "${invoiceId}" not found. Please check the invoice ID.` });
         }
 
-        let documentUrl = providedUrl;
         let isCloudUploaded = false;
 
         if (!documentUrl && pdfGenerator) {
-            const companyInfo = await getCompanyInfo();
-            const pdfResult = htmlContent
-                ? await pdfGenerator.generateInvoicePDFFromHTML(htmlContent, invoiceId)
-                : await pdfGenerator.generateInvoicePDF(invoice, companyInfo);
+            let pdfResult;
+            if (htmlContent) {
+                // Use the same native Electron-based PDF generation as PDF save (via quotationPrintHandler)
+                try {
+                    const tempFilename = `${invoiceId}.pdf`;
+                    const outputPath = path.join(pdfGenerator.UPLOADS_DIR, tempFilename);
+                    const printResult = await quotationPrintHandler.generatePDF(htmlContent, outputPath);
+                    if (printResult.success) {
+                        pdfResult = {
+                            success: true,
+                            path: outputPath,
+                            filename: tempFilename
+                        };
+                    } else {
+                        pdfResult = {
+                            success: false,
+                            error: printResult.error
+                        };
+                    }
+                } catch (e: any) {
+                    pdfResult = {
+                        success: false,
+                        error: e.message
+                    };
+                }
+            } else {
+                const companyInfo = await getCompanyInfo();
+                pdfResult = await pdfGenerator.generateInvoicePDF(invoice, companyInfo);
+            }
 
-            if (!pdfResult.success) {
-                logger.error('Invoice PDF generation failed', { service: "messaging", error: pdfResult.error, invoiceId });
+            if (!pdfResult || !pdfResult.success) {
+                logger.error('Invoice PDF generation failed', { service: "messaging", error: pdfResult ? pdfResult.error : 'Unknown error', invoiceId });
                 return res.status(500).json({
                     message: 'Failed to generate PDF.',
-                    error: pdfResult.error
+                    error: pdfResult ? pdfResult.error : 'Unknown error'
                 });
             }
 
@@ -419,13 +494,24 @@ router.post('/send-invoice', async (req: Request, res: Response) => {
         const customerName = invoice.customer_name || 'Customer';
         const invoiceDate = invoice.invoice_date || invoice.createdAt || new Date();
 
-        await sendDocumentTemplate(phone, {
+        const result = await sendDocumentTemplate(phone, {
             documentType: 'invoice',
             customerName: customerName,
             referenceNo: invoiceId,
             date: formatDateForTemplate(invoiceDate),
             amount: formatAmountForTemplate(totalAmount),
             documentUrl: documentUrl
+        });
+        const messageId = result?.messages?.[0]?.id;
+
+        await logCommunication({
+            recipient: phone,
+            messageType: "Invoice",
+            referenceId: invoiceId,
+            content: `Invoice PDF sent to ${customerName}. Reference: ${invoiceId}. Amount: ${formatAmountForTemplate(totalAmount)}`,
+            documentUrl: documentUrl,
+            status: "Success",
+            messageId
         });
 
         // Auto-delete temp PDF from Cloudinary after 3 minutes
@@ -446,6 +532,16 @@ router.post('/send-invoice', async (req: Request, res: Response) => {
         });
     } catch (err: any) {
         logger.error('Invoice send failed', { service: "messaging", error: err?.response?.data || err.message, invoiceId });
+        const errMsg = err?.response?.data ? JSON.stringify(err.response.data) : err.message || String(err);
+        await logCommunication({
+            recipient: phone,
+            messageType: "Invoice",
+            referenceId: invoiceId,
+            content: `Invoice PDF sent to customer. Reference: ${invoiceId}`,
+            documentUrl: documentUrl,
+            status: "Failed",
+            errorMessage: errMsg
+        });
         res.status(500).json({
             message: 'Failed to send invoice.',
             error: err?.response?.data || err.message
@@ -458,6 +554,7 @@ router.post('/send-quotation', async (req: Request, res: Response) => {
     const { phone, quotationId, documentUrl: providedUrl, htmlContent } = req.body;
     if (!phone || !quotationId) return res.status(400).json({ message: 'Phone and Quotation ID required.' });
 
+    let documentUrl = providedUrl;
     try {
         const quotation = await QuotationModel.findOne({ quotation_no: quotationId }) as any;
         if (!quotation) {
@@ -465,20 +562,44 @@ router.post('/send-quotation', async (req: Request, res: Response) => {
             return res.status(404).json({ message: `Quotation "${quotationId}" not found. Please check the quotation ID.` });
         }
 
-        let documentUrl = providedUrl;
         let isCloudUploaded = false;
 
         if (!documentUrl && pdfGenerator) {
-            const companyInfo = await getCompanyInfo();
-            const pdfResult = htmlContent
-                ? await pdfGenerator.generateQuotationPDFFromHTML(htmlContent, quotationId)
-                : await pdfGenerator.generateQuotationPDF(quotation, companyInfo);
+            let pdfResult;
+            if (htmlContent) {
+                // Use the same native Electron-based PDF generation as PDF save
+                try {
+                    const tempFilename = `${quotationId}.pdf`;
+                    const outputPath = path.join(pdfGenerator.UPLOADS_DIR, tempFilename);
+                    const printResult = await quotationPrintHandler.generatePDF(htmlContent, outputPath);
+                    if (printResult.success) {
+                        pdfResult = {
+                            success: true,
+                            path: outputPath,
+                            filename: tempFilename
+                        };
+                    } else {
+                        pdfResult = {
+                            success: false,
+                            error: printResult.error
+                        };
+                    }
+                } catch (e: any) {
+                    pdfResult = {
+                        success: false,
+                        error: e.message
+                    };
+                }
+            } else {
+                const companyInfo = await getCompanyInfo();
+                pdfResult = await pdfGenerator.generateQuotationPDF(quotation, companyInfo);
+            }
 
-            if (!pdfResult.success) {
-                logger.error('Quotation PDF generation failed', { service: "messaging", error: pdfResult.error, quotationId });
+            if (!pdfResult || !pdfResult.success) {
+                logger.error('Quotation PDF generation failed', { service: "messaging", error: pdfResult?.error, quotationId });
                 return res.status(500).json({
                     message: 'Failed to generate PDF.',
-                    error: pdfResult.error
+                    error: pdfResult?.error
                 });
             }
 
@@ -516,13 +637,24 @@ router.post('/send-quotation', async (req: Request, res: Response) => {
         const customerName = quotation.customer_name || 'Customer';
         const quotationDate = quotation.quotation_date || quotation.createdAt || new Date();
 
-        await sendDocumentTemplate(phone, {
+        const result = await sendDocumentTemplate(phone, {
             documentType: 'quotation',
             customerName: customerName,
             referenceNo: quotationId,
             date: formatDateForTemplate(quotationDate),
             amount: formatAmountForTemplate(totalAmount),
             documentUrl: documentUrl
+        });
+        const messageId = result?.messages?.[0]?.id;
+
+        await logCommunication({
+            recipient: phone,
+            messageType: "Quotation",
+            referenceId: quotationId,
+            content: `Quotation PDF sent to ${customerName}. Reference: ${quotationId}. Amount: ${formatAmountForTemplate(totalAmount)}`,
+            documentUrl: documentUrl,
+            status: "Success",
+            messageId
         });
 
         // Auto-delete temp PDF from Cloudinary after 3 minutes
@@ -543,8 +675,119 @@ router.post('/send-quotation', async (req: Request, res: Response) => {
         });
     } catch (err: any) {
         logger.error('Error sending quotation:', { error: err?.response?.data || err.message, quotationId });
+        const errMsg = err?.response?.data ? JSON.stringify(err.response.data) : err.message || String(err);
+        await logCommunication({
+            recipient: phone,
+            messageType: "Quotation",
+            referenceId: quotationId,
+            content: `Quotation PDF sent to customer. Reference: ${quotationId}`,
+            documentUrl: documentUrl,
+            status: "Failed",
+            errorMessage: errMsg
+        });
         res.status(500).json({
             message: 'Failed to send quotation.',
+            error: err?.response?.data || err.message
+        });
+    }
+});
+
+// Send payment receipt or voucher using template (auto-generates PDF)
+router.post('/send-payment', async (req: Request, res: Response) => {
+    const { phone, paymentId, htmlContent, documentType, partyName, amount, date } = req.body;
+    if (!phone || !paymentId || !htmlContent || !documentType) {
+        return res.status(400).json({ message: 'Phone, Payment ID, HTML Content, and Document Type are required.' });
+    }
+
+    let documentUrl = '';
+    let isCloudUploaded = false;
+    const tempFilename = `${paymentId.replace(/[^a-zA-Z0-9-_]/g, '_')}.pdf`;
+    const outputPath = path.join(pdfGenerator.UPLOADS_DIR, tempFilename);
+
+    try {
+        // Generate PDF using quotationPrintHandler
+        const printResult = await quotationPrintHandler.generatePDF(htmlContent, outputPath);
+        if (!printResult.success) {
+            logger.error('Payment PDF generation failed', { service: "messaging", error: printResult.error, paymentId });
+            return res.status(500).json({ message: 'Failed to generate PDF.', error: printResult.error });
+        }
+
+        // Upload to Cloudinary if configured
+        if (cloudStorage && cloudStorage.isConfigured()) {
+            const uploadResult = await cloudStorage.uploadPDF(outputPath, paymentId);
+            if (uploadResult.success) {
+                documentUrl = uploadResult.url;
+                isCloudUploaded = true;
+                logger.info('Payment PDF uploaded to cloud', { service: "messaging", url: documentUrl, paymentId });
+
+                try {
+                    const fileCleanup = require('../utils/fileCleanup');
+                    await fileCleanup.removeFile(outputPath, (global.appPaths && global.appPaths.userData) || __dirname);
+                } catch (e: any) {
+                    logger.warn('Failed to delete local PDF after cloud upload:', e && e.message);
+                }
+            } else {
+                logger.warn(`Cloud upload failed, using local URL: ${uploadResult.error}`);
+            }
+        }
+
+        if (!documentUrl) {
+            const baseUrl = config.whatsapp.pdfBaseUrl || `http://localhost:${config.port}`;
+            documentUrl = `${baseUrl}/documents/${tempFilename}`;
+        }
+
+        // Send via WhatsApp
+        const result = await sendDocumentTemplate(phone, {
+            documentType: documentType,
+            customerName: partyName || 'Valued Client',
+            referenceNo: paymentId,
+            date: date || formatDateForTemplate(new Date()),
+            amount: amount ? formatAmountForTemplate(parseFloat(amount) || 0) : '0.00',
+            documentUrl: documentUrl
+        });
+
+        const messageId = result?.messages?.[0]?.id;
+
+        await logCommunication({
+            recipient: phone,
+            messageType: 'Document',
+            referenceId: paymentId,
+            content: `${documentType === 'payment voucher' ? 'Payment Voucher' : 'Payment Receipt'} PDF sent to ${partyName || 'Valued Client'}. Reference: ${paymentId}. Amount: ${amount || '0.00'}`,
+            documentUrl: documentUrl,
+            status: "Success",
+            messageId
+        });
+
+        // Auto-delete temp PDF from Cloudinary after 3 minutes
+        if (isCloudUploaded && cloudStorage) {
+            setTimeout(async () => {
+                try {
+                    await cloudStorage.deletePDF(paymentId);
+                    logger.info('Temporary payment PDF deleted from cloud storage', { service: "messaging", paymentId });
+                } catch (e: any) {
+                    logger.error('Error auto-deleting payment PDF:', { service: "messaging", error: e.message || String(e), paymentId });
+                }
+            }, 180000);
+        }
+
+        res.json({
+            message: `${documentType === 'payment voucher' ? 'Voucher' : 'Receipt'} sent via WhatsApp.`,
+            pdfUrl: documentUrl
+        });
+    } catch (err: any) {
+        logger.error('Payment document send failed', { service: "messaging", error: err?.response?.data || err.message, paymentId });
+        const errMsg = err?.response?.data ? JSON.stringify(err.response.data) : err.message || String(err);
+        await logCommunication({
+            recipient: phone,
+            messageType: 'Document',
+            referenceId: paymentId,
+            content: `${documentType === 'payment voucher' ? 'Payment Voucher' : 'Payment Receipt'} PDF sent. Reference: ${paymentId}`,
+            documentUrl: documentUrl,
+            status: "Failed",
+            errorMessage: errMsg
+        });
+        res.status(500).json({
+            message: 'Failed to send payment document.',
             error: err?.response?.data || err.message
         });
     }
@@ -563,7 +806,7 @@ router.post('/send-document', async (req: Request, res: Response) => {
     if (amount === undefined || amount === null) return res.status(400).json({ message: 'Amount is required.' });
 
     try {
-        await sendDocumentTemplate(phone, {
+        const result = await sendDocumentTemplate(phone, {
             documentType: documentType,
             customerName: customerName,
             referenceNo: referenceNo,
@@ -571,10 +814,31 @@ router.post('/send-document', async (req: Request, res: Response) => {
             amount: formatAmountForTemplate(parseFloat(amount) || 0),
             documentUrl: documentUrl
         });
+        const messageId = result?.messages?.[0]?.id;
+
+        await logCommunication({
+            recipient: phone,
+            messageType: "Document",
+            referenceId: referenceNo,
+            content: `Document (${documentType}) sent to ${customerName}. Reference: ${referenceNo}. Amount: ${formatAmountForTemplate(parseFloat(amount) || 0)}`,
+            documentUrl: documentUrl,
+            status: "Success",
+            messageId
+        });
 
         res.json({ message: 'Document sent via WhatsApp.' });
     } catch (err: any) {
         logger.error('Error sending document:', err);
+        const errMsg = err?.response?.data ? JSON.stringify(err.response.data) : err.message || String(err);
+        await logCommunication({
+            recipient: phone,
+            messageType: "Document",
+            referenceId: referenceNo,
+            content: `Document (${documentType}) sent to ${customerName}. Reference: ${referenceNo}`,
+            documentUrl: documentUrl,
+            status: "Failed",
+            errorMessage: errMsg
+        });
         res.status(500).json({
             message: 'Failed to send document.',
             error: err?.response?.data || err.message
@@ -590,10 +854,28 @@ router.post('/send-message', async (req: Request, res: Response) => {
     }
 
     try {
-        await sendSimpleMessageTemplate(phoneNumber, message);
+        const result = await sendSimpleMessageTemplate(phoneNumber, message);
+        const messageId = result?.messages?.[0]?.id;
+
+        await logCommunication({
+            recipient: phoneNumber,
+            messageType: "Custom Message",
+            content: message,
+            status: "Success",
+            messageId
+        });
+
         res.json({ message: 'Message sent successfully via WhatsApp.' });
     } catch (err: any) {
         logger.error('Message send failed', { service: "messaging", error: err?.response?.data || err.message, phone: phoneNumber });
+        const errMsg = err?.response?.data ? JSON.stringify(err.response.data) : err.message || String(err);
+        await logCommunication({
+            recipient: phoneNumber,
+            messageType: "Custom Message",
+            content: message,
+            status: "Failed",
+            errorMessage: errMsg
+        });
         res.status(500).json({ message: 'Failed to send message.', error: err?.response?.data || err.message });
     }
 });
@@ -613,18 +895,39 @@ router.post('/send-automated-reminders', async (req: Request, res: Response) => 
         let failCount = 0;
 
         for (const invoice of unpaidInvoices) {
-            try {
-                const totalDue = invoice.total_amount_original || 0;
-                const totalPaid = invoice.total_paid_amount || 0;
-                const amountDue = Math.max(totalDue - totalPaid, 0);
-                const phone = invoice.customer_phone;
+            const phone = invoice.customer_phone;
+            const totalDue = invoice.total_amount_original || 0;
+            const totalPaid = invoice.total_paid_amount || 0;
+            const amountDue = Math.max(totalDue - totalPaid, 0);
 
+            try {
                 if (phone && amountDue > 0) {
-                    await sendPaymentReminder(phone, amountDue.toFixed(2));
+                    const result = await sendPaymentReminder(phone, amountDue.toFixed(2));
+                    const messageId = result?.messages?.[0]?.id;
+
+                    await logCommunication({
+                        recipient: phone,
+                        messageType: "Automated Reminder",
+                        referenceId: invoice.invoice_id,
+                        content: `Automated payment reminder for Invoice ${invoice.invoice_id}. Amount due: ₹${amountDue.toFixed(2)}`,
+                        status: "Success",
+                        messageId
+                    });
                     successCount++;
                 }
-            } catch (err: unknown) {
+            } catch (err: any) {
                 logger.error(`Failed to send reminder for invoice ${invoice.invoice_id}:`, err);
+                const errMsg = err?.response?.data ? JSON.stringify(err.response.data) : err.message || String(err);
+                if (phone) {
+                    await logCommunication({
+                        recipient: phone,
+                        messageType: "Automated Reminder",
+                        referenceId: invoice.invoice_id,
+                        content: `Automated payment reminder for Invoice ${invoice.invoice_id}. Amount due: ₹${amountDue.toFixed(2)}`,
+                        status: "Failed",
+                        errorMessage: errMsg
+                    });
+                }
                 failCount++;
             }
         }

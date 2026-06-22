@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const originalHtml = btn.innerHTML;
             exportOptBtns.forEach(b => (b as HTMLButtonElement).disabled = true);
 
-            if (format === 'pdf') {
+            if (format === 'save-pdf') {
                 btn.classList.add('processing-pdf');
                 btn.innerHTML = `
                     <div class="flex items-center gap-3 w-full animate-fade-in">
@@ -154,6 +154,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="flex-1 min-w-0">
                             <p class="text-xs font-extrabold text-rose-700 truncate">Generating PDF Report...</p>
                             <p class="text-[10px] text-rose-500 mt-0.5 truncate font-medium">Preparing customer profile, invoices, and ledger</p>
+                        </div>
+                    </div>
+                `;
+            } else if (format === 'print') {
+                btn.classList.add('processing-pdf');
+                btn.innerHTML = `
+                    <div class="flex items-center gap-3 w-full animate-fade-in">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-sm shadow-sm shrink-0">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-extrabold text-blue-700 truncate">Preparing Print Window...</p>
+                            <p class="text-[10px] text-blue-500 mt-0.5 truncate font-medium">Formatting summary details for printing</p>
                         </div>
                     </div>
                 `;
@@ -215,6 +228,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         csvContent += `"${p.payment_id}","${formatDate(p.payment_date)}","${p.payment_mode}","${p.amount}"\n`;
                     });
 
+                    csvContent += "\nVOUCHERS\n";
+                    csvContent += "Voucher No,Date,Amount,Method,Paid Towards\n";
+                    (data.vouchers || []).forEach((v: any) => {
+                        csvContent += `"${v.voucherNumber}","${formatDate(v.date)}","${v.amount}","${v.paymentMethod}","${v.paidTowards || ''}"\n`;
+                    });
+
                     const encodedUri = encodeURI(csvContent);
                     const downloadAnchor = document.createElement('a');
                     downloadAnchor.setAttribute("href", encodedUri);
@@ -222,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.body.appendChild(downloadAnchor);
                     downloadAnchor.click();
                     downloadAnchor.remove();
-                } else if (format === 'pdf') {
+                } else if (format === 'save-pdf' || format === 'print') {
                     // For PDF, generate a clean, structured print report
                     const printContainer = document.getElementById('print-report-container');
                     if (printContainer) {
@@ -475,13 +494,29 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         `;
                     }
-                    window.print();
+
+                    const html = printContainer ? printContainer.innerHTML : '';
+                    const filename = `CustomerLedger_${data.customer.customer_id || 'export'}`;
+
+                    if (format === 'save-pdf') {
+                        if ((window as any).electronAPI?.handlePrintEvent) {
+                            (window as any).electronAPI.handlePrintEvent(html, "savePDF", filename);
+                        } else {
+                            window.print();
+                        }
+                    } else if (format === 'print') {
+                        if ((window as any).electronAPI?.handlePrintEvent) {
+                            (window as any).electronAPI.handlePrintEvent(html, "print", filename);
+                        } else {
+                            window.print();
+                        }
+                    }
                 }
 
                 // Show Success State on the button
                 btn.classList.remove('processing-pdf');
                 btn.classList.add('success-pdf');
-                if (format === 'pdf') {
+                if (format === 'save-pdf') {
                     btn.innerHTML = `
                         <div class="flex items-center gap-3 w-full animate-fade-in">
                             <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm font-bold shadow-sm shrink-0">
@@ -490,6 +525,18 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="flex-1 min-w-0">
                                 <p class="text-xs font-extrabold text-emerald-700 truncate">PDF Exported Successfully</p>
                                 <p class="text-[10px] text-emerald-500 mt-0.5 truncate font-medium">Report is fully generated and ready for print</p>
+                            </div>
+                        </div>
+                    `;
+                } else if (format === 'print') {
+                    btn.innerHTML = `
+                        <div class="flex items-center gap-3 w-full animate-fade-in">
+                            <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm font-bold shadow-sm shrink-0">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs font-extrabold text-emerald-700 truncate">Sent to Printer</p>
+                                <p class="text-[10px] text-emerald-500 mt-0.5 truncate font-medium">Printing dialog has been requested</p>
                             </div>
                         </div>
                     `;
@@ -666,7 +713,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function populateData(data: any) {
-        const { customer, stats, quotations, invoices, services, payments } = data;
+        const { customer, stats, quotations, invoices, services, payments, vouchers, communications } = data;
 
         // Header info
         const fullName = customer.customer.first_name 
@@ -871,9 +918,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
             `;
         });
+
+        renderTable('vouchers-list', vouchers || [], (v: any) => `
+            <td class="px-6 py-4 font-medium text-violet-600">${v.voucherNumber || '-'}</td>
+            <td class="px-6 py-4">${formatDate(v.date)}</td>
+            <td class="px-6 py-4 font-bold text-green-600">${formatCurrency(v.amount)}</td>
+            <td class="px-6 py-4"><span class="px-2 py-1 bg-violet-50 text-violet-700 rounded text-xs font-bold uppercase">${v.paymentMethod || '-'}</span></td>
+            <td class="px-6 py-4 text-gray-500 truncate max-w-[160px]" title="${v.paidTowards || ''}}">${v.paidTowards || '-'}</td>
+            <td class="px-6 py-4">
+                <button data-action="view-voucher" data-id="${v._id || ''}" class="bg-violet-50 text-violet-600 px-3 py-1 rounded-lg font-bold text-xs hover:bg-violet-100 transition-colors uppercase tracking-wider">View</button>
+            </td>
+        `);
+
+        renderTable('communications-list', communications || [], (c: any) => {
+            const dateStr = c.sentAt ? formatDate(c.sentAt) + ' ' + new Date(c.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-';
+            const statusClass = c.status === 'Success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700';
+            const contentDisplay = c.status === 'Failed' && c.errorMessage ? `${c.content || ''} (Error: ${c.errorMessage})` : (c.content || '');
+            const pdfButton = c.documentUrl 
+                ? `<button data-action="view-doc" data-url="${c.documentUrl}" class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg font-bold text-xs hover:bg-blue-100 transition-colors uppercase tracking-wider">View PDF</button>` 
+                : '-';
+
+            return `
+                <td class="px-6 py-4 text-xs text-gray-500">${dateStr}</td>
+                <td class="px-6 py-4 text-xs font-semibold text-slate-800">${c.recipient || '-'}</td>
+                <td class="px-6 py-4 text-xs"><span class="px-2 py-1 bg-slate-100 text-slate-700 rounded text-[10px] font-bold uppercase">${c.messageType || '-'}</span></td>
+                <td class="px-6 py-4 text-xs font-medium text-slate-600">${c.referenceId || '-'}</td>
+                <td class="px-6 py-4 text-xs"><span class="px-2 py-1 ${statusClass} rounded text-[10px] font-bold uppercase">${c.status || '-'}</span></td>
+                <td class="px-6 py-4 text-xs text-gray-500 truncate max-w-[200px]" title="${contentDisplay.replace(/"/g, '&quot;')}">${contentDisplay}</td>
+                <td class="px-6 py-4 text-xs">${pdfButton}</td>
+            `;
+        }, 7);
     }
 
-    function renderTable(id: string, items: any[], rowTemplate: (item: any) => string) {
+    function renderTable(id: string, items: any[], rowTemplate: (item: any) => string, colspan = 5) {
         const tbody = document.getElementById(id);
         if (!tbody) return;
         
@@ -881,7 +958,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const type = id.split('-')[0].charAt(0).toUpperCase() + id.split('-')[0].slice(1);
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="5" class="px-6 py-12 text-center">
+                    <td colspan="${colspan}" class="px-6 py-12 text-center">
                         <div class="flex flex-col items-center justify-center text-gray-400">
                             <i class="fas fa-folder-open text-4xl mb-3 opacity-30"></i>
                             <p class="text-lg font-medium italic">No ${type} found for this customer</p>
@@ -906,6 +983,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (action === 'view-invoice') window.location.href = `/invoice?id=${id}`;
             if (action === 'view-service') window.location.href = `/service?id=${id}`;
             if (action === 'view-payment') window.location.href = `/payment/details?id=${id}`;
+            if (action === 'view-voucher') window.location.href = `/payment?voucher=${id}`;
+            if (action === 'view-doc') {
+                const url = btn.getAttribute('data-url');
+                if (url) window.open(url, '_blank');
+            }
         };
     }
 

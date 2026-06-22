@@ -131,6 +131,29 @@
             });
         }
 
+        // Status Filter
+        if ((window as any).statusFilter === 'archived') {
+            activeBadges.push({
+                label: 'Status: Archived',
+                clearFn: () => {
+                    (window as any).statusFilter = '';
+                    const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
+                    statusTabs.forEach(t => {
+                        if (t.getAttribute('data-status') === 'all') {
+                            t.classList.add('active');
+                        } else {
+                            t.classList.remove('active');
+                        }
+                    });
+                    if (typeof (window as any).loadRecentPurchaseOrders === 'function') {
+                        (window as any).loadRecentPurchaseOrders();
+                    } else {
+                        applyPurchaseOrderFilters();
+                    }
+                }
+            });
+        }
+
         if (activeBadges.length > 0) {
             infoBar.classList.remove('hidden');
             activeBadges.forEach(badgeData => {

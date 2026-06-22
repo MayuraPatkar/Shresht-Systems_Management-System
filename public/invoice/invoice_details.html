@@ -297,6 +297,13 @@
                     <i class="fab fa-whatsapp"></i>
                     Send via WhatsApp
                 </button>
+                <button type="button" id="restoreInvoiceBtnView"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-green-300 bg-white text-sm font-semibold text-green-700 transition-all hover:border-green-500 hover:bg-green-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-green-200 cursor-pointer px-4 h-10 whitespace-nowrap"
+                    style="display: none;"
+                    title="Restore Invoice">
+                    <i class="fas fa-trash-restore"></i>
+                    Restore Invoice
+                </button>
                 <button id="home-btn"
                     class="bg-gray-600 text-white w-36 h-10 rounded-lg hover:bg-gray-700 flex items-center justify-center gap-2 font-medium whitespace-nowrap cursor-pointer"
                     title="Back to Invoices (Esc)">
@@ -667,12 +674,12 @@
                             <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
                             <h2 class="text-xl font-semibold text-red-800">Danger Zone</h2>
                         </div>
-                        <div class="space-y-0">
+                        <div class="space-y-4">
                             <p class="mb-4 text-sm font-medium text-red-700">
                                 These actions are destructive. Please proceed with caution.
                             </p>
 
-                            <div class="grid grid-cols-1 gap-4 py-5 border-b border-red-100/50 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                            <div id="danger-row-cancel" class="grid grid-cols-1 gap-4 py-5 border-b border-red-100/50 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                                 <div class="min-w-0">
                                     <p class="text-sm font-semibold text-slate-900">Cancel Invoice</p>
                                     <p class="mt-1 text-sm text-slate-600">Flag this invoice as cancelled.</p>
@@ -686,7 +693,7 @@
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-1 gap-4 py-5 border-b border-red-100/50 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                            <div id="danger-row-archive" class="grid grid-cols-1 gap-4 py-5 border-b border-red-100/50 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                                 <div class="min-w-0">
                                     <p class="text-sm font-semibold text-slate-900">Archive Invoice</p>
                                     <p class="mt-1 text-sm text-slate-600">Move this record out of the active workflow while keeping it recoverable.</p>
@@ -702,14 +709,14 @@
 
                             <div class="grid grid-cols-1 gap-4 py-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                                 <div class="min-w-0">
-                                    <p class="text-sm font-semibold text-slate-900">Delete Invoice</p>
-                                    <p class="mt-1 text-sm text-slate-600">Permanently delete this invoice. This action cannot be undone.</p>
+                                    <p class="text-sm font-semibold text-slate-900" id="deleteInvoiceTitle">Delete Invoice</p>
+                                    <p class="mt-1 text-sm text-slate-600" id="deleteInvoiceDesc">Permanently delete this invoice. This action cannot be undone.</p>
                                 </div>
                                 <div class="sm:justify-self-end">
                                     <button type="button" id="deleteInvoiceBtn"
                                         class="inline-flex items-center justify-center gap-2 rounded-lg border border-red-300 bg-white px-5 py-2.5 text-sm font-semibold text-red-600 transition-all hover:border-red-600 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-200 cursor-pointer">
                                         <i class="fas fa-trash-alt"></i>
-                                        Delete Invoice
+                                        <span id="deleteInvoiceBtnText">Delete Invoice</span>
                                     </button>
                                 </div>
                             </div>
@@ -773,8 +780,8 @@
 
     <!-- Keyboard Shortcuts Modal -->
     <div id="shortcuts-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-[999] flex items-center justify-center hidden opacity-0 transition-opacity duration-200" role="dialog" aria-modal="true" aria-label="Keyboard Shortcuts">
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl max-w-xl w-full mx-4 max-h-[85vh] overflow-y-auto overflow-hidden isolate shortcuts-panel">
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-10">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl max-w-xl w-full mx-4 max-h-[85vh] overflow-hidden isolate shortcuts-panel flex flex-col">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-white/95 backdrop-blur-md z-10">
                 <div class="flex items-center gap-3">
                     <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
                         <i class="fas fa-keyboard text-lg"></i>
@@ -785,32 +792,59 @@
                     <i class="fas fa-times text-sm"></i>
                 </button>
             </div>
-            <div id="shortcuts-content" class="p-6 space-y-5 text-sm">
-                <!-- Content populated dynamically or statically if needed -->
+            <div id="shortcuts-content" class="p-6 space-y-5 overflow-y-auto flex-1">
                 <div class="shortcuts-section">
-                    <h3 class="font-bold text-slate-700 mb-2">Navigation</h3>
-                    <div class="flex justify-between py-1 border-b border-slate-100">
-                        <span class="text-slate-600">Back/Home</span>
-                        <kbd class="px-2 py-1 bg-slate-100 rounded text-xs border font-bold">Esc</kbd>
-                    </div>
-                    <div class="flex justify-between py-1 border-b border-slate-100">
-                        <span class="text-slate-600">Refresh</span>
-                        <kbd class="px-2 py-1 bg-slate-100 rounded text-xs border font-bold">Ctrl + R</kbd>
+                    <h3 class="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+                        <i class="fas fa-arrows-alt text-blue-600"></i>
+                        Navigation
+                    </h3>
+                    <div class="space-y-1">
+                        <div class="shortcut-row">
+                            <span class="text-xs font-semibold text-slate-600">Back/Home</span>
+                            <div class="shortcut-keys">
+                                <kbd>Esc</kbd>
+                            </div>
+                        </div>
+                        <div class="shortcut-row">
+                            <span class="text-xs font-semibold text-slate-600">Refresh</span>
+                            <div class="shortcut-keys">
+                                <kbd>Ctrl</kbd>
+                                <span class="text-slate-300 font-medium">+</span>
+                                <kbd>R</kbd>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="shortcuts-section mt-4">
-                    <h3 class="font-bold text-slate-700 mb-2">Actions</h3>
-                    <div class="flex justify-between py-1 border-b border-slate-100">
-                        <span class="text-slate-600">Edit Invoice</span>
-                        <kbd class="px-2 py-1 bg-slate-100 rounded text-xs border font-bold">Ctrl + E</kbd>
-                    </div>
-                    <div class="flex justify-between py-1 border-b border-slate-100">
-                        <span class="text-slate-600">Clone/Duplicate Invoice</span>
-                        <kbd class="px-2 py-1 bg-slate-100 rounded text-xs border font-bold">Ctrl + D</kbd>
-                    </div>
-                    <div class="flex justify-between py-1 border-b border-slate-100">
-                        <span class="text-slate-600">Print Preview</span>
-                        <kbd class="px-2 py-1 bg-slate-100 rounded text-xs border font-bold">Ctrl + P</kbd>
+                <div class="shortcuts-section">
+                    <h3 class="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+                        <i class="fas fa-bolt text-yellow-600"></i>
+                        Actions
+                    </h3>
+                    <div class="space-y-1">
+                        <div class="shortcut-row">
+                            <span class="text-xs font-semibold text-slate-600">Edit Invoice</span>
+                            <div class="shortcut-keys">
+                                <kbd>Ctrl</kbd>
+                                <span class="text-slate-300 font-medium">+</span>
+                                <kbd>E</kbd>
+                            </div>
+                        </div>
+                        <div class="shortcut-row">
+                            <span class="text-xs font-semibold text-slate-600">Clone/Duplicate Invoice</span>
+                            <div class="shortcut-keys">
+                                <kbd>Ctrl</kbd>
+                                <span class="text-slate-300 font-medium">+</span>
+                                <kbd>D</kbd>
+                            </div>
+                        </div>
+                        <div class="shortcut-row">
+                            <span class="text-xs font-semibold text-slate-600">Print Preview</span>
+                            <div class="shortcut-keys">
+                                <kbd>Ctrl</kbd>
+                                <span class="text-slate-300 font-medium">+</span>
+                                <kbd>P</kbd>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -956,13 +990,46 @@
                 document.getElementById('header-invoice-subtitle').textContent = invoiceId;
                 document.title = `Invoice ${invoiceId} - Details`;
 
-                // Show header action buttons (handled by viewInvoice, but make sure they are visible here)
-                const editBtn = document.getElementById('editInvoiceBtnView');
-                const duplicateBtn = document.getElementById('duplicateInvoiceBtnView');
-                const sendWhatsAppBtn = document.getElementById('sendWhatsAppBtn');
-                if (editBtn) editBtn.style.display = 'flex';
-                if (duplicateBtn) duplicateBtn.style.display = 'flex';
-                if (sendWhatsAppBtn) sendWhatsAppBtn.style.display = 'flex';
+                // Attach restore listener
+                const restoreBtnView = document.getElementById('restoreInvoiceBtnView');
+                if (restoreBtnView) {
+                    restoreBtnView.addEventListener('click', async () => {
+                        const message = `Are you sure you want to restore Invoice "${invoiceId}"?`;
+                        const executeRestore = async () => {
+                            try {
+                                const res = await fetch(`/invoice/restoreItem`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ itemId: invoiceId })
+                                });
+                                if (!res.ok) throw new Error('Failed to restore');
+                                if (typeof showToast === 'function') {
+                                    showToast(`Invoice ${invoiceId} restored`);
+                                } else if (window.electronAPI?.showAlert1) {
+                                    window.electronAPI.showAlert1(`Invoice ${invoiceId} restored successfully.`);
+                                } else {
+                                    alert(`Invoice ${invoiceId} restored successfully.`);
+                                }
+                                window.location.href = '/invoice';
+                            } catch (e) {
+                                if (window.electronAPI?.showAlert1) {
+                                    window.electronAPI.showAlert1('Failed to restore invoice.');
+                                } else {
+                                    alert('Failed to restore invoice.');
+                                }
+                            }
+                        };
+
+                        if (window.electronAPI?.showAlert2 && window.electronAPI?.receiveAlertResponse) {
+                            window.electronAPI.showAlert2(message);
+                            window.electronAPI.receiveAlertResponse((response) => {
+                                if (response === 'Yes') executeRestore();
+                            });
+                        } else if (confirm(message)) {
+                            await executeRestore();
+                        }
+                    });
+                }
 
             } catch (err) {
                 console.error('Failed to load invoice details:', err);

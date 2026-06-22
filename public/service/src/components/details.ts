@@ -139,7 +139,7 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
         // Edit Service
         document.getElementById('details-edit-btn')?.addEventListener('click', () => {
             if (serviceId) {
-                window.location.href = `/service?id=${serviceId}&edit=true`;
+                window.location.href = `/service?edit=${serviceId}`;
             }
         });
 
@@ -159,14 +159,16 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
         });
 
         document.getElementById('details-pause-btn')?.addEventListener('click', () => {
-            if (selectedService && selectedService.invoice_id) {
-                toggleServiceStatus(selectedService.invoice_id);
+            if (selectedService) {
+                const invId = (selectedService.invoice_details as any)?.invoice_id || selectedService.invoice_id;
+                if (invId) toggleServiceStatus(invId);
             }
         });
 
         document.getElementById('details-close-btn')?.addEventListener('click', () => {
-            if (selectedService && selectedService.invoice_id) {
-                closeServiceSchedule(selectedService.invoice_id);
+            if (selectedService) {
+                const invId = (selectedService.invoice_details as any)?.invoice_id || selectedService.invoice_id;
+                if (invId) closeServiceSchedule(invId);
             }
         });
 
@@ -264,6 +266,8 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
         const $pdfBtn = document.getElementById('details-pdf-btn');
         const $addPaymentBtn = document.getElementById('details-add-payment-btn');
         const $headerPaymentBtn = document.getElementById('details-header-payment-btn');
+        const $recordBtn = document.getElementById('details-record-btn');
+        const $dangerZone = document.getElementById('danger-zone-section');
 
         if (isVirtual) {
             if ($editBtn) $editBtn.classList.add('hidden');
@@ -271,20 +275,24 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
             if ($pdfBtn) $pdfBtn.classList.add('hidden');
             if ($addPaymentBtn) $addPaymentBtn.classList.add('hidden');
             if ($headerPaymentBtn) $headerPaymentBtn.classList.add('hidden');
+            if ($recordBtn) $recordBtn.classList.remove('hidden');
         } else {
             if ($editBtn) $editBtn.classList.remove('hidden');
             if ($printBtn) $printBtn.classList.remove('hidden');
             if ($pdfBtn) $pdfBtn.classList.remove('hidden');
             if ($addPaymentBtn) $addPaymentBtn.classList.remove('hidden');
             if ($headerPaymentBtn) $headerPaymentBtn.classList.remove('hidden');
+            if ($recordBtn) $recordBtn.classList.add('hidden');
         }
+
+        const invoiceRefNo = (invoice as any).invoice_id || service.invoice_id || '-';
 
         // Title and header details
         if ($headerTitle) {
-            $headerTitle.textContent = isVirtual ? `Service Schedule - ${service.invoice_id}` : `Service ${service.service_id}`;
+            $headerTitle.textContent = isVirtual ? `Service Schedule - ${invoiceRefNo}` : `Service ${service.service_id}`;
         }
         if ($headerServiceId) $headerServiceId.textContent = service.service_id;
-        if ($headerInvoiceId) $headerInvoiceId.textContent = service.invoice_id;
+        if ($headerInvoiceId) $headerInvoiceId.textContent = invoiceRefNo;
         if ($headerServiceDate) $headerServiceDate.textContent = formatDateShort(service.service_date);
         if ($headerServiceStage) $headerServiceStage.textContent = getStageLabel(service.service_stage);
         if ($headerNextDate) $headerNextDate.textContent = formatDateShort(service.next_service_date);
@@ -293,7 +301,7 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
         // Service Info Card
         if ($detailsCustomerName) $detailsCustomerName.textContent = invoice.customer_name || service.customer_name || '-';
         if ($detailsProjectName) $detailsProjectName.textContent = invoice.project_name || service.project_name || '-';
-        if ($detailsInvoiceLink) $detailsInvoiceLink.textContent = service.invoice_id;
+        if ($detailsInvoiceLink) $detailsInvoiceLink.textContent = invoiceRefNo;
         if ($detailsServiceDate) $detailsServiceDate.textContent = formatDateShort(service.service_date);
 
         // Render items table
@@ -531,9 +539,10 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
             title: "Bill To:"
         });
 
+        const invoiceRefNo = (invoice as any).invoice_id || serviceData.invoice_id || '-';
         const infoSection = SectionRenderers.renderInfoSection([
             { label: "Project", value: invoice.project_name || serviceData.project_name },
-            { label: "Invoice Ref", value: serviceData.invoice_id },
+            { label: "Invoice Ref", value: invoiceRefNo },
             { label: "Date", value: formatDateShort(serviceData.service_date) },
             { label: "Stage", value: getStageLabel(serviceData.service_stage) }
         ]);

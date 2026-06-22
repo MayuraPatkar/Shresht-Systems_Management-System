@@ -70,6 +70,7 @@ router.post("/save-purchase-order", async (req: Request, res: Response) => {
             purchase_order_no,
             purchase_invoice_no,
             purchase_date,
+            status,
             supplier_id,
             supplier_snapshot,
             items = [] as any[],
@@ -95,6 +96,7 @@ router.post("/save-purchase-order", async (req: Request, res: Response) => {
             // Update fields
             purchaseOrder.purchase_invoice_no = purchase_invoice_no;
             purchaseOrder.purchase_date = purchase_date || new Date();
+            purchaseOrder.status = status || "Draft";
             purchaseOrder.supplier_id = supplier_id || undefined;
             purchaseOrder.supplier_snapshot = supplier_snapshot;
             purchaseOrder.items = items;
@@ -112,6 +114,7 @@ router.post("/save-purchase-order", async (req: Request, res: Response) => {
                 purchase_order_no: newId,
                 purchase_invoice_no: purchase_invoice_no,
                 purchase_date: purchase_date || new Date(),
+                status: status || "Draft",
                 supplier_id: supplier_id || undefined,
                 supplier_snapshot,
                 items,

@@ -471,7 +471,36 @@
 
             await generateViewPreviewHTML(waybill);
 
-            // Danger Zone logic for view page
+            // Danger Zone and header buttons toggle logic for soft deleted items
+            const isWbDeleted = waybill.is_deleted || waybill.deletion?.is_deleted;
+            const editBtn = document.getElementById('editEWayBillBtnView');
+            const restoreBtn = document.getElementById('restoreEWayBillBtnView');
+
+            if (isWbDeleted) {
+                if (editBtn) editBtn.style.display = 'none';
+                if (restoreBtn) restoreBtn.style.display = 'flex';
+            } else {
+                if (editBtn) editBtn.style.display = 'flex';
+                if (restoreBtn) restoreBtn.style.display = 'none';
+            }
+
+            const archiveRow = document.getElementById('danger-row-archive');
+            const deleteTitle = document.getElementById('deleteEwaybillTitle');
+            const deleteDesc = document.getElementById('deleteEwaybillDesc');
+            const deleteBtnText = document.getElementById('deleteEwaybillBtnText');
+
+            if (isWbDeleted) {
+                if (archiveRow) archiveRow.style.display = 'none';
+                if (deleteTitle) deleteTitle.textContent = 'Permanently Delete E-Way Bill';
+                if (deleteDesc) deleteDesc.textContent = 'Permanently delete this e-way bill from database. This action cannot be undone.';
+                if (deleteBtnText) deleteBtnText.textContent = 'Permanent Delete';
+            } else {
+                if (archiveRow) archiveRow.style.display = '';
+                if (deleteTitle) deleteTitle.textContent = 'Delete E-Way Bill';
+                if (deleteDesc) deleteDesc.textContent = 'Permanently delete this e-way bill. This action cannot be undone.';
+                if (deleteBtnText) deleteBtnText.textContent = 'Delete E-Way Bill';
+            }
+
             const dangerZoneSection = document.getElementById('danger-zone') || document.getElementById('danger-zone-section');
             if (dangerZoneSection) {
                 const userRole = sessionStorage.getItem('userRole') || 'user';
@@ -530,13 +559,21 @@
                 deleteBtn.parentNode?.replaceChild(newDeleteBtn, deleteBtn);
 
                 newDeleteBtn.addEventListener('click', () => {
-                    const message = 'Are you sure you want to delete this e-way bill?';
+                    const isWbDeleted = waybill.is_deleted || waybill.deletion?.is_deleted;
+                    const message = isWbDeleted 
+                        ? 'Are you sure you want to PERMANENTLY delete this e-way bill? This action cannot be undone.'
+                        : 'Are you sure you want to delete this e-way bill? This will move it to trash.';
+
                     if (electronAPI?.showAlert2) {
                         electronAPI.showAlert2(message);
                         electronAPI.receiveAlertResponse(async (response: string) => {
                             if (response === "Yes") {
                                 try {
-                                    await (window as any).ewaybillApi.deleteEWayBill(waybill._id);
+                                    if (isWbDeleted) {
+                                        await (window as any).ewaybillApi.hardDeleteEWayBill(waybill._id);
+                                    } else {
+                                        await (window as any).ewaybillApi.deleteEWayBill(waybill._id);
+                                    }
                                     if (electronAPI.showAlert1) {
                                         electronAPI.showAlert1('E-Way Bill deleted successfully.');
                                     }
@@ -558,7 +595,11 @@
                         if (confirm(message)) {
                             (async () => {
                                 try {
-                                    await (window as any).ewaybillApi.deleteEWayBill(waybill._id);
+                                    if (isWbDeleted) {
+                                        await (window as any).ewaybillApi.hardDeleteEWayBill(waybill._id);
+                                    } else {
+                                        await (window as any).ewaybillApi.deleteEWayBill(waybill._id);
+                                    }
                                     alert('E-Way Bill deleted successfully.');
                                     const homeBtn = document.getElementById('home-btn');
                                     if (homeBtn) {

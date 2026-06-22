@@ -260,21 +260,23 @@ router.post("/save-invoice", async (req: Request, res: Response) => {
         }
 
         // Build consignee sub-document
-        const consignee: any = {};
+        let consignee: any = undefined;
         let consigneeAddressStr = '';
-        if (consigneeName) consignee.name = consigneeName;
-        if (consigneeAddress) {
-            if (typeof consigneeAddress === 'string') {
-                consignee.address = { line1: consigneeAddress };
-                consigneeAddressStr = consigneeAddress;
-            } else {
-                consignee.address = consigneeAddress;
-                consigneeAddressStr = [
-                    consigneeAddress.line1,
-                    consigneeAddress.line2,
-                    consigneeAddress.city,
-                    consigneeAddress.state ? consigneeAddress.state + (consigneeAddress.pincode ? ' - ' + consigneeAddress.pincode : '') : ''
-                ].filter(val => val && String(val).trim() !== "").join(', ');
+        if (consigneeName && consigneeName.trim() !== '') {
+            consignee = { name: consigneeName.trim() };
+            if (consigneeAddress) {
+                if (typeof consigneeAddress === 'string') {
+                    consignee.address = { line1: consigneeAddress };
+                    consigneeAddressStr = consigneeAddress;
+                } else {
+                    consignee.address = consigneeAddress;
+                    consigneeAddressStr = [
+                        consigneeAddress.line1,
+                        consigneeAddress.line2,
+                        consigneeAddress.city,
+                        consigneeAddress.state ? consigneeAddress.state + (consigneeAddress.pincode ? ' - ' + consigneeAddress.pincode : '') : ''
+                    ].filter(val => val && String(val).trim() !== "").join(', ');
+                }
             }
         }
 
@@ -1169,7 +1171,12 @@ router.post("/close-service/:invoiceId", async (req: Request, res: Response) => 
     try {
         const { invoiceId } = req.params;
 
-        const invoice = await InvoiceModel.findOne({ invoice_id: invoiceId }) as any;
+        let invoice = await InvoiceModel.findOne({ invoice_id: invoiceId }) as any;
+        if (!invoice) {
+            try {
+                invoice = await InvoiceModel.findById(invoiceId);
+            } catch (e) {}
+        }
         if (!invoice) {
             return res.status(404).json({ message: 'Invoice not found' });
         }
