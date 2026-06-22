@@ -59,13 +59,15 @@ const checkMongoTool = (toolName: string, timeout: number = 3000): Promise<boole
 const ALLOWED_COLLECTIONS = [
     'invoices', 'quotations', 'purchaseorders', 'ewaybills',
     'services', 'employees', 'stock', 'users', 'settings',
-    'purchases', 'stocks'
+    'purchases', 'stocks', 'customers', 'suppliers', 'payments'
 ];
 
 const COLLECTION_MAPPING: Record<string, string> = {
-    'purchases': 'purchaseorders', 'stocks': 'stock', 'quotations': 'quotations',
+    'purchaseorders': 'purchaseorders', 'purchases': 'purchases',
+    'stocks': 'stock', 'quotations': 'quotations',
     'invoices': 'invoices', 'ewaybills': 'ewaybills', 'services': 'services',
-    'employees': 'employees', 'users': 'users', 'settings': 'settings'
+    'employees': 'employees', 'users': 'users', 'settings': 'settings',
+    'customers': 'customers', 'suppliers': 'suppliers', 'payments': 'payments'
 };
 
 const validateCollection = (req: Request, res: Response, next: NextFunction): void => {
