@@ -104,7 +104,7 @@ router.get("/backup/export/:collection", validateCollection, asyncHandler(async 
             title: `Export ${collection} data`, defaultPath: `${collection}-${timestamp}.json`,
             filters: [{ name: "JSON Files", extensions: ["json"] }, { name: "Compressed JSON", extensions: ["gz"] }]
         });
-        if (result.canceled) { return res.json({ success: true, message: "Export cancelled by user" }); }
+        if (result.canceled) { return res.json({ success: false, cancelled: true, message: "Export cancelled by user" }); }
         const filePath = result.filePath;
         if (!filePath || typeof filePath !== 'string') throw new Error('Invalid file path selected');
         await fsp.mkdir(path.dirname(filePath), { recursive: true });
@@ -114,7 +114,7 @@ router.get("/backup/export/:collection", validateCollection, asyncHandler(async 
             logger.warn('MongoDB tools unavailable, using native export', { service: "settings", collection });
             const collectionModel = mongoose.connection.db!.collection(collection);
             const documents = await collectionModel.find({}).toArray();
-            if (documents.length === 0) return res.json({ success: true, message: `No data found in collection '${collection}' to export.` });
+            if (documents.length === 0) return res.json({ success: false, cancelled: true, message: `No data found in collection '${collection}' to export.` });
             await fsp.writeFile(filePath, JSON.stringify(documents, null, 2), 'utf8');
             return res.json({ success: true, message: `Successfully exported ${documents.length} documents from '${collection}' to ${path.basename(filePath)}` });
         }
