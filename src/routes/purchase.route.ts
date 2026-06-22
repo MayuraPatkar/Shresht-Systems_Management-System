@@ -76,7 +76,8 @@ router.post("/save-purchase", async (req: Request, res: Response) => {
             supplier_snapshot,
             items = [] as any[],
             totals,
-            payment
+            payment,
+            purchase_order_no
         } = req.body;
 
         // Attempt to find an existing document using the provided ID
@@ -102,6 +103,9 @@ router.post("/save-purchase", async (req: Request, res: Response) => {
             purchase.supplier_snapshot = supplier_snapshot;
             purchase.items = items;
             purchase.totals = totals;
+            if (purchase_order_no) {
+                purchase.purchase_order_no = purchase_order_no;
+            }
 
         } else {
             // ---------------------------------------------------------
@@ -119,6 +123,7 @@ router.post("/save-purchase", async (req: Request, res: Response) => {
                 supplier_snapshot,
                 items,
                 totals,
+                purchase_order_no
             });
         }
 

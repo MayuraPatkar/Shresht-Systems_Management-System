@@ -728,9 +728,25 @@
             }
 
             (document.getElementById("purchase-invoice-id") as HTMLInputElement).value = purchase.purchase_invoice_no || purchase.purchase_no || "";
+            const convertedPoIdInput = document.getElementById("converted-po-id") as HTMLInputElement | null;
+            if (convertedPoIdInput) {
+                convertedPoIdInput.value = purchase.purchase_order_no || "";
+            }
             const snapshot = purchase.supplier_snapshot || {};
             (document.getElementById("supplier-id") as HTMLInputElement).value = purchase.supplier_id || "";
-            (document.getElementById("supplier-search-input") as HTMLInputElement).value = snapshot.name || "";
+            const supplierSearchInput = document.getElementById("supplier-search-input") as HTMLInputElement | null;
+            if (supplierSearchInput) {
+                supplierSearchInput.value = snapshot.name || "";
+                supplierSearchInput.disabled = !!purchase.purchase_order_no;
+            }
+            const supplierSearchContainer = document.getElementById("supplier-search-container");
+            if (supplierSearchContainer) {
+                if (purchase.purchase_order_no) {
+                    supplierSearchContainer.classList.add("hidden");
+                } else {
+                    supplierSearchContainer.classList.remove("hidden");
+                }
+            }
             (document.getElementById("supplier-name") as HTMLInputElement).value = snapshot.name || "";
             const addr = snapshot.address || {};
             (document.getElementById("supplier-address-line1") as HTMLInputElement).value = addr.line1 || "";
@@ -1062,11 +1078,23 @@ if (newSection) newSection.style.display = "block";
 
             (document.getElementById("purchase-invoice-id") as HTMLInputElement).value = "";
             (document.getElementById("id") as HTMLInputElement).value = "";
+            const convertedPoIdInput = document.getElementById("converted-po-id") as HTMLInputElement | null;
+            if (convertedPoIdInput) {
+                convertedPoIdInput.value = poId;
+            }
             purchaseId = "";
 
             const snapshot = purchaseOrder.supplier_snapshot || {};
             (document.getElementById("supplier-id") as HTMLInputElement).value = purchaseOrder.supplier_id || "";
-            (document.getElementById("supplier-search-input") as HTMLInputElement).value = snapshot.name || "";
+            const supplierSearchInput = document.getElementById("supplier-search-input") as HTMLInputElement;
+            if (supplierSearchInput) {
+                supplierSearchInput.value = snapshot.name || "";
+                supplierSearchInput.disabled = true;
+            }
+            const supplierSearchContainer = document.getElementById("supplier-search-container");
+            if (supplierSearchContainer) {
+                supplierSearchContainer.classList.add("hidden");
+            }
             (document.getElementById("supplier-name") as HTMLInputElement).value = snapshot.name || "";
             const addr = snapshot.address || {};
             (document.getElementById("supplier-address-line1") as HTMLInputElement).value = addr.line1 || "";
@@ -1472,6 +1500,7 @@ if (newSection) newSection.style.display = "block";
 
         return {
             purchase_no: (document.getElementById("id") as HTMLInputElement)?.value || "",
+            purchase_order_no: (document.getElementById("converted-po-id") as HTMLInputElement)?.value || "",
             purchase_invoice_no: (document.getElementById("purchase-invoice-id") as HTMLInputElement)?.value || "",
             purchase_date: (document.getElementById("purchase-date") as HTMLInputElement)?.value || "",
             supplier_id: (document.getElementById("supplier-id") as HTMLInputElement)?.value || "",
@@ -2337,10 +2366,19 @@ if (newSection) newSection.style.display = "block";
         } else {
             sessionStorage.setItem('currentTab-status', 'new');
             form.reset();
+            const convertedPoIdInput = document.getElementById('converted-po-id') as HTMLInputElement | null;
+            if (convertedPoIdInput) convertedPoIdInput.value = '';
             const supplierIdInput = document.getElementById('supplier-id') as HTMLInputElement | null;
             if (supplierIdInput) supplierIdInput.value = '';
             const supplierSearchInput = document.getElementById('supplier-search-input') as HTMLInputElement | null;
-            if (supplierSearchInput) supplierSearchInput.value = '';
+            if (supplierSearchInput) {
+                supplierSearchInput.value = '';
+                supplierSearchInput.disabled = false;
+            }
+            const supplierSearchContainer = document.getElementById('supplier-search-container');
+            if (supplierSearchContainer) {
+                supplierSearchContainer.classList.remove('hidden');
+            }
 
             const dateInput = document.getElementById('purchase-date') as HTMLInputElement;
             if (dateInput) {

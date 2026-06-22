@@ -46,6 +46,10 @@
             (window as any).purchaseOrderTable.renderPurchaseOrders(filtered);
         }
 
+        if (typeof (window as any).updateTabCounts === 'function') {
+            (window as any).updateTabCounts();
+        }
+
         updateActiveFiltersBar();
     }
 

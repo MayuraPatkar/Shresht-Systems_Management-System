@@ -35,8 +35,35 @@
                 tab.classList.add('active');
                 
                 const status = (tab as HTMLElement).dataset.status;
-                (window as any).statusFilter = status === 'all' ? '' : 'archived';
-                loadRecentPurchaseOrders();
+                if (status === 'archived') {
+                    (window as any).statusFilter = 'archived';
+                    if ((window as any).currentFilters) (window as any).currentFilters.status = 'all';
+                } else {
+                    (window as any).statusFilter = '';
+                    if ((window as any).currentFilters) (window as any).currentFilters.status = status === 'all' ? 'all' : status;
+                }
+                
+                // Sync dropdown UI
+                const statusDropdown = document.getElementById('statusFilterDropdown');
+                if (statusDropdown) {
+                    statusDropdown.querySelectorAll('a').forEach(a => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        const dataVal = a.getAttribute('data-status-filter');
+                        if ((status === 'archived' && dataVal === 'all') || (status !== 'archived' && dataVal === status)) {
+                            a.classList.add('bg-gray-100', 'font-semibold');
+                        }
+                    });
+                }
+                const statusInput = document.getElementById('status-filter') as HTMLInputElement | null;
+                if (statusInput) {
+                    statusInput.value = (status === 'archived') ? 'all' : (status || 'all');
+                }
+                
+                if (typeof (window as any).applyPurchaseOrderFilters === 'function') {
+                    (window as any).applyPurchaseOrderFilters();
+                } else {
+                    loadRecentPurchaseOrders();
+                }
             });
         });
 
@@ -343,13 +370,21 @@
         const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
         if (!statusTabs.length) return;
 
-        const counts = {
-            all: activeCount,
-            archived: archivedCount
+        const activeList = (window as any).allPurchaseOrders || [];
+        const archivedList = (window as any).archivedPurchaseOrders || [];
+
+        const counts: Record<string, number> = {
+            all: activeList.length,
+            archived: archivedList.length,
+            'Draft': activeList.filter((po: any) => (po.status || 'Draft') === 'Draft').length,
+            'Issued/Sent': activeList.filter((po: any) => po.status === 'Issued/Sent').length,
+            'Acknowledged/Accepted': activeList.filter((po: any) => po.status === 'Acknowledged/Accepted').length,
+            'Invoiced': activeList.filter((po: any) => po.status === 'Invoiced').length
         };
 
         const currentStatus = (window as any).statusFilter || '';
-        const activeStatusKey = currentStatus === 'archived' ? 'archived' : 'all';
+        const currentFilterStatus = (window as any).currentFilters?.status || 'all';
+        const activeStatusKey = currentStatus === 'archived' ? 'archived' : currentFilterStatus;
 
         statusTabs.forEach(tab => {
             const status = (tab as HTMLElement).dataset.status || 'all';

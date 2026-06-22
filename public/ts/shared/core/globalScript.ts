@@ -482,6 +482,7 @@ document.addEventListener('DOMContentLoaded', () => {
     '/service': 'service',
     '/payment': 'payment',
     '/voucher': 'voucher',
+    '/stock-movements': 'stockMovements',
     '/stock': 'stock',
     '/comms': 'comms',
     '/reports': 'reports',

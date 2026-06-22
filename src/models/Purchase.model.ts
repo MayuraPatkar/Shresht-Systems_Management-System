@@ -81,6 +81,7 @@ export interface IPurchase extends Document {
     schema_version: number;
 
     purchase_no?: string;
+    purchase_order_no?: string;
     purchase_invoice_no?: string;
     purchase_date: Date;
     due_date?: Date;
@@ -206,6 +207,12 @@ const purchaseSchema = new Schema<IPurchase>(
             type: String,
             unique: true,
             sparse: true,
+            trim: true,
+            index: true,
+        },
+
+        purchase_order_no: {
+            type: String,
             trim: true,
             index: true,
         },

@@ -442,6 +442,9 @@
             }
             
             const purchaseOrder = data.purchaseOrder;
+            if (purchaseOrder) {
+                purchaseOrder.isConverted = data.isConverted;
+            }
             setEditingInline(false);
             renderPurchaseOrderDetails(purchaseOrder);
         } catch (error) {
@@ -703,7 +706,11 @@
             
             if (viewConvertBtn) {
                 viewConvertBtn.style.display = 'flex';
-                if (isPOInvoiced) {
+                if (purchaseOrder.isConverted) {
+                    viewConvertBtn.disabled = true;
+                    viewConvertBtn.className = "view-mode-btn flex bg-gray-200 text-gray-400 border border-gray-300 px-4 h-10 rounded-lg items-center justify-center gap-2 font-medium whitespace-nowrap opacity-60 cursor-not-allowed";
+                    viewConvertBtn.title = "This Purchase Order has already been converted to a Purchase.";
+                } else if (isPOInvoiced) {
                     viewConvertBtn.disabled = false;
                     viewConvertBtn.className = "view-mode-btn flex bg-emerald-600 hover:bg-emerald-700 text-white px-4 h-10 rounded-lg items-center justify-center gap-2 font-medium whitespace-nowrap cursor-pointer";
                     viewConvertBtn.title = "Convert this Invoiced Purchase Order to a Purchase";
@@ -1195,7 +1202,7 @@
         const convertBtn = document.getElementById("view-convert-purchase-btn");
         if (convertBtn) {
             convertBtn.addEventListener("click", () => {
-                if (currentPurchaseOrder && currentPurchaseOrder.status === 'Invoiced') {
+                if (currentPurchaseOrder && currentPurchaseOrder.status === 'Invoiced' && !currentPurchaseOrder.isConverted) {
                     sessionStorage.setItem("purchase-order-to-purchase-id", currentPurchaseOrder.purchase_order_no);
                     sessionStorage.setItem("currentTab-status", "new");
                     window.location.href = "../purchase/purchase_form.html";

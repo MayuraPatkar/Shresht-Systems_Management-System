@@ -1,9 +1,10 @@
 import { Router, Request, Response } from 'express';
-import { PurchaseOrderModel } from '../models';
+import { PurchaseOrderModel, PurchaseModel } from '../models';
 import logger from '../utils/logger';
 import { previewNextId, generateNextId } from '../utils/idGenerator';
 
 const router: Router = Router();
+
 
 /**
  * Route: Generate a Preview ID
@@ -185,7 +186,12 @@ router.get("/:purchaseOrderId", async (req: Request, res: Response) => {
         if (!purchaseOrder) {
             return res.status(404).json({ message: 'Purchase order not found' });
         }
-        res.status(200).json({ message: "Purchase order retrieved successfully", purchaseOrder });
+        const purchaseExists = await PurchaseModel.exists({ purchase_order_no: purchaseOrderId });
+        res.status(200).json({ 
+            message: "Purchase order retrieved successfully", 
+            purchaseOrder,
+            isConverted: !!purchaseExists
+        });
     } catch (error: unknown) {
         logger.error("Error retrieving purchase order:", error);
         res.status(500).json({ message: "Internal server error", error: (error as Error).message });

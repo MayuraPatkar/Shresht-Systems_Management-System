@@ -103,12 +103,7 @@ router.get('/stock', async (req: Request, res: Response) => {
                 dateRange.$lte = endDate;
             }
 
-            queryParts.push({
-                $or: [
-                    { createdAt: dateRange },
-                    { timestamp: dateRange }
-                ]
-            });
+            queryParts.push({ createdAt: dateRange });
         }
 
         if (item_id) {
@@ -142,7 +137,7 @@ router.get('/stock', async (req: Request, res: Response) => {
             query.$and = queryParts;
         }
 
-        const movements = await StockMovementModel.find(query).sort({ createdAt: -1, timestamp: -1 }).limit(1000).lean();
+        const movements = await StockMovementModel.find(query).sort({ createdAt: -1 }).limit(1000).lean();
         const allMovements = movements.map(normalizeStockMovement);
 
         const summary: any = {
@@ -217,7 +212,7 @@ router.get('/stock/summary', async (req: Request, res: Response) => {
             const dateRange: any = {};
             if (start_date) dateRange.$gte = new Date(start_date);
             if (end_date) { const endDate = new Date(end_date); endDate.setHours(23, 59, 59, 999); dateRange.$lte = endDate; }
-            matchStage.$or = [{ createdAt: dateRange }, { timestamp: dateRange }];
+            matchStage.createdAt = dateRange;
         }
 
         const summary = await StockMovementModel.aggregate([

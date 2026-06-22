@@ -72,7 +72,7 @@ class StockReportComponent {
 
         this.selectedItemId = null;
 
-        const tbody = document.getElementById('stock-report-body');
+        const tbody = this.getTbody();
         if (tbody) {
             tbody.innerHTML = `
                 <tr>
@@ -105,7 +105,7 @@ class StockReportComponent {
         const movementType = movementTypeInput?.value || 'all';
         const itemFilter = itemFilterInput?.value || '';
 
-        const tbody = document.getElementById('stock-report-body');
+        const tbody = this.getTbody();
         if (!tbody) return;
 
         tbody.innerHTML = `
@@ -177,7 +177,7 @@ class StockReportComponent {
     }
 
     async generateStockReportFromStock(startDate: string, endDate: string, movementType: string, itemFilter: string): Promise<void> {
-        const tbody = document.getElementById('stock-report-body');
+        const tbody = this.getTbody();
         if (!tbody) return;
 
         try {
@@ -243,7 +243,7 @@ class StockReportComponent {
     }
 
     renderStockReport(movements: StockMovement[], summary: StockReportSummary | null): void {
-        const tbody = document.getElementById('stock-report-body');
+        const tbody = this.getTbody();
         if (!tbody) return;
 
         const visibleMovements = movements ? movements.filter(m => m.movement_type !== 'adjustment') : [];
@@ -464,6 +464,10 @@ class StockReportComponent {
 
         this.stockReportSummary = summary;
         this.renderStockReport(this.stockReportData, summary);
+    }
+
+    private getTbody(): HTMLElement | null {
+        return document.getElementById('stock-report-body') || document.getElementById('stock-report-tbody');
     }
 
     private normalizeStockMovements(movements: any[]): StockMovement[] {
