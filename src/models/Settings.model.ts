@@ -121,7 +121,7 @@ const numberingSchema = new Schema<INumbering>(
     {
         invoice_prefix: { type: String, default: "INV", uppercase: true, minlength: 1, maxlength: 5 },
         quotation_prefix: { type: String, default: "QUO", uppercase: true, minlength: 1, maxlength: 5 },
-        purchase_prefix: { type: String, default: "PO", uppercase: true, minlength: 1, maxlength: 5 },
+        purchase_prefix: { type: String, default: "PUR", uppercase: true, minlength: 1, maxlength: 5 },
         service_prefix: { type: String, default: "SRV", uppercase: true, minlength: 1, maxlength: 5 },
     },
     { _id: false }
@@ -147,9 +147,9 @@ const backupSchema = new Schema<IBackup>(
  */
 const securitySchema = new Schema<ISecurity>(
     {
-        session_timeout: { type: Number, default: 30 },
-        max_login_attempts: { type: Number, default: 5 },
-        lockout_duration: { type: Number, default: 15 },
+        session_timeout: { type: Number, default: 30, min: 5, max: 1440 },
+        max_login_attempts: { type: Number, default: 5, min: 1, max: 10 },
+        lockout_duration: { type: Number, default: 15, min: 1, max: 60 },
     },
     { _id: false }
 );

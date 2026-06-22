@@ -967,4 +967,183 @@ export function deletePDF(filename: string): void {
     }
 }
 
+/**
+ * Generate PDF from HTML and save it directly to the specified destination path
+ */
+export async function generatePDFToPath(html: string, outputPath: string): Promise<PDFResult> {
+    let browser: any = null;
+
+    try {
+        browser = await puppeteer.launch({
+            headless: true,
+            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+        });
+
+        const page = await browser.newPage();
+        await page.setContent(html, { waitUntil: "networkidle0" as any });
+
+        await page.pdf({
+            path: outputPath,
+            format: "A4",
+            printBackground: true,
+            margin: { top: "0", bottom: "0", left: "0", right: "0" },
+        });
+
+        return { success: true, path: outputPath, filename: path.basename(outputPath) };
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        logger.error("PDF generation to path error:", error);
+        return { success: false, error: message };
+    } finally {
+        if (browser) {
+            await browser.close();
+        }
+    }
+}
+
+/**
+ * Generate Company Profile PDF
+ */
+export async function generateCompanyProfilePDF(admin: any, outputPath: string): Promise<PDFResult> {
+    const formattedDate = new Date().toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+    });
+
+    const htmlContent = `
+    <div style="padding: 40px; font-family: 'Inter', sans-serif; color: #1e293b; max-width: 210mm; min-height: 297mm; background: #ffffff;">
+        <!-- Header -->
+        <div style="border-bottom: 2px solid #6366f1; padding-bottom: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end;">
+            <div>
+                <h1 style="font-size: 24px; font-weight: 800; color: #0f172a; margin: 0; letter-spacing: -0.02em;">${admin.company_name}</h1>
+                <p style="font-size: 10px; font-weight: 600; color: #6366f1; margin: 4px 0 0 0; text-transform: uppercase; letter-spacing: 0.05em;">Corporate profile & details</p>
+            </div>
+            <div style="text-align: right;">
+                <p style="font-size: 9px; font-weight: 600; color: #94a3b8; margin: 0; text-transform: uppercase;">Generated On</p>
+                <p style="font-size: 12px; font-weight: 700; color: #334155; margin: 2px 0 0 0;">${formattedDate}</p>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <!-- Business Information -->
+            <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; background: #f8fafc;">
+                <h2 style="font-size: 12px; font-weight: 700; color: #4f46e5; margin: 0 0 12px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em;">Business Details</h2>
+                
+                <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 6px 0; font-weight: 600; color: #64748b; width: 35%;">Company Name</td>
+                        <td style="padding: 6px 0; font-weight: 700; color: #0f172a;">${admin.company_name}</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 6px 0; font-weight: 600; color: #64748b;">GSTIN</td>
+                        <td style="padding: 6px 0; font-weight: 700; color: #0f172a; font-family: monospace; font-size: 12px;">${admin.gstin || '-'}</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 6px 0; font-weight: 600; color: #64748b;">Email</td>
+                        <td style="padding: 6px 0; font-weight: 600; color: #0f172a;">${admin.email || '-'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 6px 0; font-weight: 600; color: #64748b;">Website</td>
+                        <td style="padding: 6px 0; font-weight: 600; color: #4f46e5;">${admin.website || '-'}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Location & Contact -->
+            <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; background: #f8fafc;">
+                <h2 style="font-size: 12px; font-weight: 700; color: #4f46e5; margin: 0 0 12px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em;">Contact & Address</h2>
+                
+                <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 6px 0; font-weight: 600; color: #64748b; width: 30%; vertical-align: top;">Address</td>
+                        <td style="padding: 6px 0; font-weight: 600; color: #0f172a; line-height: 1.4;">
+                            ${admin.address?.line1 || ''}<br/>
+                            ${admin.address?.line2 ? admin.address.line2 + '<br/>' : ''}
+                            ${admin.address?.city || ''}, ${admin.address?.state || ''} - ${admin.address?.pincode || ''}<br/>
+                            ${admin.address?.country || 'India'}
+                        </td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 6px 0; font-weight: 600; color: #64748b;">Phone 1</td>
+                        <td style="padding: 6px 0; font-weight: 600; color: #0f172a;">${admin.phone?.ph1 || '-'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 6px 0; font-weight: 600; color: #64748b;">Phone 2</td>
+                        <td style="padding: 6px 0; font-weight: 600; color: #0f172a;">${admin.phone?.ph2 || '-'}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Bank Details -->
+        <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; background: #f8fafc; margin-bottom: 30px;">
+            <h2 style="font-size: 13px; font-weight: 700; color: #4f46e5; margin: 0 0 16px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;">Bank & Payout Information</h2>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px 30px;">
+                <div>
+                    <p style="font-size: 9px; font-weight: 600; color: #64748b; margin: 0; text-transform: uppercase;">Bank Name</p>
+                    <p style="font-size: 12px; font-weight: 700; color: #0f172a; margin: 2px 0 0 0;">${admin.bank_details?.bank_name || '-'}</p>
+                </div>
+                <div>
+                    <p style="font-size: 9px; font-weight: 600; color: #64748b; margin: 0; text-transform: uppercase;">Account Holder Name</p>
+                    <p style="font-size: 12px; font-weight: 700; color: #0f172a; margin: 2px 0 0 0;">${admin.bank_details?.account_holder_name || '-'}</p>
+                </div>
+                <div>
+                    <p style="font-size: 9px; font-weight: 600; color: #64748b; margin: 0; text-transform: uppercase;">Account Number</p>
+                    <p style="font-size: 12px; font-weight: 700; color: #0f172a; margin: 2px 0 0 0; font-family: monospace; font-size: 13px;">${admin.bank_details?.account_number || '-'}</p>
+                </div>
+                <div>
+                    <p style="font-size: 9px; font-weight: 600; color: #64748b; margin: 0; text-transform: uppercase;">Account Type</p>
+                    <p style="font-size: 12px; font-weight: 600; color: #0f172a; margin: 2px 0 0 0; text-transform: capitalize;">${admin.bank_details?.type || '-'}</p>
+                </div>
+                <div>
+                    <p style="font-size: 9px; font-weight: 600; color: #64748b; margin: 0; text-transform: uppercase;">IFSC Code</p>
+                    <p style="font-size: 12px; font-weight: 700; color: #0f172a; margin: 2px 0 0 0; font-family: monospace; font-size: 13px;">${admin.bank_details?.ifsc_code || '-'}</p>
+                </div>
+                <div>
+                    <p style="font-size: 9px; font-weight: 600; color: #64748b; margin: 0; text-transform: uppercase;">Branch</p>
+                    <p style="font-size: 12px; font-weight: 600; color: #0f172a; margin: 2px 0 0 0;">${admin.bank_details?.branch || '-'}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Stamp -->
+        <div style="border-top: 1px solid #e2e8f0; padding-top: 16px; text-align: center; font-size: 9px; color: #94a3b8; font-weight: 500;">
+            This document was automatically generated by Shresht Systems Management System.
+        </div>
+    </div>
+    `;
+
+    const fullHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+            background: #ffffff !important;
+        }
+        @page { size: A4; margin: 0; }
+        @media print {
+            body { margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0;">
+    ${htmlContent}
+</body>
+</html>`;
+
+    return generatePDFToPath(fullHTML, outputPath);
+}
+
 export { UPLOADS_DIR };

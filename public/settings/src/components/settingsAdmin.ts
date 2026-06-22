@@ -34,6 +34,63 @@ class SettingsAdmin {
             });
         });
 
+        // Clear username validation errors on typing
+        const usernameInput = document.getElementById("username") as HTMLInputElement;
+        usernameInput?.addEventListener("input", () => this.clearFieldError(usernameInput));
+
+        // Clear password validation errors on typing
+        passwordFields.forEach(id => {
+            const input = document.getElementById(id) as HTMLInputElement;
+            input?.addEventListener("input", () => this.clearFieldError(input));
+        });
+
+        // Clear company details validation errors on typing
+        const companyFields = [
+            "edit-address-line1", "edit-address-line2", "edit-address-city", 
+            "edit-address-pincode", "edit-state", "edit-gstin", 
+            "edit-phone1", "edit-phone2", "edit-email", "edit-website", 
+            "edit-bank-name", "edit-account-holder", "edit-account-number", 
+            "edit-ifsc", "edit-branch"
+        ];
+        companyFields.forEach(id => {
+            const input = document.getElementById(id) as HTMLInputElement;
+            input?.addEventListener("input", () => this.clearFieldError(input));
+        });
+
+        // Restrict to numeric input with length constraints
+        const numericInputs = [
+            { id: "edit-address-pincode", max: 6 },
+            { id: "edit-phone1", max: 10 },
+            { id: "edit-phone2", max: 10 },
+            { id: "edit-account-number", max: undefined }
+        ];
+        numericInputs.forEach(item => {
+            const input = document.getElementById(item.id) as HTMLInputElement;
+            if (input && (window as any).setupNumericInput) {
+                (window as any).setupNumericInput(input, item.max);
+            }
+        });
+
+        // Restrict State, Bank Name, and Account Holder to alphabetic characters and spaces only
+        const alphaFields = ["edit-state", "edit-bank-name", "edit-account-holder"];
+        alphaFields.forEach(id => {
+            const input = document.getElementById(id) as HTMLInputElement;
+            input?.addEventListener("input", () => {
+                input.value = input.value.replace(/[^a-zA-Z\s]/g, "");
+            });
+        });
+
+        // Auto-uppercase GSTIN and IFSC inputs, and cap GSTIN at 15 characters
+        const gstinInput = document.getElementById("edit-gstin") as HTMLInputElement;
+        gstinInput?.addEventListener("input", () => {
+            gstinInput.value = gstinInput.value.toUpperCase().slice(0, 15);
+        });
+
+        const ifscInput = document.getElementById("edit-ifsc") as HTMLInputElement;
+        ifscInput?.addEventListener("input", () => {
+            ifscInput.value = ifscInput.value.toUpperCase();
+        });
+
         // Interactive password toggles
         document.querySelectorAll(".password-toggle-btn").forEach(btn => {
             btn.addEventListener("click", (e) => {
@@ -274,18 +331,143 @@ class SettingsAdmin {
             }
         };
 
-        // Validate required fields
-        if (!updatedData.company_name || !line1Input || !cityInput || !stateInput || !pincodeInput || !updatedData.phone?.ph1 || !updatedData.email) {
-            (window as any).electronAPI.showAlert1("Please fill in all required fields (Company Name, Address Line 1, City, State, Pincode, Phone 1, Email)");
-            saveButton.disabled = false;
-            saveButton.innerHTML = originalContent;
-            return;
+        // Validate fields
+        let hasError = false;
+
+        const line1El = document.getElementById("edit-address-line1") as HTMLInputElement;
+        if (!line1Input) {
+            this.showFieldError(line1El, "Address Line 1 is required.");
+            hasError = true;
         }
 
-        // Validate email format
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(updatedData.email)) {
-            (window as any).electronAPI.showAlert1("Please enter a valid email address");
+        const line2El = document.getElementById("edit-address-line2") as HTMLInputElement;
+        if (!line2Input) {
+            this.showFieldError(line2El, "Address Line 2 is required.");
+            hasError = true;
+        }
+
+        const cityEl = document.getElementById("edit-address-city") as HTMLInputElement;
+        if (!cityInput) {
+            this.showFieldError(cityEl, "City is required.");
+            hasError = true;
+        }
+
+        const stateEl = document.getElementById("edit-state") as HTMLInputElement;
+        if (!stateInput) {
+            this.showFieldError(stateEl, "State is required.");
+            hasError = true;
+        } else if (!/^[a-zA-Z\s]+$/.test(stateInput)) {
+            this.showFieldError(stateEl, "State must contain only letters and spaces.");
+            hasError = true;
+        }
+
+        const pincodeEl = document.getElementById("edit-address-pincode") as HTMLInputElement;
+        if (!pincodeInput) {
+            this.showFieldError(pincodeEl, "Pincode is required.");
+            hasError = true;
+        } else if (pincodeInput.length !== 6) {
+            this.showFieldError(pincodeEl, "Pincode must be exactly 6 digits.");
+            hasError = true;
+        }
+
+        const phone1El = document.getElementById("edit-phone1") as HTMLInputElement;
+        const phone1Val = updatedData.phone?.ph1 || "";
+        if (!phone1Val) {
+            this.showFieldError(phone1El, "Phone 1 is required.");
+            hasError = true;
+        } else if (phone1Val.length !== 10) {
+            this.showFieldError(phone1El, "Phone 1 must be exactly 10 digits.");
+            hasError = true;
+        }
+
+        const phone2El = document.getElementById("edit-phone2") as HTMLInputElement;
+        const phone2Val = updatedData.phone?.ph2 || "";
+        if (!phone2Val) {
+            this.showFieldError(phone2El, "Phone 2 is required.");
+            hasError = true;
+        } else if (phone2Val.length !== 10) {
+            this.showFieldError(phone2El, "Phone 2 must be exactly 10 digits.");
+            hasError = true;
+        }
+
+        const emailEl = document.getElementById("edit-email") as HTMLInputElement;
+        const emailVal = updatedData.email || "";
+        if (!emailVal) {
+            this.showFieldError(emailEl, "Email is required.");
+            hasError = true;
+        } else {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(emailVal)) {
+                this.showFieldError(emailEl, "Please enter a valid email address.");
+                hasError = true;
+            }
+        }
+
+        const gstinEl = document.getElementById("edit-gstin") as HTMLInputElement;
+        const gstinVal = updatedData.gstin || "";
+        if (!gstinVal) {
+            this.showFieldError(gstinEl, "GSTIN is required.");
+            hasError = true;
+        } else if (gstinVal.length !== 15) {
+            this.showFieldError(gstinEl, "GSTIN must be exactly 15 characters.");
+            hasError = true;
+        }
+
+        const websiteEl = document.getElementById("edit-website") as HTMLInputElement;
+        const websiteVal = updatedData.website || "";
+        if (!websiteVal) {
+            this.showFieldError(websiteEl, "Website URL is required.");
+            hasError = true;
+        } else {
+            const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/i;
+            if (!urlPattern.test(websiteVal)) {
+                this.showFieldError(websiteEl, "Please enter a valid website URL.");
+                hasError = true;
+            }
+        }
+
+        const bankNameEl = document.getElementById("edit-bank-name") as HTMLInputElement;
+        const bankNameVal = updatedData.bank_details?.bank_name || "";
+        if (!bankNameVal) {
+            this.showFieldError(bankNameEl, "Bank name is required.");
+            hasError = true;
+        } else if (!/^[a-zA-Z\s]+$/.test(bankNameVal)) {
+            this.showFieldError(bankNameEl, "Bank name must contain only letters and spaces.");
+            hasError = true;
+        }
+
+        const accHolderEl = document.getElementById("edit-account-holder") as HTMLInputElement;
+        const accHolderVal = updatedData.bank_details?.account_holder_name || "";
+        if (!accHolderVal) {
+            this.showFieldError(accHolderEl, "Account holder is required.");
+            hasError = true;
+        } else if (!/^[a-zA-Z\s]+$/.test(accHolderVal)) {
+            this.showFieldError(accHolderEl, "Account holder name must contain only letters and spaces.");
+            hasError = true;
+        }
+
+        const accNoEl = document.getElementById("edit-account-number") as HTMLInputElement;
+        const accNoVal = updatedData.bank_details?.account_number || "";
+        if (!accNoVal) {
+            this.showFieldError(accNoEl, "Account number is required.");
+            hasError = true;
+        }
+
+        const ifscEl = document.getElementById("edit-ifsc") as HTMLInputElement;
+        const ifscVal = updatedData.bank_details?.ifsc_code || "";
+        if (!ifscVal) {
+            this.showFieldError(ifscEl, "IFSC Code is required.");
+            hasError = true;
+        }
+
+        const branchEl = document.getElementById("edit-branch") as HTMLInputElement;
+        const branchVal = updatedData.bank_details?.branch || "";
+        if (!branchVal) {
+            this.showFieldError(branchEl, "Branch is required.");
+            hasError = true;
+        }
+
+        if (hasError) {
             saveButton.disabled = false;
             saveButton.innerHTML = originalContent;
             return;
@@ -313,17 +495,26 @@ class SettingsAdmin {
     }
 
     private handleChangeUsername(): void {
-        const username = (document.getElementById("username") as HTMLInputElement).value.trim();
+        const usernameInput = document.getElementById("username") as HTMLInputElement;
+        const username = usernameInput.value.trim();
+
+        this.clearFieldError(usernameInput);
 
         if (!username) {
-            (window as any).electronAPI.showAlert1("Username cannot be empty.");
+            this.showFieldError(usernameInput, "Username cannot be empty.");
             return;
         }
 
         // Validate username (alphanumeric and underscore only, 3-20 chars)
         const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
         if (!usernameRegex.test(username)) {
-            (window as any).electronAPI.showAlert1("Username must be 3-20 characters and contain only letters, numbers, and underscores.");
+            this.showFieldError(usernameInput, "Username must be 3-20 characters and contain only letters, numbers, and underscores.");
+            return;
+        }
+
+        // Check if the username is identical to the current one
+        if (this.originalAdminData && this.originalAdminData.username === username) {
+            this.showFieldError(usernameInput, "New username must be different from current username.");
             return;
         }
 
@@ -336,10 +527,20 @@ class SettingsAdmin {
         settingsApi.changeUsername(username)
             .then((data: { success: boolean; message: string }) => {
                 (window as any).electronAPI.showAlert1(data.message);
+                sessionStorage.setItem('username', username);
+                if (this.originalAdminData) {
+                    this.originalAdminData.username = username;
+                }
+                usernameInput.value = "";
             })
             .catch((error: any) => {
                 console.error("Error changing username:", error);
-                (window as any).electronAPI.showAlert1("Failed to change username. Please try again.");
+                const msg = error.message || "Failed to change username. Please try again.";
+                if (msg.toLowerCase().includes("different") || msg.toLowerCase().includes("username")) {
+                    this.showFieldError(usernameInput, msg);
+                } else {
+                    (window as any).electronAPI.showAlert1(msg);
+                }
             })
             .finally(() => {
                 changeButton.disabled = false;
@@ -348,23 +549,46 @@ class SettingsAdmin {
     }
 
     private handleChangePassword(): void {
-        const oldPassword = (document.getElementById("old-password") as HTMLInputElement).value.trim();
-        const newPassword = (document.getElementById("new-password") as HTMLInputElement).value.trim();
-        const confirmPassword = (document.getElementById("confirm-password") as HTMLInputElement).value.trim();
+        const oldPasswordInput = document.getElementById("old-password") as HTMLInputElement;
+        const newPasswordInput = document.getElementById("new-password") as HTMLInputElement;
+        const confirmPasswordInput = document.getElementById("confirm-password") as HTMLInputElement;
 
-        if (!oldPassword || !newPassword || !confirmPassword) {
-            (window as any).electronAPI.showAlert1("All password fields are required.");
+        const oldPassword = oldPasswordInput.value.trim();
+        const newPassword = newPasswordInput.value.trim();
+        const confirmPassword = confirmPasswordInput.value.trim();
+
+        this.clearFieldError(oldPasswordInput);
+        this.clearFieldError(newPasswordInput);
+        this.clearFieldError(confirmPasswordInput);
+
+        let hasError = false;
+        if (!oldPassword) {
+            this.showFieldError(oldPasswordInput, "Old password is required.");
+            hasError = true;
+        }
+        if (!newPassword) {
+            this.showFieldError(newPasswordInput, "New password is required.");
+            hasError = true;
+        }
+        if (!confirmPassword) {
+            this.showFieldError(confirmPasswordInput, "Confirm password is required.");
+            hasError = true;
+        }
+        if (hasError) return;
+
+        if (newPassword !== confirmPassword) {
+            this.showFieldError(confirmPasswordInput, "New password and confirm password do not match.");
             return;
         }
 
-        if (newPassword !== confirmPassword) {
-            (window as any).electronAPI.showAlert1("New password and confirm password do not match.");
+        if (oldPassword === newPassword) {
+            this.showFieldError(newPasswordInput, "New password must be different from old password.");
             return;
         }
 
         // Basic password strength validation
         if (newPassword.length < 4) {
-            (window as any).electronAPI.showAlert1("New password must be at least 4 characters long.");
+            this.showFieldError(newPasswordInput, "New password must be at least 4 characters long.");
             return;
         }
 
@@ -378,19 +602,69 @@ class SettingsAdmin {
             .then((data: { success: boolean; message: string }) => {
                 (window as any).electronAPI.showAlert1(data.message);
                 if (data.message.includes("success")) {
-                    (document.getElementById("old-password") as HTMLInputElement).value = "";
-                    (document.getElementById("new-password") as HTMLInputElement).value = "";
-                    (document.getElementById("confirm-password") as HTMLInputElement).value = "";
+                    oldPasswordInput.value = "";
+                    newPasswordInput.value = "";
+                    confirmPasswordInput.value = "";
                 }
             })
             .catch((error: any) => {
                 console.error("Error changing password:", error);
-                (window as any).electronAPI.showAlert1("Failed to change password. Please try again.");
+                const msg = error.message || "Failed to change password. Please try again.";
+                if (msg.toLowerCase().includes("invalid old password")) {
+                    this.showFieldError(oldPasswordInput, msg);
+                } else if (msg.toLowerCase().includes("different")) {
+                    this.showFieldError(newPasswordInput, msg);
+                } else {
+                    (window as any).electronAPI.showAlert1(msg);
+                }
             })
             .finally(() => {
                 changeButton.disabled = false;
                 changeButton.innerHTML = originalContent;
             });
+    }
+
+    private showFieldError(input: HTMLInputElement, message: string): void {
+        this.clearFieldError(input);
+
+        // Apply error borders and focus ring classes
+        input.classList.add('border-red-500', 'focus:border-red-555', 'focus:ring-red-500/20');
+        input.style.borderColor = '#ef4444';
+        input.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
+
+        // Accessibility attributes
+        input.setAttribute('aria-invalid', 'true');
+        const errorId = `${input.id}-error`;
+        input.setAttribute('aria-describedby', errorId);
+
+        // Create error message node
+        const errorMsg = document.createElement('div');
+        errorMsg.id = errorId;
+        errorMsg.className = 'text-[11px] font-semibold text-red-655 mt-1 transition-all duration-200 ease-in-out error-message-inline';
+        errorMsg.textContent = message;
+
+        const parent = input.parentElement;
+        if (parent) {
+            if (parent.classList.contains('relative')) {
+                parent.parentElement?.appendChild(errorMsg);
+            } else {
+                parent.appendChild(errorMsg);
+            }
+        }
+    }
+
+    private clearFieldError(input: HTMLInputElement): void {
+        input.classList.remove('border-red-500', 'focus:border-red-550', 'focus:ring-red-500/20');
+        input.style.borderColor = '';
+        input.style.boxShadow = '';
+        input.removeAttribute('aria-invalid');
+        input.removeAttribute('aria-describedby');
+
+        const errorId = `${input.id}-error`;
+        const errorMsg = document.getElementById(errorId);
+        if (errorMsg) {
+            errorMsg.remove();
+        }
     }
 
     private handleLogout(): void {
@@ -408,18 +682,18 @@ class SettingsAdmin {
         if (!btn) return;
         const originalHTML = btn.innerHTML;
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
         settingsApi.exportCompanyInfo()
             .then((data: any) => {
                 if (data.success) {
-                    (window as any).electronAPI.showAlert1(data.message || "Company details exported successfully!");
+                    (window as any).electronAPI.showAlert1(data.message || "Company details downloaded successfully!");
                 } else {
-                    (window as any).electronAPI.showAlert1("Failed to export company details: " + (data.message || "Unknown error"));
+                    (window as any).electronAPI.showAlert1("Failed to download company details: " + (data.message || "Unknown error"));
                 }
             })
             .catch((error: any) => {
-                console.error("Error exporting company details:", error);
-                (window as any).electronAPI.showAlert1("Failed to export company details. Please try again.");
+                console.error("Error downloading company details:", error);
+                (window as any).electronAPI.showAlert1("Failed to download company details. Please try again.");
             })
             .finally(() => {
                 btn.disabled = false;

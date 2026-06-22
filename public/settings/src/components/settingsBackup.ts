@@ -105,31 +105,42 @@ class SettingsBackup {
         exportButton.disabled = true;
         exportButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
 
+        const displayNames: Record<string, string> = {
+            'customers': 'Customers', 'quotations': 'Quotation', 'suppliers': 'Suppliers',
+            'purchaseorders': 'Purchase Order', 'invoices': 'Invoice', 'ewaybills': 'E-Way Bill',
+            'services': 'Service', 'purchases': 'Purchases', 'payments': 'Payments', 'stocks': 'Stock'
+        };
+        const getDisplayName = (value: string) => displayNames[value] || value;
+
         const promises = checkedElements.map(el => {
             return settingsApi.exportData(el.value)
-                .then((data: { success: boolean; message?: string; fileSize?: number }) => {
-                    return { name: el.value, success: data.success, message: data.message || '', fileSize: data.fileSize || 0 };
+                .then((data: { success: boolean; cancelled?: boolean; message?: string; fileSize?: number }) => {
+                    return { name: el.value, success: data.success, cancelled: !!data.cancelled, message: data.message || '', fileSize: data.fileSize || 0 };
                 })
                 .catch((err: any) => {
-                    return { name: el.value, success: false, message: err.message, fileSize: 0 };
+                    return { name: el.value, success: false, cancelled: false, message: err.message, fileSize: 0 };
                 });
         });
 
         Promise.all(promises)
             .then(results => {
-                const successExports = results.filter(r => r.success);
-                const failedExports = results.filter(r => !r.success);
+                const successExports = results.filter(r => r.success && !r.cancelled);
+                const failedExports = results.filter(r => !r.success && !r.cancelled);
+                const cancelledExports = results.filter(r => r.cancelled);
 
-                let alertMsg = "";
+                const parts: string[] = [];
                 if (successExports.length > 0) {
-                    alertMsg += `Exported: ${successExports.map(s => `${s.name} (${(s.fileSize / 1024).toFixed(2)} KB)`).join(', ')}. `;
+                    parts.push(`Exported: ${successExports.map(s => `${getDisplayName(s.name)} (${(s.fileSize / 1024).toFixed(2)} KB)`).join(', ')}.`);
                 }
                 if (failedExports.length > 0) {
-                    alertMsg += `Failed: ${failedExports.map(f => `${f.name}: ${f.message}`).join(', ')}.`;
+                    parts.push(`Failed: ${failedExports.map(f => `${getDisplayName(f.name)} - ${f.message}`).join(', ')}.`);
+                }
+                if (cancelledExports.length > 0) {
+                    parts.push(`Cancelled: ${cancelledExports.map(c => getDisplayName(c.name)).join(', ')}.`);
                 }
 
-                if (alertMsg) {
-                    (window as any).electronAPI.showAlert1(alertMsg);
+                if (parts.length > 0) {
+                    (window as any).electronAPI.showAlert1(parts.join(' '));
                 }
             })
             .catch((err: any) => {
@@ -280,12 +291,21 @@ class SettingsBackup {
         const manualButton = document.getElementById("manual-backup-button") as HTMLButtonElement;
         if (!manualButton) return;
 
+        const backupLocationInput = document.getElementById("backup-location") as HTMLInputElement;
+        const currentInputValue = backupLocationInput ? backupLocationInput.value.trim() : "";
+
         settingsApi.getPreferences()
             .then((data: { success: boolean; settings: SystemPreferences }) => {
-                const location = data.settings?.backup?.backup_location;
+                const savedLocation = data.settings?.backup?.backup_location || "";
+                const normalizedSaved = (savedLocation === './backups' || savedLocation === '.\\backups') ? "" : savedLocation.trim();
 
-                if (!location || !location.trim() || location === './backups' || location === '.\\backups') {
-                    (window as any).electronAPI.showAlert1("Please configure a backup location in Preferences before creating a backup.");
+                if (!currentInputValue) {
+                    (window as any).electronAPI.showAlert1("Please configure a backup location before creating a backup.");
+                    return;
+                }
+
+                if (currentInputValue !== normalizedSaved) {
+                    (window as any).electronAPI.showAlert1("Please save your backup location before creating a backup.");
                     return;
                 }
 
@@ -328,12 +348,21 @@ class SettingsBackup {
             return;
         }
 
+        const backupLocationInput = document.getElementById("backup-location") as HTMLInputElement;
+        const currentInputValue = backupLocationInput ? backupLocationInput.value.trim() : "";
+
         settingsApi.getPreferences()
             .then((data: { success: boolean; settings: SystemPreferences }) => {
-                const location = data.settings?.backup?.backup_location;
+                const savedLocation = data.settings?.backup?.backup_location || "";
+                const normalizedSaved = (savedLocation === './backups' || savedLocation === '.\\backups') ? "" : savedLocation.trim();
 
-                if (!location || !location.trim() || location === './backups' || location === '.\\backups') {
-                    (window as any).electronAPI.showAlert1("Please configure a backup location in Preferences before opening backup folder.");
+                if (!currentInputValue) {
+                    (window as any).electronAPI.showAlert1("Please configure a backup location before opening backup folder.");
+                    return;
+                }
+
+                if (currentInputValue !== normalizedSaved) {
+                    (window as any).electronAPI.showAlert1("Please save your backup location before opening backup folder.");
                     return;
                 }
 

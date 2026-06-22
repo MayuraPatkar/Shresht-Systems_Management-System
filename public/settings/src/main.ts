@@ -36,6 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("data-control-button")?.addEventListener("click", () => {
         settingsUtils.toggleSection("data-backup-section");
         settingsBackup.loadLastBackupStatus();
+        settingsPreferences.loadPreferences();
     });
 
     // Preferences section

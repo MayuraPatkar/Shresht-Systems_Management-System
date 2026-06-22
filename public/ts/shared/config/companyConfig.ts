@@ -19,7 +19,12 @@ async function getCompanyInfo() {
     }
 
     try {
-        const response = await fetch('/admin/admin-info');
+        const username = typeof sessionStorage !== 'undefined' ? (sessionStorage.getItem('username') || '') : '';
+        const headers = {};
+        if (username) {
+            headers['x-username'] = username;
+        }
+        const response = await fetch('/admin/admin-info', { headers });
         if (!response.ok) {
             throw new Error('Failed to fetch company info');
         }

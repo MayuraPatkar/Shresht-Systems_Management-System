@@ -59,13 +59,15 @@ const checkMongoTool = (toolName: string, timeout: number = 3000): Promise<boole
 const ALLOWED_COLLECTIONS = [
     'invoices', 'quotations', 'purchaseorders', 'ewaybills',
     'services', 'employees', 'stock', 'users', 'settings',
-    'purchases', 'stocks'
+    'purchases', 'stocks', 'customers', 'suppliers', 'payments', 'items'
 ];
 
 const COLLECTION_MAPPING: Record<string, string> = {
-    'purchases': 'purchaseorders', 'stocks': 'stock', 'quotations': 'quotations',
+    'purchaseorders': 'purchaseorders', 'purchases': 'purchases',
+    'stocks': 'items', 'stock': 'items', 'items': 'items', 'quotations': 'quotations',
     'invoices': 'invoices', 'ewaybills': 'ewaybills', 'services': 'services',
-    'employees': 'employees', 'users': 'users', 'settings': 'settings'
+    'employees': 'employees', 'users': 'users', 'settings': 'settings',
+    'customers': 'customers', 'suppliers': 'suppliers', 'payments': 'payments'
 };
 
 const validateCollection = (req: Request, res: Response, next: NextFunction): void => {
@@ -102,7 +104,7 @@ router.get("/backup/export/:collection", validateCollection, asyncHandler(async 
             title: `Export ${collection} data`, defaultPath: `${collection}-${timestamp}.json`,
             filters: [{ name: "JSON Files", extensions: ["json"] }, { name: "Compressed JSON", extensions: ["gz"] }]
         });
-        if (result.canceled) { return res.json({ success: true, message: "Export cancelled by user" }); }
+        if (result.canceled) { return res.json({ success: false, cancelled: true, message: "Export cancelled by user" }); }
         const filePath = result.filePath;
         if (!filePath || typeof filePath !== 'string') throw new Error('Invalid file path selected');
         await fsp.mkdir(path.dirname(filePath), { recursive: true });
@@ -112,7 +114,7 @@ router.get("/backup/export/:collection", validateCollection, asyncHandler(async 
             logger.warn('MongoDB tools unavailable, using native export', { service: "settings", collection });
             const collectionModel = mongoose.connection.db!.collection(collection);
             const documents = await collectionModel.find({}).toArray();
-            if (documents.length === 0) return res.json({ success: true, message: `No data found in collection '${collection}' to export.` });
+            if (documents.length === 0) return res.json({ success: false, cancelled: true, message: `No data found in collection '${collection}' to export.` });
             await fsp.writeFile(filePath, JSON.stringify(documents, null, 2), 'utf8');
             return res.json({ success: true, message: `Successfully exported ${documents.length} documents from '${collection}' to ${path.basename(filePath)}` });
         }
@@ -239,10 +241,19 @@ router.post("/backup/manual", asyncHandler(async (req: Request, res: Response) =
         const settings = await SettingsModel.findOne() as any;
         const backupLocation = settings?.backup?.backup_location;
         if (!backupLocation || backupLocation === './backups' || backupLocation === '.\\backups') {
-            return res.status(400).json({ success: false, message: 'Backup location not configured. Please set a backup location in Preferences.' });
+            return res.status(400).json({ success: false, message: 'Backup location not configured. Please set a backup location.' });
         }
         if (!backupUtil) throw new Error('Backup utility not available');
         const info = await backupUtil(backupLocation);
+
+        // Update last_backup timestamp in the database
+        try {
+            settings.backup.last_backup = new Date();
+            await settings.save();
+        } catch (tsErr: unknown) {
+            logger.warn('Failed to update last_backup timestamp after manual backup', { service: 'settings', error: (tsErr as Error).message });
+        }
+
         return res.json({ success: true, message: 'Backup created successfully', path: info.backupPath, fileSize: info.size, timestamp: info.timestamp });
     } catch (error: unknown) {
         logger.error('Manual backup failed', { service: "settings", error: (error as Error).message });
@@ -391,18 +402,25 @@ router.patch('/preferences/cloudinary', asyncHandler(async (req: Request, res: R
 router.put("/company-info", asyncHandler(async (req: Request, res: Response) => {
     try {
         const updates = req.body;
-        const admin = await AdminModel.findOne() as any;
-        if (!admin) return res.status(404).json({ success: false, message: 'Admin record not found' });
+        const currentUsername = req.headers['x-username'] as string;
+        const admins = await AdminModel.find();
+        if (!admins || admins.length === 0) return res.status(404).json({ success: false, message: 'Admin records not found' });
+        
         const allowedFields = ['company_name', 'address', 'phone', 'email', 'website', 'gstin', 'bank_details'];
-        allowedFields.forEach(field => { if (updates[field] !== undefined) admin[field] = updates[field]; });
-        await admin.save();
-        res.json({ success: true, message: 'Company information updated successfully', admin });
+        for (const admin of admins) {
+            allowedFields.forEach(field => { if (updates[field] !== undefined) (admin as any)[field] = updates[field]; });
+            await admin.save();
+        }
+        
+        const currentUser = await AdminModel.findOne(currentUsername ? { username: currentUsername } : {}) || admins[0];
+        res.json({ success: true, message: 'Company information updated successfully', admin: currentUser });
     } catch (error: unknown) { res.status(500).json({ success: false, message: 'Failed to update company information', error: (error as Error).message }); }
 }));
 
 router.get("/company-info/export", asyncHandler(async (req: Request, res: Response) => {
     let browser: any = null;
     try {
+        const { generateCompanyProfilePDF } = require('../utils/pdfGenerator');
         const admin = await AdminModel.findOne() as any;
         if (!admin) return res.status(404).json({ success: false, message: 'Company information not found' });
 
@@ -412,7 +430,7 @@ router.get("/company-info/export", asyncHandler(async (req: Request, res: Respon
             defaultPath: `company-details-${timestamp}.pdf`,
             filters: [{ name: "PDF Files", extensions: ["pdf"] }]
         });
-        if (result.canceled) { return res.json({ success: true, message: "Export cancelled by user" }); }
+        if (result.canceled) { return res.json({ success: true, message: "Download cancelled by user" }); }
         const filePath = result.filePath;
         if (!filePath || typeof filePath !== 'string') throw new Error('Invalid file path selected');
         await fsp.mkdir(path.dirname(filePath), { recursive: true });

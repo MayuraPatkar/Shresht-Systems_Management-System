@@ -17,24 +17,81 @@ router.post('/login', async (req: Request, res: Response) => {
         // Fetch the user document from the collection
         const user = await AdminModel.findOne(username ? { username } : {});
         if (!user || user.username !== username) {
+            // Fallback to the main admin account to track failed attempts and prevent username enumeration
+            const fallbackUser = await AdminModel.findOne({ role: 'admin' }) || await AdminModel.findOne();
+            if (fallbackUser) {
+                if (fallbackUser.lockUntil) {
+                    if (fallbackUser.lockUntil > new Date(Date.now())) {
+                        const remainingTime = Math.ceil((fallbackUser.lockUntil.getTime() - Date.now()) / 60000);
+                        return res.status(423).json({
+                            success: false,
+                            message: `Account is locked. Try again in ${remainingTime} minute(s).`,
+                            locked: true,
+                            remainingTime
+                        });
+                    } else {
+                        fallbackUser.loginAttempts = 0;
+                        fallbackUser.lockUntil = undefined;
+                    }
+                }
+
+                fallbackUser.loginAttempts = (fallbackUser.loginAttempts || 0) + 1;
+
+                if (fallbackUser.loginAttempts >= maxAttempts) {
+                    fallbackUser.lockUntil = new Date(Date.now() + lockoutDuration * 60000);
+                    await fallbackUser.save();
+                    logger.warn('Fallback admin account locked due to failed attempts with invalid username', {
+                        service: "auth",
+                        event: "account_locked",
+                        username: fallbackUser.username,
+                        attemptedUsername: username,
+                        lockDurationMinutes: lockoutDuration
+                    });
+                    return res.status(423).json({
+                        success: false,
+                        message: `Account locked for ${lockoutDuration} minutes due to too many failed attempts.`,
+                        locked: true,
+                        remainingTime: lockoutDuration
+                    });
+                }
+
+                await fallbackUser.save();
+                const attemptsRemaining = maxAttempts - fallbackUser.loginAttempts;
+                logger.warn('Authentication failed (invalid username)', {
+                    service: "auth",
+                    event: "login_failed",
+                    attemptedUsername: username,
+                    attemptsRemaining
+                });
+                return res.status(401).json({
+                    success: false,
+                    message: `Invalid credentials. ${attemptsRemaining} attempt(s) remaining.`,
+                    attemptsRemaining
+                });
+            }
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
 
         // Check if account is locked
-        if (user.lockUntil && user.lockUntil > new Date(Date.now())) {
-            const remainingTime = Math.ceil((user.lockUntil.getTime() - Date.now()) / 60000);
-            logger.warn('Login attempt on locked account', {
-                service: "auth",
-                event: "login_blocked",
-                username: user.username,
-                remainingMinutes: remainingTime
-            });
-            return res.status(423).json({
-                success: false,
-                message: `Account is locked. Try again in ${remainingTime} minute(s).`,
-                locked: true,
-                remainingTime
-            });
+        if (user.lockUntil) {
+            if (user.lockUntil > new Date(Date.now())) {
+                const remainingTime = Math.ceil((user.lockUntil.getTime() - Date.now()) / 60000);
+                logger.warn('Login attempt on locked account', {
+                    service: "auth",
+                    event: "login_blocked",
+                    username: user.username,
+                    remainingMinutes: remainingTime
+                });
+                return res.status(423).json({
+                    success: false,
+                    message: `Account is locked. Try again in ${remainingTime} minute(s).`,
+                    locked: true,
+                    remainingTime
+                });
+            } else {
+                user.loginAttempts = 0;
+                user.lockUntil = undefined;
+            }
         }
 
         // Use bcrypt to compare hashed passwords
@@ -105,14 +162,18 @@ router.post('/login', async (req: Request, res: Response) => {
 });
 
 router.get("/admin-info", async (req: Request, res: Response) => {
+    const currentUsername = req.headers['x-username'] as string;
+    if (!currentUsername) {
+        return res.status(400).json({ message: "Username header is required" });
+    }
     try {
-        const admin = await AdminModel.findOne();
+        const admin = await AdminModel.findOne({ username: currentUsername });
         if (!admin) {
-            return res.status(404).json({ message: "Admin data not found" });
+            return res.status(404).json({ message: "User data not found" });
         }
         res.json(admin);
     } catch (error: unknown) {
-        logger.error("Error fetching admin info:", error);
+        logger.error("Error fetching user info:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
@@ -120,10 +181,22 @@ router.get("/admin-info", async (req: Request, res: Response) => {
 // Change Username
 router.post("/change-username", async (req: Request, res: Response) => {
     const { username } = req.body;
+    const currentUsername = req.headers['x-username'] as string;
+    if (!currentUsername) {
+        return res.status(400).json({ message: "Username header is required" });
+    }
     try {
-        const admin = await AdminModel.findOne();
+        const admin = await AdminModel.findOne({ username: currentUsername });
         if (!admin) {
-            return res.status(404).json({ message: "Admin not found" });
+            return res.status(404).json({ message: "User not found" });
+        }
+        if (admin.username === username) {
+            return res.status(400).json({ message: "New username must be different from current username" });
+        }
+        // Check if the username is already taken by another account
+        const existingUser = await AdminModel.findOne({ username });
+        if (existingUser && existingUser._id.toString() !== admin._id.toString()) {
+            return res.status(400).json({ message: "Username is already taken" });
         }
         admin.username = username;
         await admin.save();
@@ -137,10 +210,18 @@ router.post("/change-username", async (req: Request, res: Response) => {
 // Change Password
 router.post("/change-password", async (req: Request, res: Response) => {
     const { oldPassword, newPassword } = req.body;
+    const currentUsername = req.headers['x-username'] as string;
+    if (!currentUsername) {
+        return res.status(400).json({ message: "Username header is required" });
+    }
     try {
-        const admin = await AdminModel.findOne();
+        const admin = await AdminModel.findOne({ username: currentUsername });
         if (!admin) {
-            return res.status(404).json({ message: "Admin not found" });
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (oldPassword === newPassword) {
+            return res.status(400).json({ message: "New password must be different from old password" });
         }
 
         // Verify old password using bcrypt
@@ -163,10 +244,14 @@ router.post("/change-password", async (req: Request, res: Response) => {
 // Export Data
 router.get("/export-data", async (req: Request, res: Response) => {
     const { format } = req.query;
+    const currentUsername = req.headers['x-username'] as string;
+    if (!currentUsername) {
+        return res.status(400).json({ message: "Username header is required" });
+    }
     try {
-        const admin = await AdminModel.findOne();
+        const admin = await AdminModel.findOne({ username: currentUsername });
         if (!admin) {
-            return res.status(404).json({ message: "Admin data not found" });
+            return res.status(404).json({ message: "User data not found" });
         }
 
         const addr = (admin as any).address || {};
@@ -184,7 +269,7 @@ router.get("/export-data", async (req: Request, res: Response) => {
             res.setHeader("Content-Type", "application/json");
         }
 
-        res.setHeader("Content-Disposition", `attachment; filename=admin_data.${format}`);
+        res.setHeader("Content-Disposition", `attachment; filename=user_data.${format}`);
         res.send(data);
     } catch (error: unknown) {
         logger.error("Error exporting data:", error);
