@@ -243,6 +243,15 @@ router.post("/backup/manual", asyncHandler(async (req: Request, res: Response) =
         }
         if (!backupUtil) throw new Error('Backup utility not available');
         const info = await backupUtil(backupLocation);
+
+        // Update last_backup timestamp in the database
+        try {
+            settings.backup.last_backup = new Date();
+            await settings.save();
+        } catch (tsErr: unknown) {
+            logger.warn('Failed to update last_backup timestamp after manual backup', { service: 'settings', error: (tsErr as Error).message });
+        }
+
         return res.json({ success: true, message: 'Backup created successfully', path: info.backupPath, fileSize: info.size, timestamp: info.timestamp });
     } catch (error: unknown) {
         logger.error('Manual backup failed', { service: "settings", error: (error as Error).message });
