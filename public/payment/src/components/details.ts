@@ -35,6 +35,7 @@
     const $detailsMode = document.getElementById('details-mode') as HTMLElement;
     
     const $detailsTransaction = document.getElementById('details-transaction') as HTMLElement;
+    const $detailsTransactionLabel = document.getElementById('details-transaction-label') as HTMLElement | null;
     const $detailsParty = document.getElementById('details-party') as HTMLElement;
     const $detailsReference = document.getElementById('details-reference') as HTMLElement;
     const $detailsCreated = document.getElementById('details-created') as HTMLElement;
@@ -869,6 +870,20 @@
         if ($headerLinkedDoc) $headerLinkedDoc.innerHTML = getReferenceLinkHtml(payment);
 
         // Transaction Details
+        if ($detailsTransactionLabel) {
+            const mode = payment.mode;
+            if (mode === 'Cash') {
+                $detailsTransactionLabel.textContent = 'Cash Location';
+            } else if (mode === 'UPI') {
+                $detailsTransactionLabel.textContent = 'UPI Transaction ID';
+            } else if (mode === 'Bank Transfer') {
+                $detailsTransactionLabel.textContent = 'Bank Name';
+            } else if (mode === 'Cheque') {
+                $detailsTransactionLabel.textContent = 'Cheque Number & Bank';
+            } else {
+                $detailsTransactionLabel.textContent = 'Transaction Ref / Details';
+            }
+        }
         $detailsTransaction.textContent = valOrDash(payment.transaction_details);
         $detailsMode.textContent = payment.mode || '-';
         $detailsDate.textContent = formatDate(payment.payment_date);

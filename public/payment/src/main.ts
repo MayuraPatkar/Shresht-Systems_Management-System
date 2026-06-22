@@ -166,6 +166,7 @@ interface Window {
     const $detailsParty = document.getElementById('details-party') as HTMLElement;
     const $detailsReference = document.getElementById('details-reference') as HTMLElement;
     const $detailsTransaction = document.getElementById('details-transaction') as HTMLElement;
+    const $detailsTransactionLabel = document.getElementById('details-transaction-label') as HTMLElement | null;
     const $detailsRemarks = document.getElementById('details-remarks') as HTMLElement;
 
     // ── Helpers ───────────────────────────────────────────
@@ -194,6 +195,29 @@ interface Window {
     function valOrDash(value: string | undefined): string {
         const trimmed = String(value || '').trim();
         return trimmed || '-';
+    }
+
+    function updateTransactionDetailsFields(mode: string): void {
+        const label = document.getElementById('label-transaction-details') || document.querySelector('label[for="form-transaction-details"]');
+        const input = document.getElementById('form-transaction-details') as HTMLInputElement | null;
+        if (!label || !input) return;
+
+        if (mode === 'Cash') {
+            label.innerHTML = '<i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>Cash Location';
+            input.placeholder = 'e.g. Counter 1, Main Office, Branch Name';
+        } else if (mode === 'UPI') {
+            label.innerHTML = '<i class="fas fa-mobile-alt text-gray-500 mr-1"></i>UPI Transaction ID';
+            input.placeholder = 'e.g. UPI Ref / UTR / Transaction ID';
+        } else if (mode === 'Bank Transfer') {
+            label.innerHTML = '<i class="fas fa-university text-gray-500 mr-1"></i>Bank Name';
+            input.placeholder = 'e.g. HDFC Bank, SBI';
+        } else if (mode === 'Cheque') {
+            label.innerHTML = '<i class="fas fa-money-check text-gray-500 mr-1"></i>Cheque Number & Bank';
+            input.placeholder = 'e.g. Cheque No. 123456 - ICICI Bank';
+        } else {
+            label.innerHTML = '<i class="fas fa-info-circle text-gray-500 mr-1"></i>Transaction Details';
+            input.placeholder = 'UTR / Cheque No. / Bank Ref.';
+        }
     }
 
     function todayISO(): string {
@@ -1478,6 +1502,7 @@ interface Window {
             (document.getElementById('form-date') as HTMLInputElement).value =
                 payment.payment_date ? payment.payment_date.substring(0, 10) : todayISO();
             (document.getElementById('form-mode') as HTMLSelectElement).value = payment.mode || 'Cash';
+            updateTransactionDetailsFields(payment.mode || 'Cash');
             (document.getElementById('form-status') as HTMLSelectElement).value = payment.status || 'Completed';
             
             // NOTE: We don't have the party name here, only ID. 
@@ -1506,6 +1531,7 @@ interface Window {
             $form.reset();
             (document.getElementById('form-date') as HTMLInputElement).value = todayISO();
             (document.getElementById('form-status') as HTMLSelectElement).value = 'Completed';
+            updateTransactionDetailsFields('Cash');
             const inRadio = document.querySelector(
                 'input[name="direction"][value="IN"]'
             ) as HTMLInputElement | null;
@@ -1717,6 +1743,7 @@ interface Window {
         (document.getElementById('form-amount') as HTMLInputElement).value = String(payment.amount || '');
         (document.getElementById('form-date') as HTMLInputElement).value = todayISO();
         (document.getElementById('form-mode') as HTMLSelectElement).value = payment.mode || 'Cash';
+        updateTransactionDetailsFields(payment.mode || 'Cash');
         (document.getElementById('form-status') as HTMLSelectElement).value = 'Completed';
         const refIdVal = payment.reference_id || '';
         (document.getElementById('form-reference-type') as HTMLSelectElement).value = payment.reference_type || '';
@@ -2867,6 +2894,13 @@ interface Window {
                 });
                 refIdInput.addEventListener('input', () => {
                     if (validator) validator.validateField('reference_type');
+                });
+            }
+
+            const modeSelect = document.getElementById('form-mode') as HTMLSelectElement;
+            if (modeSelect) {
+                modeSelect.addEventListener('change', () => {
+                    updateTransactionDetailsFields(modeSelect.value);
                 });
             }
         }
