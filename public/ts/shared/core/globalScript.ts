@@ -298,6 +298,7 @@ function setupCollapsibleSidebar() {
       icon: 'fa-solid fa-boxes-stacked',
       items: [
         { id: 'stock', label: 'Stock', path: '/stock', icon: 'fa-solid fa-box' },
+        { id: 'stockMovements', label: 'Stock Movements', path: '/stock-movements', icon: 'fa-solid fa-arrow-right-arrow-left' },
         { id: 'wayBill', label: 'E-Way Bills', path: '/ewaybill', icon: 'fa-solid fa-truck-fast' }
       ]
     },
@@ -313,14 +314,15 @@ function setupCollapsibleSidebar() {
       icon: 'fa-solid fa-wallet',
       items: [
         { id: 'payment', label: 'Payments', path: '/payment', icon: 'fa-solid fa-money-bill-wave' },
-        { id: 'voucher', label: 'Vouchers', path: '/voucher', icon: 'fa-solid fa-file-invoice-dollar' }
+        { id: 'voucher', label: 'Vouchers', path: '/voucher', icon: 'fa-solid fa-file-invoice-dollar' },
+        { id: 'gstReports', label: 'GST Reports', path: '/gst-reports', icon: 'fa-solid fa-percent' }
       ]
     },
     {
       name: 'Analytics',
       icon: 'fa-solid fa-chart-line',
       items: [
-        { id: 'reports', label: 'Reports', path: '/reports', icon: 'fa-solid fa-chart-bar' },
+        { id: 'dataWorksheet', label: 'Data Worksheet', path: '/data-worksheet', icon: 'fa-solid fa-table-list' },
         { id: 'calculations', label: 'Calculations', path: '/calculations', icon: 'fa-solid fa-calculator' }
       ]
     },

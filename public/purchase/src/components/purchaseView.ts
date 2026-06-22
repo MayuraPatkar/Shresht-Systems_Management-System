@@ -663,8 +663,10 @@
         if (editBtn) {
             editBtn.addEventListener("click", () => {
                 if (currentPurchase) {
-                    isEditingInline = true;
-                    renderPurchaseDetails(currentPurchase);
+                    // The purchase API route resolves records by purchase_no, not MongoDB _id.
+                    const id = currentPurchase.purchase_no;
+                    if (!id) return;
+                    window.location.href = `/purchase/form?id=${encodeURIComponent(id)}`;
                 }
             });
         }

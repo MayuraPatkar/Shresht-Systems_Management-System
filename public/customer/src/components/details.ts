@@ -924,7 +924,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <td class="px-6 py-4">${formatDate(v.date)}</td>
             <td class="px-6 py-4 font-bold text-green-600">${formatCurrency(v.amount)}</td>
             <td class="px-6 py-4"><span class="px-2 py-1 bg-violet-50 text-violet-700 rounded text-xs font-bold uppercase">${v.paymentMethod || '-'}</span></td>
-            <td class="px-6 py-4 text-gray-500 truncate max-w-[160px]" title="${v.paidTowards || ''}}">${v.paidTowards || '-'}</td>
+            <td class="px-6 py-4 text-gray-500 truncate max-w-[160px]" title="${v.paidTowards || ''}">${v.paidTowards || '-'}</td>
             <td class="px-6 py-4">
                 <button data-action="view-voucher" data-id="${v._id || ''}" class="bg-violet-50 text-violet-600 px-3 py-1 rounded-lg font-bold text-xs hover:bg-violet-100 transition-colors uppercase tracking-wider">View</button>
             </td>
@@ -941,10 +941,6 @@ document.addEventListener('DOMContentLoaded', () => {
             else if (c.status === 'Failed') statusClass = 'bg-red-50 text-red-700 border border-red-100';
 
             const contentDisplay = c.status === 'Failed' && c.errorMessage ? `${c.content || ''} (Error: ${c.errorMessage})` : (c.content || '');
-            const pdfButton = c.documentUrl 
-                ? `<button data-action="view-doc" data-url="${c.documentUrl}" class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg font-bold text-xs hover:bg-blue-100 transition-colors uppercase tracking-wider">View PDF</button>` 
-                : '-';
-
             return `
                 <td class="px-6 py-4 text-xs text-gray-500">${dateStr}</td>
                 <td class="px-6 py-4 text-xs font-semibold text-slate-800">${c.recipient || '-'}</td>
@@ -952,9 +948,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td class="px-6 py-4 text-xs font-medium text-slate-600">${c.referenceId || '-'}</td>
                 <td class="px-6 py-4 text-xs"><span class="px-2 py-1 ${statusClass} rounded text-[10px] font-bold uppercase">${c.status || '-'}</span></td>
                 <td class="px-6 py-4 text-xs text-gray-500 truncate max-w-[200px]" title="${contentDisplay.replace(/"/g, '&quot;')}">${contentDisplay}</td>
-                <td class="px-6 py-4 text-xs">${pdfButton}</td>
             `;
-        }, 7);
+        }, 6);
     }
 
     function renderTable(id: string, items: any[], rowTemplate: (item: any) => string, colspan = 5) {
@@ -990,7 +985,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (action === 'view-invoice') window.location.href = `/invoice?id=${id}`;
             if (action === 'view-service') window.location.href = `/service?id=${id}`;
             if (action === 'view-payment') window.location.href = `/payment/details?id=${id}`;
-            if (action === 'view-voucher') window.location.href = `/payment?voucher=${id}`;
+            if (action === 'view-voucher' && id) window.location.href = `/voucher/details?id=${encodeURIComponent(id)}`;
             if (action === 'view-doc') {
                 const url = btn.getAttribute('data-url');
                 if (url) window.open(url, '_blank');

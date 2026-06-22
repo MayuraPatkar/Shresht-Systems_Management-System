@@ -111,6 +111,7 @@ function getQuotationStatusClass(status) {
 async function generateViewPreviewHTML(quotation, viewType) {
     // Fetch company data from database
     const company = await window.companyConfig.getCompanyInfo();
+    const companyName = company.company_name || company.company || 'Company';
     const bank = company.bank_details || {};
     const phoneStr = company.phone.ph1 + (company.phone.ph2 ? ' / ' + company.phone.ph2 : '');
 
@@ -345,7 +346,7 @@ async function generateViewPreviewHTML(quotation, viewType) {
                         <h3>Payment Details:</h3>
                         <div class="bank-details">
                             <div class="QR-code bank-details-sub1"><img src="../assets/shresht-systems-payment-QR-code.jpg" alt="qr-code" /></div>
-                            <div class="bank-details-sub2"><p><strong>Account Holder Name: </strong>${bank.account_holder_name || company.company || company.company_name}</p><p><strong>Bank Name: </strong>${bank.bank_name || ''}</p><p><strong>Branch Name: </strong>${bank.branch || ''}</p><p><strong>Account No: </strong>${bank.account_number || ''}</p><p><strong>IFSC Code: </strong>${bank.ifsc_code || ''}</p></div>
+                            <div class="bank-details-sub2"><p><strong>Account Holder Name: </strong>${bank.account_holder_name || companyName}</p><p><strong>Bank Name: </strong>${bank.bank_name || ''}</p><p><strong>Branch Name: </strong>${bank.branch || ''}</p><p><strong>Account No: </strong>${bank.account_number || ''}</p><p><strong>IFSC Code: </strong>${bank.ifsc_code || ''}</p></div>
                         </div>
                     </div>
                     <div class="totals-section">${totalsHTML}</div>
@@ -380,7 +381,7 @@ async function generateViewPreviewHTML(quotation, viewType) {
             <p>${quotation.letter_3 || ''}</p>
             <p>We look forward to your positive response and the opportunity to collaborate with you.</p>
             <p>Best regards,</p>
-            <p><strong>${company.company}</strong><br>Ph: ${phoneStr}<br>Email: ${company.email}<br>Website: ${company.website}</p>
+            <p><strong>${companyName}</strong><br>Ph: ${phoneStr}<br>Email: ${company.email || ''}<br>Website: ${company.website || ''}</p>
         </div>
         <footer><p>This is a computer-generated quotation.</p></footer>
     </div>
@@ -391,7 +392,7 @@ async function generateViewPreviewHTML(quotation, viewType) {
         <div class="closing-section">
             <p>We look forward to your order confirmation. Please contact us for any further technical or commercial clarifications.</p>
             <p>Thanking you,</p>
-            <p><strong>For ${company.company},</strong><br>Mob: +91 ${phoneStr}</p>
+            <p><strong>For ${companyName},</strong><br>Mob: +91 ${phoneStr}</p>
         </div>
         <footer><p>This is a computer-generated quotation.</p></footer>
     </div>`;

@@ -1166,6 +1166,7 @@ async function generatePreview() {
 
     // Fetch company data from database
     const company = await window.companyConfig.getCompanyInfo();
+    const companyName = company.company_name || company.company || 'Company';
     const bank = company.bank_details || {};
     const phoneStr = company.phone.ph1 + (company.phone.ph2 ? ' / ' + company.phone.ph2 : '');
 
@@ -1458,7 +1459,7 @@ async function generatePreview() {
                                     alt="qr-code" />
                             </div>
                             <div class="bank-details-sub2">
-                                <p><strong>Account Holder Name: </strong>${bank.account_holder_name || company.company || company.company_name}</p>
+                                <p><strong>Account Holder Name: </strong>${bank.account_holder_name || companyName}</p>
                                 <p><strong>Bank Name: </strong>${bank.bank_name || ''}</p>
                                 <p><strong>Branch Name: </strong>${bank.branch || ''}</p>
                                 <p><strong>Account No: </strong>${bank.account_number || ''}</p>
@@ -1534,7 +1535,7 @@ async function generatePreview() {
 
             <p>Dear ${buyerName},</p>
 
-            <p contenteditable="true">We appreciate the opportunity to submit our proposal for the supply, installation, and commissioning of ${projectName}. At <strong>${company.company}</strong>, we are committed to delivering high-quality, industry-standard solutions tailored to meet your specific requirements.</p>
+            <p contenteditable="true">We appreciate the opportunity to submit our proposal for the supply, installation, and commissioning of ${projectName}. At <strong>${companyName}</strong>, we are committed to delivering high-quality, industry-standard solutions tailored to meet your specific requirements.</p>
             <p>Our proposal includes:</p>
             <ul contenteditable="true">
                 <li>Cutting-edge technology and premium-grade equipment</li>
@@ -1548,7 +1549,7 @@ async function generatePreview() {
             <p>We look forward to your positive response and the opportunity to collaborate with you.</p>
           
             <p>Best regards,</p>
-            <p><strong>${company.company}</strong><br>
+            <p><strong>${companyName}</strong><br>
                Ph: ${phoneStr}<br>
                Email: ${company.email}<br>
                Website: ${company.website}</p>
@@ -1593,7 +1594,7 @@ async function generatePreview() {
         <div class="closing-section">
             <p>We look forward to your order confirmation. Please contact us for any further technical or commercial clarifications.</p>
             <p>Thanking you,</p>
-            <p><strong>For ${company.company},</strong><br>Mob: +91 ${phoneStr}</p>
+            <p><strong>For ${companyName},</strong><br>Mob: +91 ${phoneStr}</p>
         </div>
 
         <footer>
@@ -1648,7 +1649,7 @@ async function generatePreview() {
                                     alt="qr-code" />
                             </div>
                             <div class="bank-details-sub2">
-                                <p><strong>Account Holder Name: </strong>${bank.account_holder_name || company.company || company.company_name}</p>
+                                <p><strong>Account Holder Name: </strong>${bank.account_holder_name || companyName}</p>
                                 <p><strong>Bank Name: </strong>${bank.bank_name || ''}</p>
                                 <p><strong>Branch Name: </strong>${bank.branch || ''}</p>
                                 <p><strong>Account No: </strong>${bank.account_number || ''}</p>
@@ -1704,7 +1705,7 @@ async function generatePreview() {
             <p>We look forward to your positive response and the opportunity to collaborate with you.</p>
           
             <p>Best regards,</p>
-            <p><strong>${company.company}</strong><br>
+            <p><strong>${companyName}</strong><br>
                Ph: ${phoneStr}<br>
                Email: ${company.email}<br>
                Website: ${company.website}</p>
@@ -1728,7 +1729,7 @@ async function generatePreview() {
         <div class="closing-section">
             <p>We look forward to your order confirmation. Please contact us for any further technical or commercial clarifications.</p>
             <p>Thanking you,</p>
-            <p><strong>For ${company.company},</strong><br>Mob: +91 ${phoneStr}</p>
+            <p><strong>For ${companyName},</strong><br>Mob: +91 ${phoneStr}</p>
         </div>
 
         <footer>
@@ -1800,7 +1801,7 @@ async function generatePreview() {
                                     alt="qr-code" />
                             </div>
                             <div class="bank-details-sub2">
-                                <p><strong>Account Holder Name: </strong>${bank.account_holder_name || company.company || company.company_name}</p>
+                                <p><strong>Account Holder Name: </strong>${bank.account_holder_name || companyName}</p>
                                 <p><strong>Bank Name: </strong>${bank.bank_name || ''}</p>
                                 <p><strong>Branch Name: </strong>${bank.branch || ''}</p>
                                 <p><strong>Account No: </strong>${bank.account_number || ''}</p>
@@ -1845,7 +1846,7 @@ async function generatePreview() {
 
             <p>Dear ${buyerName},</p>
 
-            <p contenteditable="true">${(quotation.letter_1 && quotation.letter_1.trim() !== '') ? quotation.letter_1 : (projectName ? `We appreciate the opportunity to submit our proposal for the supply, installation, and commissioning of ${projectName}. At <strong>${company.company}</strong>, we are committed to delivering high-quality, industry-standard solutions tailored to meet your specific requirements.` : '')}</p>
+            <p contenteditable="true">${(quotation.letter_1 && quotation.letter_1.trim() !== '') ? quotation.letter_1 : (projectName ? `We appreciate the opportunity to submit our proposal for the supply, installation, and commissioning of ${projectName}. At <strong>${companyName}</strong>, we are committed to delivering high-quality, industry-standard solutions tailored to meet your specific requirements.` : '')}</p>
             <p>Our proposal includes:</p>
             <ul contenteditable="true">
                 ${(quotation.letter_2 || []).map(li => `<li>${li}</li>`).join('')}
@@ -1856,7 +1857,7 @@ async function generatePreview() {
             <p>We look forward to your positive response and the opportunity to collaborate with you.</p>
           
             <p>Best regards,</p>
-            <p><strong>${company.company}</strong><br>
+            <p><strong>${companyName}</strong><br>
                Ph: ${phoneStr}<br>
                Email: ${company.email}<br>
                Website: ${company.website}</p>
@@ -1880,7 +1881,7 @@ async function generatePreview() {
         <div class="closing-section">
             <p>We look forward to your order confirmation. Please contact us for any further technical or commercial clarifications.</p>
             <p>Thanking you,</p>
-            <p><strong>For ${company.company},</strong><br>Mob: +91 ${phoneStr}</p>
+            <p><strong>For ${companyName},</strong><br>Mob: +91 ${phoneStr}</p>
         </div>
 
         <footer>

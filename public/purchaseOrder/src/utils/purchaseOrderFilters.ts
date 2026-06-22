@@ -3,6 +3,7 @@
     let allPurchaseOrders: any[] = [];
     let currentFilters = {
         dateFilter: 'all',
+        status: 'all',
         sortBy: 'date-desc',
         customStartDate: null as string | null,
         customEndDate: null as string | null
@@ -14,7 +15,7 @@
             ? ((window as any).archivedPurchaseOrders || [])
             : ((window as any).allPurchaseOrders || []);
             
-        const filtered = (window as any).applyFilters(sourceList, {
+        let filtered = (window as any).applyFilters(sourceList, {
             dateFilter: currentFilters.dateFilter,
             sortBy: currentFilters.sortBy,
             dateField: 'purchase_date',
@@ -23,12 +24,15 @@
             customStartDate: currentFilters.customStartDate,
             customEndDate: currentFilters.customEndDate
         });
+        if (currentFilters.status !== 'all') {
+            filtered = filtered.filter((purchaseOrder: any) => (purchaseOrder.status || 'Draft') === currentFilters.status);
+        }
         
         // Save current filtered items globally so bulk actions can target them
         (window as any).currentFilteredPurchaseOrders = filtered;
 
         // Highlight filter button if any filters are applied
-        const isFilterActive = currentFilters.dateFilter !== 'all' || currentFilters.sortBy !== 'date-desc';
+        const isFilterActive = currentFilters.dateFilter !== 'all' || currentFilters.status !== 'all' || currentFilters.sortBy !== 'date-desc';
         const filterBtn = document.getElementById('filter-btn');
         if (filterBtn) {
             if (isFilterActive) {
@@ -100,6 +104,22 @@
                             if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
                         });
                     }
+                    applyPurchaseOrderFilters();
+                }
+            });
+        }
+
+        if (currentFilters.status !== 'all') {
+            activeBadges.push({
+                label: `Status: ${currentFilters.status}`,
+                clearFn: () => {
+                    currentFilters.status = 'all';
+                    const statusInput = document.getElementById('status-filter') as HTMLInputElement | null;
+                    if (statusInput) statusInput.value = 'all';
+                    document.getElementById('statusFilterDropdown')?.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
                     applyPurchaseOrderFilters();
                 }
             });
@@ -182,6 +202,7 @@
         const filterPopover = document.getElementById('filter-popover') as HTMLElement;
         const dateFilter = document.getElementById('date-filter') as HTMLInputElement;
         const sortFilter = document.getElementById('sort-filter') as HTMLInputElement;
+        const statusInput = document.getElementById('status-filter') as HTMLInputElement;
         const clearFiltersBtn = document.getElementById('clear-filters-btn') as HTMLButtonElement;
         const applyFiltersBtn = document.getElementById('apply-filters-btn') as HTMLButtonElement;
         const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
@@ -189,6 +210,14 @@
 
         const dateDropdown = document.getElementById('dateFilterDropdown');
         const sortDropdown = document.getElementById('sortFilterDropdown');
+        const statusDropdown = document.getElementById('statusFilterDropdown');
+
+        const resetDropdown = (dropdown: HTMLElement | null) => {
+            dropdown?.querySelectorAll('a').forEach((a, i) => {
+                a.classList.remove('bg-gray-100', 'font-semibold');
+                if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+            });
+        };
 
         // Toggle filter popover
         if (filterBtn && filterPopover) {
@@ -232,6 +261,7 @@
             clearAllShortcut.addEventListener('click', () => {
                 currentFilters = {
                     dateFilter: 'all',
+                    status: 'all',
                     sortBy: 'date-desc',
                     customStartDate: null,
                     customEndDate: null
@@ -242,6 +272,7 @@
                 }
                 if (dateFilter) dateFilter.value = 'all';
                 if (sortFilter) sortFilter.value = 'date-desc';
+                if (statusInput) statusInput.value = 'all';
                 if (dateDropdown) {
                     dateDropdown.querySelectorAll('a').forEach((a, i) => {
                         a.classList.remove('bg-gray-100', 'font-semibold');
@@ -254,6 +285,7 @@
                         if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
                     });
                 }
+                resetDropdown(statusDropdown);
                 applyPurchaseOrderFilters();
             });
         }
@@ -293,6 +325,20 @@
         }
 
         // Handle sort filter clicks
+        if (statusDropdown && statusInput) {
+            statusDropdown.addEventListener('click', (e: Event) => {
+                const link = (e.target as HTMLElement).closest('a');
+                if (!link) return;
+                e.preventDefault();
+                statusDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+                link.classList.add('bg-gray-100', 'font-semibold');
+                currentFilters.status = link.getAttribute('data-status-filter') || 'all';
+                statusInput.value = currentFilters.status;
+                applyPurchaseOrderFilters();
+            });
+        }
+
+        // Handle sort filter clicks
         if (sortDropdown && sortFilter) {
             sortDropdown.addEventListener('click', (e: Event) => {
                 const target = e.target as HTMLElement;
@@ -316,12 +362,14 @@
             clearFiltersBtn.addEventListener('click', () => {
                 currentFilters = {
                     dateFilter: 'all',
+                    status: 'all',
                     sortBy: 'date-desc',
                     customStartDate: null,
                     customEndDate: null
                 };
                 if (dateFilter) dateFilter.value = 'all';
                 if (sortFilter) sortFilter.value = 'date-desc';
+                if (statusInput) statusInput.value = 'all';
                 if (dateDropdown) {
                     dateDropdown.querySelectorAll('a').forEach((a, i) => {
                         a.classList.remove('bg-gray-100', 'font-semibold');
@@ -334,6 +382,7 @@
                         if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
                     });
                 }
+                resetDropdown(statusDropdown);
                 applyPurchaseOrderFilters();
                 if (filterPopover) filterPopover.classList.add('hidden');
             });

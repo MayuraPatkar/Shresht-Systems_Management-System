@@ -2917,7 +2917,9 @@ interface Window {
         const isEdit = urlParams.get('edit') === 'true';
         const isRefund = urlParams.get('refund') === 'true';
 
-        if (editId) {
+        if (urlParams.get('new') === '1') {
+            openModal(null);
+        } else if (editId) {
             fetch(`/payment/${editId}`)
                 .then(res => res.json())
                 .then(data => {

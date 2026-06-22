@@ -14,13 +14,77 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('Failed to pre-fetch company config', e);
     }
     
-    initializeVoucherPage();
+    const page = document.body.dataset.voucherPage || 'list';
+    setupEventListeners();
+    setupKeyboardShortcuts();
+
+    if (page === 'list') {
+        refreshVouchersList();
+    } else if (page === 'form') {
+        await openVoucherModalForCreate();
+    } else if (page === 'details') {
+        await initializeVoucherDetailsPage();
+    }
 });
 
 function initializeVoucherPage() {
     setupEventListeners();
     setupKeyboardShortcuts();
     refreshVouchersList();
+}
+
+async function initializeVoucherDetailsPage() {
+    const id = new URLSearchParams(window.location.search).get('id');
+    if (!id) {
+        (window as any).showAlert('Voucher ID is missing.');
+        (window as any).navigateTo('/voucher');
+        return;
+    }
+
+    try {
+        const voucher = await (window as any).VoucherAPI.fetchVoucherById(id);
+        activeVouchers = [voucher];
+        currentViewingVoucher = voucher;
+        renderVoucherDetailsPage(voucher);
+        updateDocPreview(voucher);
+        ['v-btn-print', 'v-btn-pdf', 'v-btn-whatsapp'].forEach(buttonId => {
+            const button = document.getElementById(buttonId) as HTMLButtonElement | null;
+            if (button) button.disabled = false;
+        });
+    } catch (error: any) {
+        console.error('Error loading voucher details:', error);
+        (window as any).showAlert(error.message || 'Unable to load voucher details.');
+        (window as any).navigateTo('/voucher');
+    }
+}
+
+function renderVoucherDetailsPage(voucher: any) {
+    const setText = (id: string, value: any) => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value || '-';
+    };
+    const date = voucher.date
+        ? (window as any).companyConfig.formatDate(voucher.date)
+        : '-';
+    const amount = `₹ ${Number(voucher.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    let reference = '-';
+    if (voucher.paymentMethod === 'Cheque') reference = `${voucher.chequeNumber || '-'} · ${voucher.bankName || '-'}`;
+    if (voucher.paymentMethod === 'Bank Transfer') reference = `${voucher.bankName || '-'} · ${voucher.referenceNumber || '-'}`;
+    if (voucher.paymentMethod === 'UPI') reference = voucher.referenceNumber || '-';
+
+    setText('voucher-details-title', `Voucher Details - ${voucher.voucherNumber}`);
+    setText('details-amount', amount);
+    setText('header-voucher-no', voucher.voucherNumber);
+    setText('header-method', voucher.paymentMethod);
+    setText('header-date', date);
+    setText('header-party-type', voucher.partyType);
+    setText('details-party-name', voucher.partyName);
+    setText('details-party-type', voucher.partyType);
+    setText('details-method', voucher.paymentMethod);
+    setText('details-reference', reference);
+    setText('details-date', date);
+    setText('details-purpose', voucher.paidTowards);
+    setText('details-words', voucher.amountInWords);
 }
 
 /**
@@ -225,7 +289,7 @@ function renderVouchersList(vouchers: any[]) {
     tbody.querySelectorAll('.voucher-row').forEach(row => {
         row.addEventListener('click', () => {
             const id = row.getAttribute('data-id') || '';
-            openVoucherModalForView(id);
+            (window as any).navigateTo(`/voucher/details?id=${encodeURIComponent(id)}`);
         });
     });
 
@@ -233,7 +297,7 @@ function renderVouchersList(vouchers: any[]) {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
             const id = btn.getAttribute('data-id') || '';
-            openVoucherModalForView(id);
+            (window as any).navigateTo(`/voucher/details?id=${encodeURIComponent(id)}`);
         });
     });
 
@@ -248,7 +312,7 @@ function renderVouchersList(vouchers: any[]) {
     mobileContainer.querySelectorAll('.view-voucher-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const id = btn.getAttribute('data-id') || '';
-            openVoucherModalForView(id);
+            (window as any).navigateTo(`/voucher/details?id=${encodeURIComponent(id)}`);
         });
     });
 
@@ -665,8 +729,9 @@ async function handleVoucherSubmit() {
         const result = await (window as any).VoucherAPI.createVoucher(payload);
         if (result.success) {
             showToastMessage('Voucher created successfully!');
-            closeVoucherModal();
-            refreshVouchersList();
+            window.setTimeout(() => {
+                (window as any).navigateTo(`/voucher/details?id=${encodeURIComponent(result.voucher._id)}`);
+            }, 350);
         } else {
             throw new Error(result.message || 'Error occurred');
         }
@@ -707,6 +772,10 @@ function handleDeleteVoucher(id: string) {
 }
 
 function closeVoucherModal() {
+    if (document.body.dataset.voucherPage && document.body.dataset.voucherPage !== 'list') {
+        (window as any).navigateTo('/voucher');
+        return;
+    }
     const modal = document.getElementById('voucher-modal') as HTMLDivElement;
     if (modal) modal.classList.add('hidden');
     currentViewingVoucher = null;
@@ -1104,7 +1173,7 @@ function setupEventListeners() {
     });
 
     document.getElementById('new-voucher-btn')?.addEventListener('click', () => {
-        openVoucherModalForCreate();
+        (window as any).navigateTo('/voucher/form');
     });
 
     document.getElementById('refresh-btn')?.addEventListener('click', () => {
@@ -1422,7 +1491,7 @@ function setupKeyboardShortcuts() {
     document.addEventListener('keydown', (e) => {
         if (e.ctrlKey && e.key.toLowerCase() === 'n') {
             e.preventDefault();
-            openVoucherModalForCreate();
+            (window as any).navigateTo('/voucher/form');
         }
         else if (e.ctrlKey && e.key.toLowerCase() === 'r') {
             e.preventDefault();

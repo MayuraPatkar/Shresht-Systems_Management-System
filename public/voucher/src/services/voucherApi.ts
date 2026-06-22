@@ -28,6 +28,15 @@ const VoucherAPI = {
         throw new Error(data.message || 'Failed to fetch next voucher number');
     },
 
+    async fetchVoucherById(id: string): Promise<IVoucher> {
+        const res = await fetch(`/voucher/${encodeURIComponent(id)}`);
+        const data = await res.json();
+        if (res.ok && data.success && data.voucher) {
+            return data.voucher;
+        }
+        throw new Error(data.message || 'Failed to fetch voucher');
+    },
+
     async createVoucher(payload: Partial<IVoucher>): Promise<{ success: boolean; voucher: IVoucher; paymentId: string; message?: string }> {
         const res = await fetch('/voucher/create', {
             method: 'POST',

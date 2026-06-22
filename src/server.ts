@@ -72,6 +72,10 @@ exServer.use(helmet({
             objectSrc: ["'none'"],
             mediaSrc: ["'self'"],
             frameSrc: ["'none'"],
+            // The desktop app serves localhost over HTTP. Helmet enables this
+            // directive by default, which rewrites local API calls to HTTPS and
+            // causes ERR_SSL_PROTOCOL_ERROR because the server has no TLS.
+            upgradeInsecureRequests: null,
         },
     },
     crossOriginEmbedderPolicy: false

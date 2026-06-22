@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { PaymentModel, CustomerModel, SupplierModel, VoucherModel, AdminModel, CounterModel } from '../models';
 import { Types } from 'mongoose';
 import logger from '../utils/logger';
@@ -161,9 +161,14 @@ router.get('/by-no/:no', async (req: Request, res: Response) => {
  * GET /voucher/:id
  * Get voucher by MongoDB ID
  */
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
+    // Let the page router handle /voucher/form and /voucher/details instead of
+    // attempting to cast those reserved page names to MongoDB ObjectIds.
+    const voucherId = String(req.params.id);
+    if (!Types.ObjectId.isValid(voucherId)) return next();
+
     try {
-        const voucher = await VoucherModel.findById(req.params.id).lean();
+        const voucher = await VoucherModel.findById(voucherId).lean();
         if (!voucher || (voucher as any).is_deleted) {
             return res.status(404).json({ success: false, message: 'Voucher not found' });
         }

@@ -23,6 +23,13 @@ class ReportsMain {
         this.setupFilterTabs();
         this.setupKeyboardShortcuts();
 
+        if (window.location.pathname.toLowerCase() === '/data-worksheet') {
+            document.title = 'Data Worksheet';
+            const headerTitle = document.querySelector('header h1');
+            if (headerTitle) headerTitle.textContent = 'Data Worksheet';
+            this.showReportSection('dataWorksheet');
+        }
+
         // Check for URL parameter to auto-view a specific report
         const urlParams = new URLSearchParams(window.location.search);
         const viewReportId = urlParams.get('view');
@@ -104,7 +111,7 @@ class ReportsMain {
 
     setupHomeButton(): void {
         document.getElementById('home-btn')?.addEventListener('click', () => {
-            window.location.href = '/reports';
+            window.location.href = window.location.pathname.toLowerCase() === '/data-worksheet' ? '/dashboard' : '/reports';
         });
     }
 
@@ -469,6 +476,11 @@ class ReportsMain {
             }
 
             if (e.key === 'Escape') {
+                if (window.location.pathname.toLowerCase() === '/data-worksheet') {
+                    e.preventDefault();
+                    window.location.href = '/dashboard';
+                    return;
+                }
                 if (this.currentReportSection !== 'home') {
                     e.preventDefault();
                     e.stopPropagation();
