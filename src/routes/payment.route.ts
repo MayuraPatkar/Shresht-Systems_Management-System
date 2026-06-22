@@ -410,7 +410,12 @@ router.get('/get-party-details/:type/:partyName', async (req: Request, res: Resp
 router.get('/all', async (req: Request, res: Response) => {
     try {
         const payments = await PaymentModel.find({
-            'deletion.is_deleted': { $ne: true }
+            'deletion.is_deleted': { $ne: true },
+            $or: [
+                { voucher_no: { $exists: false } },
+                { voucher_no: null },
+                { voucher_no: "" }
+            ]
         }).sort({ payment_date: -1 }).lean();
         res.status(200).json({ success: true, payments: await normalizePaymentResponses(payments) });
     } catch (error: unknown) {
@@ -426,7 +431,12 @@ router.get('/all', async (req: Request, res: Response) => {
 router.get('/summary', async (req: Request, res: Response) => {
     try {
         const payments = await PaymentModel.find({
-            'deletion.is_deleted': { $ne: true }
+            'deletion.is_deleted': { $ne: true },
+            $or: [
+                { voucher_no: { $exists: false } },
+                { voucher_no: null },
+                { voucher_no: "" }
+            ]
         }).lean() as any[];
 
         const totalIn = payments
@@ -472,16 +482,25 @@ router.get('/search/:query', async (req: Request, res: Response) => {
         const payments = await PaymentModel.find({
             'deletion.is_deleted': { $ne: true },
             $or: [
-                { remarks: { $regex: query, $options: 'i' } },
-                { transaction_details: { $regex: query, $options: 'i' } },
-                { 'party.type': { $regex: query, $options: 'i' } },
-                { 'party.id': { $regex: query, $options: 'i' } },
-                { 'reference.type': { $regex: query, $options: 'i' } },
-                { 'reference.id': { $regex: query, $options: 'i' } },
-                { party_type: { $regex: query, $options: 'i' } },
-                { reference_type: { $regex: query, $options: 'i' } },
-                { mode: { $regex: query, $options: 'i' } },
-                { direction: { $regex: query, $options: 'i' } }
+                { voucher_no: { $exists: false } },
+                { voucher_no: null },
+                { voucher_no: "" }
+            ],
+            $and: [
+                {
+                    $or: [
+                        { remarks: { $regex: query, $options: 'i' } },
+                        { transaction_details: { $regex: query, $options: 'i' } },
+                        { 'party.type': { $regex: query, $options: 'i' } },
+                        { 'party.id': { $regex: query, $options: 'i' } },
+                        { 'reference.type': { $regex: query, $options: 'i' } },
+                        { 'reference.id': { $regex: query, $options: 'i' } },
+                        { party_type: { $regex: query, $options: 'i' } },
+                        { reference_type: { $regex: query, $options: 'i' } },
+                        { mode: { $regex: query, $options: 'i' } },
+                        { direction: { $regex: query, $options: 'i' } }
+                    ]
+                }
             ]
         } as any).sort({ payment_date: -1 }).lean();
         res.status(200).json({ success: true, payments: await normalizePaymentResponses(payments) });

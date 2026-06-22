@@ -1372,11 +1372,6 @@ interface Window {
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">${refLink}</td>
                 <td class="px-4 py-3 whitespace-nowrap text-xs">
-                    ${(p as any).voucher_no ? `
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 cursor-pointer hover:bg-blue-100" onclick="event.stopPropagation(); window.location.href = '/voucher?voucherNumber=' + encodeURIComponent('${escapeHtml((p as any).voucher_no)}')">
-                            ${escapeHtml((p as any).voucher_no)}
-                        </span>
-                    ` : '-'}
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap text-xs">
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold border ${modeClass === 'badge-cash' ? 'bg-amber-50 text-amber-700 border-amber-200' : modeClass === 'badge-upi' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : modeClass === 'badge-bank' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-purple-50 text-purple-700 border-purple-200'}">
@@ -1592,6 +1587,20 @@ interface Window {
         $detailsMode.textContent = payment.mode || '-';
         $detailsParty.textContent = `${paymentPartyType(payment)}${payment.party_display_id || payment.party_id ? `: ${payment.party_display_id || payment.party_id}` : ''}`;
         $detailsReference.innerHTML = getReferenceLinkHtml(payment);
+        if ($detailsTransactionLabel) {
+            const mode = payment.mode;
+            if (mode === 'Cash') {
+                $detailsTransactionLabel.textContent = 'Cash Location';
+            } else if (mode === 'UPI') {
+                $detailsTransactionLabel.textContent = 'UPI Transaction ID';
+            } else if (mode === 'Bank Transfer') {
+                $detailsTransactionLabel.textContent = 'Bank Name';
+            } else if (mode === 'Cheque') {
+                $detailsTransactionLabel.textContent = 'Cheque Number & Bank';
+            } else {
+                $detailsTransactionLabel.textContent = 'Transaction Ref / Details';
+            }
+        }
         $detailsTransaction.textContent = valOrDash(payment.transaction_details);
         $detailsRemarks.textContent = valOrDash(payment.remarks);
 

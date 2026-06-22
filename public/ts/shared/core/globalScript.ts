@@ -330,7 +330,9 @@ function setupCollapsibleSidebar() {
       name: 'Administration',
       icon: 'fa-solid fa-sliders',
       items: [
-        { id: 'settings', label: 'Settings', path: '/settings', icon: 'fa-solid fa-cog' }
+        { id: 'settings', label: 'Settings', path: '/settings', icon: 'fa-solid fa-cog' },
+        { id: 'backup', label: 'Backup', path: '/backup', icon: 'fa-solid fa-hdd' },
+        { id: 'importExport', label: 'Import/Export', path: '/import-export', icon: 'fa-solid fa-file-import' }
       ]
     }
   ];
@@ -484,7 +486,9 @@ document.addEventListener('DOMContentLoaded', () => {
     '/comms': 'comms',
     '/reports': 'reports',
     '/calculations': 'calculations',
-    '/settings': 'settings'
+    '/settings': 'settings',
+    '/backup': 'backup',
+    '/import-export': 'importExport'
   };
 
   // Find matching route key

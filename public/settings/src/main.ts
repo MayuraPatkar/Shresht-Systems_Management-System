@@ -3,21 +3,18 @@
  */
 
 declare var settingsAdmin: any;
-declare var settingsBackup: any;
 declare var settingsPreferences: any;
 declare var settingsSystem: any;
 declare var settingsUtils: any;
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Initialize all modules
+    // Initialize all modules except backup
     settingsAdmin.init();
-    settingsBackup.init();
     settingsPreferences.init();
     settingsSystem.init();
 
     // Load initial data
     settingsAdmin.fetchAdminInfo();
-    settingsBackup.checkBackupToolsStatus();
     settingsSystem.loadSystemInfo();
     settingsSystem.loadDatabaseStats();
 
@@ -30,13 +27,6 @@ document.addEventListener("DOMContentLoaded", () => {
         settingsSystem.loadDatabaseStats();
         settingsSystem.loadChangelog();
         settingsSystem.startSystemInfoUpdates();
-    });
-
-    // Data Backup section
-    document.getElementById("data-control-button")?.addEventListener("click", () => {
-        settingsUtils.toggleSection("data-backup-section");
-        settingsBackup.loadLastBackupStatus();
-        settingsPreferences.loadPreferences();
     });
 
     // Preferences section
@@ -69,12 +59,9 @@ document.addEventListener("DOMContentLoaded", () => {
 // Legacy backward compatibility wrapper functions just in case global scripts reference them
 (window as any).toggleSection = (sectionId: string) => settingsUtils.toggleSection(sectionId);
 (window as any).initAdminModule = () => settingsAdmin.init();
-(window as any).initBackupModule = () => settingsBackup.init();
 (window as any).initPreferencesModule = () => settingsPreferences.init();
 (window as any).initSystemModule = () => settingsSystem.init();
 (window as any).fetchAdminInfo = () => settingsAdmin.fetchAdminInfo();
-(window as any).checkBackupToolsStatus = () => settingsBackup.checkBackupToolsStatus();
-(window as any).loadLastBackupStatus = () => settingsBackup.loadLastBackupStatus();
 (window as any).loadPreferences = () => settingsPreferences.loadPreferences();
 (window as any).loadSecuritySettings = () => settingsPreferences.loadSecuritySettings();
 (window as any).loadWhatsAppStatus = () => settingsPreferences.loadWhatsAppStatus();

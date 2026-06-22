@@ -426,7 +426,7 @@
                         <div class="card-title">Transaction Details</div>
                         <div class="details-grid">
                             <div class="detail-row">
-                                <span class="detail-label">Transaction ID:</span>
+                                <span class="detail-label">${payment.mode === 'Cash' ? 'Cash Location:' : payment.mode === 'UPI' ? 'UPI Transaction ID:' : payment.mode === 'Bank Transfer' ? 'Bank Name:' : payment.mode === 'Cheque' ? 'Cheque Number & Bank:' : 'Transaction ID:'}</span>
                                 <span class="detail-value">${payment.transaction_details || payment._id}</span>
                             </div>
                             <div class="detail-row">
