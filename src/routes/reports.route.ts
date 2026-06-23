@@ -191,7 +191,7 @@ router.get('/stock', async (req: Request, res: Response) => {
                 if (end_date) reportQuery['parameters.end_date'] = new Date(end_date);
                 else reportQuery['parameters.end_date'] = { $exists: false };
 
-                await ReportModel.findOneAndUpdate(reportQuery, reportData, { upsert: true, new: true, setDefaultsOnInsert: true });
+                await ReportModel.findOneAndUpdate(reportQuery, reportData, { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true });
             } catch (saveError: unknown) {
                 logger.error('Failed to save stock report to history:', saveError);
             }
@@ -336,7 +336,7 @@ router.get('/gst', async (req: Request, res: Response) => {
                     summary: { total_records: invoices.length, total_value: totalInvoiceValue, custom: { month: reportMonth, year: reportYear } },
                     generated_at: new Date(), expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
                 };
-                await ReportModel.findOneAndUpdate(filter, updateData, { upsert: true, new: true, setDefaultsOnInsert: true });
+                await ReportModel.findOneAndUpdate(filter, updateData, { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true });
             } catch (saveError: unknown) { logger.error('Failed to save GST report to history:', saveError); }
         }
 
@@ -453,7 +453,7 @@ router.get('/purchase-gst', async (req: Request, res: Response) => {
                     summary: { total_records: purchaseOrders.length, total_value: totalPurchaseValue, custom: { month: reportMonth, year: reportYear } },
                     generated_at: new Date(), expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
                 };
-                await ReportModel.findOneAndUpdate(filter, updateData, { upsert: true, new: true, setDefaultsOnInsert: true });
+                await ReportModel.findOneAndUpdate(filter, updateData, { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true });
             } catch (saveError: unknown) { logger.error('Failed to save Purchase GST report to history:', saveError); }
         }
 

@@ -466,6 +466,10 @@ async function openVoucherModalForView(id: string) {
 
     updateDocPreview(voucher);
 
+    // Fetch and display party profile details card in view mode
+    const partyDetails = await fetchPartyDetails(voucher.partyType, voucher.partyName);
+    renderPartyProfileCard(partyDetails);
+
     modal.classList.remove('hidden');
 }
 
@@ -482,6 +486,7 @@ async function openVoucherModalForCreate() {
 
     currentViewingVoucher = null;
     form.reset();
+    renderPartyProfileCard(null); // Clear profile details card
 
     if (modalTitle) modalTitle.textContent = "New Payment Voucher";
     if (submitBtn) submitBtn.classList.remove('hidden');
@@ -497,7 +502,7 @@ async function openVoucherModalForCreate() {
     (document.getElementById('v-form-date') as HTMLInputElement).value = new Date().toISOString().split('T')[0];
 
     (document.getElementById('v-form-party-type') as HTMLSelectElement).disabled = false;
-    (document.getElementById('v-form-party-type') as HTMLSelectElement).value = "Supplier";
+    (document.getElementById('v-form-party-type') as HTMLSelectElement).value = "Customer";
 
     (document.getElementById('v-form-party-name') as HTMLInputElement).readOnly = false;
     (document.getElementById('v-form-party-id') as HTMLInputElement).value = "";
@@ -790,33 +795,46 @@ async function handlePayeeInput(inputEl: HTMLInputElement) {
     const type = typeSelect.value as 'Customer' | 'Supplier' | 'Other';
     const value = inputEl.value.trim().toLowerCase();
 
+    console.log('handlePayeeInput:', { type, value });
+
     if (type === 'Other') {
         suggestionsUl.classList.add('hidden');
+        suggestionsUl.style.display = 'none';
         return;
     }
 
     if (!value) {
         suggestionsUl.classList.add('hidden');
+        suggestionsUl.style.display = 'none';
         return;
     }
 
     if (cachedPartiesType !== type) {
+        console.log('Fetching parties cache for type:', type);
         if (type === 'Customer') {
             customersCache = await (window as any).VoucherAPI.fetchParties('Customer');
         } else {
             suppliersCache = await (window as any).VoucherAPI.fetchParties('Supplier');
         }
         cachedPartiesType = type;
+        console.log('Parties cache size:', type === 'Customer' ? customersCache.length : suppliersCache.length);
     }
 
     const items = type === 'Customer' ? customersCache : suppliersCache;
-    const filtered = items.filter(item => 
-        item.name.toLowerCase().includes(value) || 
-        item.id.toLowerCase().includes(value)
-    );
+    const filtered = items.filter(item => {
+        const name = String(item && item.name || '').toLowerCase();
+        const id = String(item && item.id || '').toLowerCase();
+        const phone = String(item && item.phone || '').toLowerCase();
+        const email = String(item && item.email || '').toLowerCase();
+        const gstin = String(item && item.gstin || '').toLowerCase();
+        return name.includes(value) || id.includes(value) || phone.includes(value) || email.includes(value) || gstin.includes(value);
+    });
+
+    console.log('Filtered suggestion matches:', filtered.length);
 
     if (filtered.length === 0) {
         suggestionsUl.classList.add('hidden');
+        suggestionsUl.style.display = 'none';
         return;
     }
 
@@ -825,17 +843,23 @@ async function handlePayeeInput(inputEl: HTMLInputElement) {
         const li = document.createElement('li');
         li.className = 'px-4 py-2 hover:bg-slate-50 cursor-pointer text-xs flex justify-between font-medium text-slate-700';
         li.innerHTML = `<span>${item.name}</span> <span class="text-slate-400 font-normal">${item.id}</span>`;
-        li.addEventListener('mousedown', (e) => {
+        li.addEventListener('mousedown', async (e) => {
             e.preventDefault();
             inputEl.value = item.name;
             (document.getElementById('v-form-party-id') as HTMLInputElement).value = item.id;
             suggestionsUl.classList.add('hidden');
+            suggestionsUl.style.display = 'none';
             updateDocPreview(getFormPayload());
+
+            // Fetch and render detailed contact profile card
+            const partyDetails = await fetchPartyDetails(type, item.name);
+            renderPartyProfileCard(partyDetails);
         });
         suggestionsUl.appendChild(li);
     });
 
     suggestionsUl.classList.remove('hidden');
+    suggestionsUl.style.display = 'block';
 }
 
 /**
@@ -1227,6 +1251,7 @@ function setupEventListeners() {
         if (nameInput) nameInput.value = '';
         if (idInput) idInput.value = '';
         toggleConditionalFields((document.getElementById('v-form-method') as HTMLSelectElement).value);
+        renderPartyProfileCard(null); // Clear profile details card on type change
         if (!currentViewingVoucher) {
             updateDocPreview(getFormPayload());
         }
@@ -1234,6 +1259,7 @@ function setupEventListeners() {
 
     const partyNameInput = document.getElementById('v-form-party-name') as HTMLInputElement;
     partyNameInput?.addEventListener('input', () => {
+        renderPartyProfileCard(null); // Clear profile details card on manual edit
         handlePayeeInput(partyNameInput);
     });
     partyNameInput?.addEventListener('focus', () => {
@@ -1241,7 +1267,11 @@ function setupEventListeners() {
     });
     partyNameInput?.addEventListener('blur', () => {
         setTimeout(() => {
-            document.getElementById('v-party-suggestions')?.classList.add('hidden');
+            const suggestionsUl = document.getElementById('v-party-suggestions');
+            if (suggestionsUl) {
+                suggestionsUl.classList.add('hidden');
+                suggestionsUl.style.display = 'none';
+            }
         }, 200);
     });
 
@@ -1506,4 +1536,96 @@ function setupKeyboardShortcuts() {
             document.getElementById('shortcuts-modal')?.classList.add('hidden');
         }
     });
+}
+
+async function fetchPartyDetails(type: string, partyName: string): Promise<any> {
+    try {
+        const res = await fetch(`/payment/get-party-details/${encodeURIComponent(type)}/${encodeURIComponent(partyName)}`);
+        if (!res.ok) return null;
+        const data = await res.json();
+        if (data.success && data.party) {
+            const party = data.party;
+            return {
+                ...party,
+                name: type === 'Customer' ? (party.customer?.name || 'Unnamed') : (party.supplier_name || 'Unnamed'),
+                phone: type === 'Customer' ? (party.customer?.phone || '') : (party.phone || ''),
+                email: type === 'Customer' ? (party.customer?.email || '') : (party.email || ''),
+                gstin: party.gstin || ''
+            };
+        }
+        return null;
+    } catch (e) {
+        console.error('fetchPartyDetails error:', e);
+        return null;
+    }
+}
+
+function renderPartyProfileCard(party: any) {
+    const container = document.getElementById('v-party-profile-card-container');
+    if (!container) return;
+
+    if (!party) {
+        container.innerHTML = '';
+        container.classList.add('hidden');
+        container.style.display = 'none';
+        return;
+    }
+
+    const name = party.name || 'Unnamed';
+    const type = (document.getElementById('v-form-party-type') as HTMLSelectElement).value;
+    const phone = party.phone || '';
+    const email = party.email || '';
+    const gstin = party.gstin || '';
+    
+    let addressStr = '';
+    if (party.billing_address) {
+        const billing = party.billing_address;
+        addressStr = [billing.line1, billing.line2, billing.city, billing.state, billing.pincode].filter(val => val && String(val).trim() !== '').join(', ');
+    } else if (party.customer_address) {
+        addressStr = party.customer_address;
+    } else if (party.address) {
+        const addr = party.address;
+        if (typeof addr === 'string') {
+            addressStr = addr;
+        } else {
+            addressStr = [addr.line1, addr.line2, addr.city, addr.state, addr.pincode].filter(val => val && String(val).trim() !== '').join(', ');
+        }
+    }
+
+    container.innerHTML = `
+        <div class="bg-blue-50/40 rounded-xl p-4 border border-blue-100 flex flex-col md:flex-row gap-4 justify-between items-start fade-in text-xs mb-4">
+            <div class="space-y-2 flex-grow w-full">
+                <div class="flex items-center gap-2">
+                    <h4 class="font-bold text-slate-800 text-sm">${name}</h4>
+                    <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-blue-100 text-blue-700 uppercase">${type}</span>
+                </div>
+                <div class="text-slate-600 space-y-1.5 w-full">
+                    ${addressStr ? `
+                    <p class="flex items-start gap-1.5">
+                        <i class="fas fa-map-marker-alt text-blue-500 mt-0.5 flex-shrink-0 w-3.5 text-center"></i>
+                        <span>${addressStr}</span>
+                    </p>` : ''}
+                    <div class="flex flex-wrap gap-x-4 gap-y-1 mt-1 pt-1.5 border-t border-slate-100/50 w-full">
+                        ${phone ? `
+                        <p class="flex items-center gap-1.5">
+                            <i class="fas fa-phone text-blue-500 flex-shrink-0 w-3.5 text-center"></i>
+                            <span>${phone}</span>
+                        </p>` : ''}
+                        ${email ? `
+                        <p class="flex items-center gap-1.5">
+                            <i class="fas fa-envelope text-blue-500 flex-shrink-0 w-3.5 text-center"></i>
+                            <span class="break-all">${email}</span>
+                        </p>` : ''}
+                    </div>
+                </div>
+            </div>
+            ${gstin ? `
+            <div class="bg-white rounded-lg p-2.5 border border-blue-100 flex flex-col justify-center items-start min-w-[150px] shadow-sm mt-2 md:mt-0 w-full md:w-auto">
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">GSTIN</span>
+                <span class="font-bold text-slate-700 mt-0.5">${gstin}</span>
+            </div>` : ''}
+        </div>
+    `;
+    container.classList.remove('hidden');
+    container.style.display = 'block';
 }

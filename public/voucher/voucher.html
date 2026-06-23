@@ -352,20 +352,22 @@
                                 <label for="v-form-party-type" class="block text-xs font-semibold text-slate-600 mb-1">Payee Type <span class="text-red-500">*</span></label>
                                 <select id="v-form-party-type" name="partyType" required
                                     class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none">
-                                    <option value="Customer">Customer</option>
-                                    <option value="Supplier" selected>Supplier</option>
+                                    <option value="Customer" selected>Customer</option>
+                                    <option value="Supplier">Supplier</option>
                                     <option value="Other">Other (Manual)</option>
                                 </select>
                             </div>
-                            <div class="col-span-2 relative" id="v-party-search-container">
-                                <label for="v-form-party-name" class="block text-xs font-semibold text-slate-600 mb-1">Payee Name (Name / ID) <span class="text-red-500">*</span></label>
+                            <div class="col-span-2 relative z-30" id="v-party-search-container">
+                                <label for="v-form-party-name" class="block text-xs font-semibold text-slate-600 mb-1"><i class="fas fa-search text-gray-500 mr-1"></i>Search Recipient <span class="text-red-500">*</span></label>
                                 <input type="text" id="v-form-party-name" name="partyName" required autocomplete="off"
                                     class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                                    placeholder="Search or type name...">
+                                    placeholder="Search by name, phone, email, or GSTIN...">
                                 <input type="hidden" id="v-form-party-id" name="partyId">
-                                <ul id="v-party-suggestions" class="suggestions hidden absolute z-50 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto"></ul>
+                                <ul id="v-party-suggestions" class="suggestions hidden absolute top-full left-0 mt-1 z-50 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto"></ul>
                             </div>
                         </div>
+
+                        <div id="v-party-profile-card-container" class="mt-2 hidden"></div>
 
                         <!-- Amount & Amount in Words row -->
                         <div class="grid grid-cols-3 gap-3">

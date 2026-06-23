@@ -60,12 +60,18 @@ const VoucherAPI = {
     },
 
     async fetchParties(type: 'Customer' | 'Supplier'): Promise<{ id: string; name: string }[]> {
+        console.log('VoucherAPI.fetchParties called with type:', type);
         try {
-            const res = await fetch(`/payment/get-parties/${type}`);
+            const url = `/payment/get-parties/${type}`;
+            console.log('VoucherAPI.fetchParties fetching url:', url);
+            const res = await fetch(url);
+            console.log('VoucherAPI.fetchParties response status:', res.status, res.statusText);
             if (!res.ok) return [];
-            return await res.json();
+            const data = await res.json();
+            console.log('VoucherAPI.fetchParties received count:', data.length);
+            return data;
         } catch (e) {
-            console.error('Failed to fetch parties', e);
+            console.error('Failed to fetch parties from backend:', e);
             return [];
         }
     }

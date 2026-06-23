@@ -162,7 +162,7 @@ router.get("/recent-purchase-orders", async (req: Request, res: Response) => {
         }
 
         const recentPurchaseOrders = await queryBuilder
-            .select("purchase_order_no supplier_snapshot totals purchase_date createdAt is_archived deletion");
+            .select("purchase_order_no supplier_snapshot totals purchase_date createdAt is_archived deletion status purchase_status");
 
         res.status(200).json({
             message: "Recent purchase orders retrieved successfully",

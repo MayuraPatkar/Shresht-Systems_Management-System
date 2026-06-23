@@ -1446,7 +1446,7 @@
  
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="100" class="px-4 py-10 bg-white text-slate-400 text-center align-middle h-full">
+                    <td colspan="100" class="w-full justify-center px-4 py-10 bg-white text-slate-400 text-center align-middle h-full">
                         ${emptyHtml}
                     </td>
                 </tr>
