@@ -371,13 +371,74 @@ export async function migratePurchaseOrders(db: any): Promise<{
                 address: addressFromLegacy(address),
             };
 
+            // Map items
+            const mappedItems = Array.isArray(doc.items)
+                ? doc.items.map((item: any) => {
+                      const qty = Number(item.quantity || 0);
+                      const price = Number(item.unit_price || item.price || 0);
+                      const gstRate = Number(item.rate || item.gst_rate || 0);
+                      const taxable = Math.round(qty * price * 100) / 100;
+                      const tax = Math.round(((taxable * gstRate) / 100) * 100) / 100;
+
+                      return {
+                          item_id: item.item_id ? new Types.ObjectId(item.item_id) : undefined,
+                          description: item.description || "",
+                          specification: item.specification || "",
+                          hsn_sac: item.hsn_sac || item.HSN_SAC || "",
+                          unit: item.unit || "Nos",
+                          quantity: qty,
+                          unit_price: price,
+                          taxable_value: taxable,
+                          gst_rate: gstRate,
+                          total: Math.round((taxable + tax) * 100) / 100,
+                      };
+                  })
+                : [];
+
+            const taxableValue = mappedItems.reduce((acc: number, it: any) => acc + (it.taxable_value || 0), 0);
+            const totalTax = mappedItems.reduce((acc: number, it: any) => acc + (it.total || 0) - (it.taxable_value || 0), 0);
+            const grandTotal = Number(doc.total_amount || 0);
+
+            const addressState = supplierSnapshot.address?.state || "Karnataka";
+            const isInterState = String(addressState).toLowerCase().trim() !== "karnataka";
+
+            const igst = isInterState ? totalTax : 0;
+            const cgst = isInterState ? 0 : Math.round((totalTax / 2) * 100) / 100;
+            const sgst = isInterState ? 0 : Math.round((totalTax - cgst) * 100) / 100;
+
+            const totals = doc.totals || {
+                taxable_value: taxableValue,
+                total_tax: totalTax,
+                cgst,
+                sgst,
+                igst,
+                round_off: Math.round((grandTotal - (taxableValue + totalTax)) * 100) / 100,
+                grand_total: grandTotal,
+            };
+
+            const isReceived = !!doc.purchase_invoice_id || doc.purchase_invoice_no;
+
             await purchaseordersCollection.updateOne(
                 { _id: doc._id },
                 {
                     $set: {
                         schema_version: 2,
+                        purchase_order_no: doc.purchase_order_no || doc.purchase_order_id,
+                        purchase_invoice_no: doc.purchase_invoice_no || doc.purchase_invoice_id || undefined,
+                        purchase_date: doc.purchase_date ? new Date(doc.purchase_date) : new Date(),
+                        due_date: doc.due_date ? new Date(doc.due_date) : undefined,
+                        purchase_status: doc.purchase_status || (isReceived ? "Received" : "Ordered"),
+                        status: doc.status || (isReceived ? "Invoiced" : "Issued/Sent"),
+                        purchase_type: doc.purchase_type || (isInterState ? "Interstate" : "Local"),
                         supplier_id: supplierId,
                         supplier_snapshot: supplierSnapshot,
+                        items: mappedItems,
+                        totals,
+                        remarks: doc.remarks || `Migrated legacy PO record ${doc.purchase_order_no || doc.purchase_order_id}`,
+                        deletion: doc.deletion || { is_deleted: Boolean(doc.is_deleted) },
+                        is_archived: doc.is_archived ?? false,
+                        createdAt: doc.createdAt || new Date(),
+                        updatedAt: doc.updatedAt || new Date(),
                     }
                 }
             );
@@ -385,7 +446,7 @@ export async function migratePurchaseOrders(db: any): Promise<{
         } catch (err: unknown) {
             report.failed++;
             const msg = err instanceof Error ? err.message : String(err);
-            logger.error(`Failed to migrate legacy PO record ${doc.purchase_order_no}:`, { error: msg });
+            logger.error(`Failed to migrate legacy PO record ${doc.purchase_order_no || doc._id}:`, { error: msg });
         }
     }
 
