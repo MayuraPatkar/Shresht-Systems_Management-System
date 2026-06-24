@@ -13,28 +13,98 @@ interface RawCustomerData {
     updatedAt?: Date;
 }
 
-/**
- * Normalizes and extracts address fields from legacy customer address string
- */
-function addressFromLegacy(value: any) {
-    if (!value) return undefined;
-    if (typeof value === "string") {
+export function addressFromLegacy(value: any) {
+    if (!value) {
         return {
-            line1: value.trim(),
+            line1: "",
             line2: "",
             city: "",
             state: "Karnataka",
             pincode: "",
-            country: "India",
+            country: "India"
         };
     }
+
+    if (typeof value === "string") {
+        let remaining = value;
+
+        // Pincode: Match first occurrence of exactly 6 consecutive digits
+        let pincode = "";
+        const pincodeRegex = /\b\d{6}\b/;
+        const pincodeMatch = remaining.match(pincodeRegex);
+        if (pincodeMatch) {
+            pincode = pincodeMatch[0];
+            remaining = remaining.replace(pincodeRegex, "");
+        }
+
+        // Country: India, USA, UK, UAE (whole words, case insensitive), default India
+        let country = "India";
+        const countryRegex = /\b(India|USA|UK|UAE)\b/i;
+        const countryMatch = remaining.match(countryRegex);
+        if (countryMatch) {
+            const matchedCountry = countryMatch[0].trim();
+            const upper = matchedCountry.toUpperCase();
+            if (upper === "INDIA") country = "India";
+            else if (upper === "USA") country = "USA";
+            else if (upper === "UK") country = "UK";
+            else if (upper === "UAE") country = "UAE";
+            else country = matchedCountry;
+            remaining = remaining.replace(countryRegex, "");
+        }
+
+        // State: Indian states list (case insensitive), default Karnataka
+        let state = "Karnataka";
+        const states = ['Karnataka', 'Maharashtra', 'Kerala', 'Tamil\\s+Nadu', 'Delhi', 'Goa', 'Andhra\\s+Pradesh'];
+        const stateRegex = new RegExp(`\\b(${states.join('|')})\\b`, 'i');
+        const stateMatch = remaining.match(stateRegex);
+        if (stateMatch) {
+            const matchedState = stateMatch[0].trim();
+            const lower = matchedState.toLowerCase();
+            if (lower === "karnataka") state = "Karnataka";
+            else if (lower === "maharashtra") state = "Maharashtra";
+            else if (lower === "kerala") state = "Kerala";
+            else if (lower === "tamil nadu") state = "Tamil Nadu";
+            else if (lower === "delhi") state = "Delhi";
+            else if (lower === "goa") state = "Goa";
+            else if (lower === "andhra pradesh") state = "Andhra Pradesh";
+            else state = matchedState;
+            remaining = remaining.replace(stateRegex, "");
+        }
+
+        // Put ALL remaining text into line1, clean up extra spaces and commas, and trim
+        let line1 = remaining.replace(/,\s*,/g, ",").replace(/\s+/g, " ").trim();
+        // Remove leading/trailing commas, hyphens, and spaces
+        line1 = line1.replace(/^[-,\s]+|[-,\s]+$/g, "").trim();
+
+        return {
+            line1,
+            line2: "",
+            city: "",
+            state,
+            pincode,
+            country
+        };
+    }
+
+    // If it's already an object, trim all its string fields and clean line2 if it is '-'
+    let line1 = String(value.line1 || value.address_line_1 || value.address || "").trim();
+    line1 = line1.replace(/^[-,\s]+|[-,\s]+$/g, "").trim();
+    
+    let line2 = String(value.line2 || value.address_line_2 || "").trim();
+    if (line2 === "-") line2 = "";
+    
+    const city = String(value.city || "").trim();
+    const state = String(value.state || "Karnataka").trim();
+    const pincode = String(value.pincode || value.pin || "").trim();
+    const country = String(value.country || "India").trim();
+
     return {
-        line1: value.line1 || value.address_line_1 || value.address || "",
-        line2: value.line2 || value.address_line_2 || "",
-        city: value.city || "",
-        state: value.state || "Karnataka",
-        pincode: value.pincode || value.pin || "",
-        country: value.country || "India",
+        line1,
+        line2,
+        city,
+        state,
+        pincode,
+        country
     };
 }
 

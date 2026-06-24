@@ -1,32 +1,7 @@
 import { Types } from "mongoose";
 import { InvoiceModel, InvoiceStatus } from "../../../models/Invoice.model";
-import { getCustomerKey } from "./customer";
+import { getCustomerKey, addressFromLegacy } from "./customer";
 import logger from "../../../utils/logger";
-
-/**
- * Normalizes and extracts address fields from legacy customer address string
- */
-function addressFromLegacy(value: any) {
-    if (!value) return undefined;
-    if (typeof value === "string") {
-        return {
-            line1: value.trim(),
-            line2: "",
-            city: "",
-            state: "Karnataka",
-            pincode: "",
-            country: "India",
-        };
-    }
-    return {
-        line1: value.line1 || value.address_line_1 || value.address || "",
-        line2: value.line2 || value.address_line_2 || "",
-        city: value.city || "",
-        state: value.state || "Karnataka",
-        pincode: value.pincode || value.pin || "",
-        country: value.country || "India",
-    };
-}
 
 /**
  * Maps items to V2 invoice items

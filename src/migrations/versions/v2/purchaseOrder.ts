@@ -3,40 +3,7 @@ import { SupplierModel } from "../../../models/Supplier.model";
 import { PurchaseOrderModel } from "../../../models/PurchaseOrder.model";
 import { generateNextId } from "../../../utils/idGenerator";
 import logger from "../../../utils/logger";
-
-interface RawSupplierData {
-    name: string;
-    phone: string;
-    email: string;
-    gstin: string;
-    address: string;
-    createdAt?: Date;
-    updatedAt?: Date;
-}
-
-/**
- * Normalizes and extracts address fields from legacy supplier address string
- */
-function addressFromLegacy(value: any) {
-    if (!value) return undefined;
-    if (typeof value === "string") {
-        return {
-            line1: value.trim(),
-            line2: "",
-            city: "",
-            state: "Karnataka",
-            pincode: "",
-            country: "India",
-        };
-    }
-    return {
-        line1: value.line1 || value.address_line_1 || value.address || "",
-        line2: value.line2 || value.address_line_2 || "",
-        city: value.city || "",
-        state: value.state || "Karnataka",
-        pincode: value.pincode || value.pin || "",
-    };
-}
+import { addressFromLegacy } from "./customer";
 
 /**
  * Construct composite lookup key for supplier deduplication hierarchy

@@ -1,26 +1,7 @@
 import { Types } from "mongoose";
 import { SupplierModel } from "../../../models/Supplier.model";
 import logger from "../../../utils/logger";
-
-function addressFromLegacy(value: any) {
-    if (!value) return undefined;
-    if (typeof value === "string") {
-        return {
-            line1: value.trim(),
-            line2: "",
-            city: "",
-            state: "Karnataka",
-            pincode: ""
-        };
-    }
-    return {
-        line1: value.line1 || value.address_line_1 || value.address || "",
-        line2: value.line2 || value.address_line_2 || "",
-        city: value.city || "",
-        state: value.state || "Karnataka",
-        pincode: value.pincode || value.pin || ""
-    };
-}
+import { addressFromLegacy } from "./customer";
 
 /**
  * Migrates legacy purchases to V2 in-place.

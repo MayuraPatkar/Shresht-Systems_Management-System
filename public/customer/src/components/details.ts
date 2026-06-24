@@ -856,7 +856,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (addrCityState) {
             const city = customer.billing_address?.city || '';
             const state = customer.billing_address?.state || '';
-            addrCityState.textContent = (city || state) ? `${city}, ${state}` : '-';
+            addrCityState.textContent = [city, state].filter(Boolean).join(', ') || '-';
         }
 
         const addrPincode = document.getElementById('info-address-pincode');

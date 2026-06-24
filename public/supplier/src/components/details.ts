@@ -297,7 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (addrCityState) {
             const city = supplier.billing_address?.city || '';
             const state = supplier.billing_address?.state || '';
-            addrCityState.textContent = (city || state) ? `${city}, ${state}` : '-';
+            addrCityState.textContent = [city, state].filter(Boolean).join(', ') || '-';
         }
 
         const addrPincode = document.getElementById('info-address-pincode');
