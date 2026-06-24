@@ -286,6 +286,7 @@ import paymentRoutes from './routes/payment.route';
 import voucherRoutes from './routes/voucher.route';
 import customerRoutes from './routes/customer.route';
 import supplierRoutes from './routes/supplier.route';
+import searchRoutes from './routes/search.route';
 
 
 // Health check endpoint
@@ -334,6 +335,7 @@ exServer.use('/payment', paymentRoutes);
 exServer.use('/voucher', voucherRoutes);
 exServer.use('/api/customers', customerRoutes);
 exServer.use('/api/suppliers', supplierRoutes);
+exServer.use('/search', searchRoutes);
 
 
 // View routes LAST (to avoid catching API routes)
