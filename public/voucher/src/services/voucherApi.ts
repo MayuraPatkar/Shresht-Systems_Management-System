@@ -50,6 +50,19 @@ const VoucherAPI = {
         throw new Error(data.message || 'Failed to create voucher');
     },
 
+    async updateVoucher(id: string, payload: Partial<IVoucher>): Promise<{ success: boolean; voucher: IVoucher; message?: string }> {
+        const res = await fetch(`/voucher/${encodeURIComponent(id)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+            return data;
+        }
+        throw new Error(data.message || 'Failed to update voucher');
+    },
+
     async deleteVoucherById(id: string): Promise<{ success: boolean; message: string }> {
         const res = await fetch(`/voucher/${id}`, { method: 'DELETE' });
         const data = await res.json();

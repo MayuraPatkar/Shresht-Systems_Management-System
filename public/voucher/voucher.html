@@ -56,12 +56,6 @@
             align-items: center;
         }
 
-        .hidden.md\:block.overflow-y-auto th:last-child,
-        .hidden.md\:block.overflow-y-auto td:last-child {
-            justify-content: flex-end;
-            text-align: right;
-        }
-
         th:nth-child(1), td:nth-child(1) { flex: 1.0; }
         th:nth-child(2), td:nth-child(2) { flex: 1.2; }
         th:nth-child(3), td:nth-child(3) { flex: 1.2; }
@@ -69,7 +63,6 @@
         th:nth-child(5), td:nth-child(5) { flex: 1.0; }
         th:nth-child(6), td:nth-child(6) { flex: 1.2; }
         th:nth-child(7), td:nth-child(7) { flex: 1.5; }
-        th:nth-child(8), td:nth-child(8) { flex: 1.0; justify-content: flex-end; text-align: right; }
 
         input,
         textarea,
@@ -283,12 +276,11 @@
                                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Method</th>
                                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Amount</th>
                                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Paid Towards</th>
-                                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="voucher-tbody">
                                 <tr>
-                                    <td colspan="8" class="w-full px-4 py-12 flex flex-col items-center justify-center text-slate-400">
+                                    <td colspan="7" class="w-full px-4 py-12 flex flex-col items-center justify-center text-slate-400">
                                         <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
                                         <p>Loading vouchers...</p>
                                     </td>

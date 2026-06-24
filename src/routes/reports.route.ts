@@ -181,17 +181,7 @@ router.get('/stock', async (req: Request, res: Response) => {
                     generated_at: new Date(), expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
                 };
 
-                const reportQuery: any = {
-                    report_type: 'stock', 'parameters.filters.item_name': item_name || null,
-                    'parameters.filters.movement_type': movement_type || null
-                };
-                if (item_id) reportQuery['parameters.filters.item_id'] = item_id;
-                if (start_date) reportQuery['parameters.start_date'] = new Date(start_date);
-                else reportQuery['parameters.start_date'] = { $exists: false };
-                if (end_date) reportQuery['parameters.end_date'] = new Date(end_date);
-                else reportQuery['parameters.end_date'] = { $exists: false };
-
-                await ReportModel.findOneAndUpdate(reportQuery, reportData, { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true });
+                // Report saving disabled per requirements
             } catch (saveError: unknown) {
                 logger.error('Failed to save stock report to history:', saveError);
             }
@@ -325,21 +315,6 @@ router.get('/gst', async (req: Request, res: Response) => {
             total_value: inv.totals_original?.grand_total || inv.totals_duplicate?.grand_total || inv.total_amount_original || 0
         }));
 
-        if (invoices.length > 0) {
-            try {
-                const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                const filter: any = { report_type: 'gst', 'parameters.month': reportMonth, 'parameters.year': reportYear };
-                const updateData = {
-                    report_type: 'gst', report_name: `Invoice GST Report - ${shortMonths[reportMonth - 1]} ${reportYear}`,
-                    parameters: { month: reportMonth, year: reportYear },
-                    data: { summary: { total_invoices: invoices.length, total_taxable_value: totalTaxableValue, total_cgst: totalCGST, total_sgst: totalSGST, total_igst: totalIGST, total_tax: totalCGST + totalSGST + totalIGST, total_invoice_value: totalInvoiceValue }, tax_rate_breakdown: taxRateList, invoice_breakdown: invoiceBreakdown },
-                    summary: { total_records: invoices.length, total_value: totalInvoiceValue, custom: { month: reportMonth, year: reportYear } },
-                    generated_at: new Date(), expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                };
-                await ReportModel.findOneAndUpdate(filter, updateData, { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true });
-            } catch (saveError: unknown) { logger.error('Failed to save GST report to history:', saveError); }
-        }
-
         res.json({
             success: true, report: {
                 month: reportMonth, year: reportYear,
@@ -442,21 +417,6 @@ router.get('/purchase-gst', async (req: Request, res: Response) => {
             };
         });
 
-        if (purchaseOrders.length > 0) {
-            try {
-                const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                const filter: any = { report_type: 'purchase_gst', 'parameters.month': reportMonth, 'parameters.year': reportYear };
-                const updateData = {
-                    report_type: 'purchase_gst', report_name: `Purchase GST Report - ${shortMonths[reportMonth - 1]} ${reportYear}`,
-                    parameters: { month: reportMonth, year: reportYear },
-                    data: { summary: { total_purchase_orders: purchaseOrders.length, total_taxable_value: totalTaxableValue, total_cgst: totalCGST, total_sgst: totalSGST, total_igst: totalIGST, total_tax: totalCGST + totalSGST + totalIGST, total_purchase_value: totalPurchaseValue }, tax_rate_breakdown: taxRateList, purchase_breakdown: purchaseBreakdown },
-                    summary: { total_records: purchaseOrders.length, total_value: totalPurchaseValue, custom: { month: reportMonth, year: reportYear } },
-                    generated_at: new Date(), expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                };
-                await ReportModel.findOneAndUpdate(filter, updateData, { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true });
-            } catch (saveError: unknown) { logger.error('Failed to save Purchase GST report to history:', saveError); }
-        }
-
         res.json({
             success: true, report: {
                 month: reportMonth, year: reportYear,
@@ -478,18 +438,12 @@ router.get('/purchase-gst', async (req: Request, res: Response) => {
 router.post('/data-worksheet', async (req: Request, res: Response) => {
     try {
         const worksheetData = req.body;
-        const report = new ReportModel({
-            report_type: 'data_worksheet',
-            report_name: `Solar Worksheet - ${worksheetData.customerName || 'Customer'} - ${worksheetData.systemSize}KW`,
-            parameters: { customer_name: worksheetData.customerName, system_size: worksheetData.systemSize, month: worksheetData.month },
-            data: worksheetData,
-            summary: { custom: { system_size: worksheetData.systemSize, monthly_production: worksheetData.systemSize * (worksheetData.unitsPerDay || 4) * 30, monthly_savings: worksheetData.monthlySavings } }
-        });
-        await report.save();
-        res.json({ success: true, report_id: report._id, message: 'Data worksheet saved successfully' });
+        // Report saving disabled per requirements. Returning a dummy ID.
+        const dummyId = new mongoose.Types.ObjectId();
+        res.json({ success: true, report_id: dummyId, message: 'Data worksheet processed successfully (saving disabled)' });
     } catch (error: unknown) {
-        logger.error('Error saving data worksheet:', error);
-        res.status(500).json({ success: false, error: 'Failed to save data worksheet' });
+        logger.error('Error processing data worksheet:', error);
+        res.status(500).json({ success: false, error: 'Failed to process data worksheet' });
     }
 });
 

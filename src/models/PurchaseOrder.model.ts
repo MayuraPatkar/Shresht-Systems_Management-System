@@ -67,6 +67,7 @@ export interface IPurchaseOrder extends Document {
     schema_version: number;
 
     purchase_order_no?: string;
+    purchase_id?: Types.ObjectId;
     purchase_invoice_no?: string;
     purchase_date: Date;
     due_date?: Date;
@@ -183,6 +184,12 @@ const purchaseOrderSchema = new Schema<IPurchaseOrder>(
             unique: true,
             sparse: true,
             trim: true,
+            index: true,
+        },
+
+        purchase_id: {
+            type: Schema.Types.ObjectId,
+            ref: "Purchase",
             index: true,
         },
 

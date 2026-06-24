@@ -150,6 +150,8 @@ const reportSchema = new Schema<IReport>(
         timestamps: true,
         toJSON: { virtuals: true },
         toObject: { virtuals: true },
+        autoCreate: false,
+        autoIndex: false,
     }
 );
 

@@ -4,6 +4,7 @@
  */
 
 import { AdminModel } from "../models/Admin.model";
+import { ReportModel } from "../models/Report.model";
 import fs from "fs";
 import path from "path";
 import logger from "./logger";
@@ -12,6 +13,17 @@ import { migrateLegacyQuotations } from "./quotationMigration";
 async function initializeDatabase(): Promise<void> {
     try {
         await migrateLegacyQuotations();
+
+        // Drop reports collection if it exists to ensure it is not created
+        const mongoose = require('mongoose');
+        const db = mongoose.connection.db;
+        if (db) {
+            const collections = await db.listCollections({ name: 'reports' }).toArray();
+            if (collections.length > 0) {
+                await db.dropCollection('reports');
+                logger.info("✓ Dropped reports collection successfully");
+            }
+        }
 
         // Check if admin users already exist
         const existingAdmins = await AdminModel.countDocuments();

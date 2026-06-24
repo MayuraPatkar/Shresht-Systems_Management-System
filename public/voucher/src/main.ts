@@ -21,7 +21,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (page === 'list') {
         refreshVouchersList();
     } else if (page === 'form') {
-        await openVoucherModalForCreate();
+        const id = new URLSearchParams(window.location.search).get('id');
+        if (id) {
+            await openVoucherModalForEdit(id);
+        } else {
+            await openVoucherModalForCreate();
+        }
     } else if (page === 'details') {
         await initializeVoucherDetailsPage();
     }
@@ -51,6 +56,19 @@ async function initializeVoucherDetailsPage() {
             const button = document.getElementById(buttonId) as HTMLButtonElement | null;
             if (button) button.disabled = false;
         });
+
+        const editBtn = document.getElementById('v-btn-edit') as HTMLButtonElement | null;
+        if (editBtn) {
+            editBtn.addEventListener('click', () => {
+                (window as any).navigateTo(`/voucher/form?id=${encodeURIComponent(id)}`);
+            });
+        }
+        const deleteBtn = document.getElementById('v-btn-delete') as HTMLButtonElement | null;
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', () => {
+                handleDeleteVoucher(id);
+            });
+        }
     } catch (error: any) {
         console.error('Error loading voucher details:', error);
         (window as any).showAlert(error.message || 'Unable to load voucher details.');
@@ -254,10 +272,6 @@ function renderVouchersList(vouchers: any[]) {
                 <td class="px-4 py-3.5"><span class="px-2 py-0.5 text-xs font-bold rounded-full ${badgeClass}">${v.paymentMethod}</span></td>
                 <td class="px-4 py-3.5 font-bold text-slate-900">₹ ${amountStr}</td>
                 <td class="px-4 py-3.5 text-slate-500 truncate max-w-[150px]" title="${v.paidTowards || ''}">${v.paidTowards || '-'}</td>
-                <td class="px-4 py-3.5 text-right flex items-center justify-end gap-1.5" onclick="event.stopPropagation()">
-                    <button class="view-voucher-btn p-1.5 hover:bg-blue-50 text-blue-600 rounded" data-id="${v._id}" title="View Details"><i class="fas fa-eye"></i></button>
-                    <button class="delete-voucher-btn p-1.5 hover:bg-red-50 text-red-600 rounded" data-id="${v._id}" title="Delete"><i class="fas fa-trash-alt"></i></button>
-                </td>
             </tr>
         `;
 
@@ -531,6 +545,94 @@ async function openVoucherModalForCreate() {
     modal.classList.remove('hidden');
 }
 
+async function openVoucherModalForEdit(id: string) {
+    const modal = document.getElementById('voucher-modal') as HTMLDivElement;
+    const modalTitle = document.getElementById('voucher-modal-title') as HTMLHeadingElement;
+    const form = document.getElementById('voucher-form') as HTMLFormElement;
+    const submitBtn = document.getElementById('v-form-submit-btn') as HTMLButtonElement;
+
+    if (!form) return;
+
+    try {
+        const voucher = await (window as any).VoucherAPI.fetchVoucherById(id);
+        currentViewingVoucher = voucher;
+
+        if (modalTitle) modalTitle.textContent = `Edit Voucher - ${voucher.voucherNumber}`;
+        if (submitBtn) {
+            submitBtn.classList.remove('hidden');
+            submitBtn.innerHTML = `<i class="fas fa-check"></i> Update Voucher`;
+        }
+
+        const printBtn = document.getElementById('v-btn-print') as HTMLButtonElement;
+        const pdfBtn = document.getElementById('v-btn-pdf') as HTMLButtonElement;
+        const waBtn = document.getElementById('v-btn-whatsapp') as HTMLButtonElement;
+        if (printBtn) printBtn.disabled = false;
+        if (pdfBtn) pdfBtn.disabled = false;
+        if (waBtn) waBtn.disabled = false;
+
+        (document.getElementById('v-form-date') as HTMLInputElement).value = new Date(voucher.date).toISOString().split('T')[0];
+        (document.getElementById('v-form-date') as HTMLInputElement).readOnly = false;
+
+        (document.getElementById('v-form-no') as HTMLInputElement).value = voucher.voucherNumber;
+
+        (document.getElementById('v-form-party-type') as HTMLSelectElement).value = voucher.partyType;
+        (document.getElementById('v-form-party-type') as HTMLSelectElement).disabled = false;
+
+        (document.getElementById('v-form-party-name') as HTMLInputElement).value = voucher.partyName;
+        (document.getElementById('v-form-party-name') as HTMLInputElement).readOnly = false;
+
+        (document.getElementById('v-form-amount') as HTMLInputElement).value = voucher.amount;
+        (document.getElementById('v-form-amount') as HTMLInputElement).readOnly = false;
+
+        (document.getElementById('v-form-words') as HTMLInputElement).value = voucher.amountInWords || '';
+
+        (document.getElementById('v-form-method') as HTMLSelectElement).value = voucher.paymentMethod;
+        (document.getElementById('v-form-method') as HTMLSelectElement).disabled = false;
+
+        toggleConditionalFields(voucher.paymentMethod);
+        
+        // Remove readOnly from conditional inputs and set value
+        const chequeNo = document.getElementById('v-form-cheque-no') as HTMLInputElement;
+        const chequeBank = document.getElementById('v-form-cheque-bank') as HTMLInputElement;
+        const chequeDate = document.getElementById('v-form-cheque-date') as HTMLInputElement;
+        const bankName = document.getElementById('v-form-bank-name') as HTMLInputElement;
+        const bankRef = document.getElementById('v-form-bank-ref') as HTMLInputElement;
+        const upiRef = document.getElementById('v-form-upi-ref') as HTMLInputElement;
+
+        if (chequeNo) chequeNo.readOnly = false;
+        if (chequeBank) chequeBank.readOnly = false;
+        if (chequeDate) chequeDate.readOnly = false;
+        if (bankName) bankName.readOnly = false;
+        if (bankRef) bankRef.readOnly = false;
+        if (upiRef) upiRef.readOnly = false;
+
+        if (voucher.paymentMethod === 'Cheque') {
+            if (chequeNo) chequeNo.value = voucher.chequeNumber || '';
+            if (chequeBank) chequeBank.value = voucher.bankName || '';
+            if (chequeDate) chequeDate.value = voucher.chequeDate ? new Date(voucher.chequeDate).toISOString().split('T')[0] : '';
+        } else if (voucher.paymentMethod === 'Bank Transfer') {
+            if (bankName) bankName.value = voucher.bankName || '';
+            if (bankRef) bankRef.value = voucher.referenceNumber || '';
+        } else if (voucher.paymentMethod === 'UPI') {
+            if (upiRef) upiRef.value = voucher.referenceNumber || '';
+        }
+
+        (document.getElementById('v-form-purpose') as HTMLTextAreaElement).value = voucher.paidTowards || '';
+        (document.getElementById('v-form-purpose') as HTMLTextAreaElement).readOnly = false;
+
+        updateDocPreview(voucher);
+
+        // Fetch and display party profile details card
+        const partyDetails = await fetchPartyDetails(voucher.partyType, voucher.partyName);
+        renderPartyProfileCard(partyDetails);
+
+        if (modal) modal.classList.remove('hidden');
+    } catch (e: any) {
+        console.error('Error loading voucher for edit:', e);
+        (window as any).showAlert(e.message || 'Failed to load voucher for editing.');
+    }
+}
+
 function toggleConditionalFields(method: string) {
     const fCheque = document.getElementById('v-field-cheque') as HTMLDivElement;
     const fBank = document.getElementById('v-field-bank') as HTMLDivElement;
@@ -722,23 +824,40 @@ async function handleVoucherSubmit() {
     if (!form || !form.reportValidity()) return;
 
     const submitBtn = document.getElementById('v-form-submit-btn') as HTMLButtonElement;
+    const isEdit = !!currentViewingVoucher;
+
     if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Creating...`;
+        submitBtn.innerHTML = isEdit 
+            ? `<i class="fas fa-spinner fa-spin"></i> Updating...`
+            : `<i class="fas fa-spinner fa-spin"></i> Creating...`;
     }
 
     try {
         const payload = getFormPayload();
         payload.createdBy = 'admin';
 
-        const result = await (window as any).VoucherAPI.createVoucher(payload);
-        if (result.success) {
-            showToastMessage('Voucher created successfully!');
-            window.setTimeout(() => {
-                (window as any).navigateTo(`/voucher/details?id=${encodeURIComponent(result.voucher._id)}`);
-            }, 350);
+        let result: any;
+        if (isEdit) {
+            result = await (window as any).VoucherAPI.updateVoucher(currentViewingVoucher._id, payload);
+            if (result.success) {
+                showToastMessage('Voucher updated successfully!');
+                window.setTimeout(() => {
+                    (window as any).navigateTo(`/voucher/details?id=${encodeURIComponent(result.voucher._id)}`);
+                }, 350);
+            } else {
+                throw new Error(result.message || 'Error occurred');
+            }
         } else {
-            throw new Error(result.message || 'Error occurred');
+            result = await (window as any).VoucherAPI.createVoucher(payload);
+            if (result.success) {
+                showToastMessage('Voucher created successfully!');
+                window.setTimeout(() => {
+                    (window as any).navigateTo(`/voucher/details?id=${encodeURIComponent(result.voucher._id)}`);
+                }, 350);
+            } else {
+                throw new Error(result.message || 'Error occurred');
+            }
         }
     } catch (e: any) {
         console.error('Error submitting voucher:', e);
@@ -746,7 +865,9 @@ async function handleVoucherSubmit() {
     } finally {
         if (submitBtn) {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = `<i class="fas fa-check"></i> Create Voucher`;
+            submitBtn.innerHTML = isEdit 
+                ? `<i class="fas fa-check"></i> Update Voucher`
+                : `<i class="fas fa-check"></i> Create Voucher`;
         }
     }
 }

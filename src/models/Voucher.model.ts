@@ -18,6 +18,7 @@ export interface IVoucher extends Document {
     paidTowards: string;
     createdBy?: string;
     transactionId?: Types.ObjectId;
+    customer_id?: Types.ObjectId;
     createdAt: Date;
     updatedAt: Date;
     is_deleted?: boolean;
@@ -96,6 +97,11 @@ const voucherSchema = new Schema<IVoucher>(
         transactionId: {
             type: Schema.Types.ObjectId,
             ref: "Payment",
+            index: true
+        },
+        customer_id: {
+            type: Schema.Types.ObjectId,
+            ref: "Customer",
             index: true
         },
         is_deleted: {

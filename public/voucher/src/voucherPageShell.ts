@@ -13,6 +13,7 @@
                         <button id="v-btn-print" disabled class="px-4 py-2 border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-lg text-sm font-semibold flex items-center gap-2 disabled:opacity-50"><i class="fas fa-print text-xs"></i>Print</button>
                         <button id="v-btn-pdf" disabled class="px-4 py-2 border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-lg text-sm font-semibold flex items-center gap-2 disabled:opacity-50"><i class="fas fa-file-pdf text-red-500 text-xs"></i>Download Voucher</button>
                         <button id="v-btn-whatsapp" disabled class="px-4 py-2 border border-emerald-300 text-emerald-600 hover:bg-emerald-50 rounded-lg text-sm font-semibold flex items-center gap-2 disabled:opacity-50"><i class="fab fa-whatsapp text-xs"></i>Send Voucher</button>
+                        <button id="v-btn-edit" class="px-4 py-2 border border-blue-200 text-blue-600 hover:bg-blue-50 rounded-lg text-sm font-semibold flex items-center gap-2"><i class="fas fa-edit text-xs"></i>Edit</button>
                         <button id="close-voucher-modal-btn" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium"><i class="fas fa-home"></i>Home</button>
                     </div>
                 </div>
@@ -44,6 +45,31 @@
                                 </div>
                                 <div class="border-t pt-4"><span class="field-label mb-2">Paid Towards / Purpose</span><div id="details-purpose" class="border-l-4 border-blue-500 bg-blue-50/30 p-4 rounded-r-lg text-slate-600 leading-relaxed text-sm">-</div></div>
                             </div>
+                            <!-- Danger Zone Section -->
+                            <section id="danger-zone-section" class="bg-red-50 rounded-xl p-6 border-2 border-red-200 fade-in mt-6">
+                                <div class="flex items-center gap-3 mb-4 pb-3 border-b border-red-200">
+                                    <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                                    <h2 class="text-lg font-bold text-red-800">Danger Zone</h2>
+                                </div>
+                                <div class="space-y-0">
+                                    <p class="mb-4 text-xs font-semibold text-red-700">
+                                        These actions are destructive. Please proceed with caution.
+                                    </p>
+                                    <div class="grid grid-cols-1 gap-4 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                                        <div class="min-w-0">
+                                            <p class="text-sm font-bold text-slate-900">Delete Voucher</p>
+                                            <p class="mt-0.5 text-xs font-semibold text-slate-600">Permanently delete this voucher and its associated payment ledger transaction. This action cannot be undone.</p>
+                                        </div>
+                                        <div class="sm:justify-self-end">
+                                            <button type="button" id="v-btn-delete"
+                                                class="inline-flex items-center justify-center gap-2 rounded-lg border border-red-300 bg-white px-5 py-2.5 text-xs font-bold text-red-700 transition-all hover:border-red-500 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-200 cursor-pointer">
+                                                <i class="fas fa-trash-alt"></i>
+                                                Delete Voucher
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
                         </div>
                         <div class="bg-slate-100 rounded-xl border border-slate-200 p-5 overflow-auto"><h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-4">Voucher Preview</h3><div id="v-preview-doc-wrapper" class="bg-white border border-slate-300 rounded-lg shadow-sm p-5 min-h-[500px]"></div></div>
                     </div>

@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { Types } from 'mongoose';
 import { PurchaseOrderModel, PurchaseModel } from '../models';
 import logger from '../utils/logger';
 import { previewNextId, generateNextId } from '../utils/idGenerator';
@@ -124,8 +125,32 @@ router.post("/save-purchase-order", async (req: Request, res: Response) => {
         }
 
 
+        // Resolve purchase_id if there is a corresponding Purchase
+        if (purchaseOrder.purchase_order_no) {
+            try {
+                const p = await PurchaseModel.findOne({ purchase_order_no: purchaseOrder.purchase_order_no });
+                if (p) {
+                    purchaseOrder.purchase_id = p._id as Types.ObjectId;
+                }
+            } catch (err) {
+                logger.error('Failed to link purchase inside save-purchase-order:', err);
+            }
+        }
+
         // Save the document
         const savedPurchaseOrder = await purchaseOrder.save();
+
+        // Update purchase to point back to this purchase order
+        if (savedPurchaseOrder.purchase_id) {
+            try {
+                await PurchaseModel.updateOne(
+                    { _id: savedPurchaseOrder.purchase_id },
+                    { $set: { purchase_order_id: savedPurchaseOrder._id } }
+                );
+            } catch (err) {
+                logger.error('Failed to update reverse link on purchase:', err);
+            }
+        }
 
         res.status(201).json({
             message: 'Purchase order saved successfully',

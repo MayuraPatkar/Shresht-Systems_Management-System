@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { PurchaseModel, ItemModel, StockMovementModel, PaymentModel } from '../models';
+import { PurchaseModel, ItemModel, StockMovementModel, PaymentModel, PurchaseOrderModel } from '../models';
 import logger from '../utils/logger';
 import { previewNextId, generateNextId } from '../utils/idGenerator';
 import { syncReferencePayments } from '../utils/paymentSync';
@@ -247,8 +247,32 @@ router.post("/save-purchase", async (req: Request, res: Response) => {
             await StockMovementModel.deleteOne({ _id: unusedMovement._id });
         }
 
+        // Resolve purchase_order_id if purchase_order_no exists
+        if (purchase.purchase_order_no) {
+            try {
+                const po = await PurchaseOrderModel.findOne({ purchase_order_no: purchase.purchase_order_no });
+                if (po) {
+                    purchase.purchase_order_id = po._id as Types.ObjectId;
+                }
+            } catch (err) {
+                logger.error('Failed to link purchase order inside save-purchase:', err);
+            }
+        }
+
         // Save the document
         const savedPurchase = await purchase.save();
+
+        // Update purchase order to point back to this purchase
+        if (savedPurchase.purchase_order_id) {
+            try {
+                await PurchaseOrderModel.updateOne(
+                    { _id: savedPurchase.purchase_order_id },
+                    { $set: { purchase_id: savedPurchase._id } }
+                );
+            } catch (err) {
+                logger.error('Failed to update reverse link on purchase order:', err);
+            }
+        }
 
         // ---------------------------------------------------------
         // PAYMENT MANAGEMENT LOGIC

@@ -273,13 +273,99 @@ router.post('/create', async (req: Request, res: Response) => {
             referenceNumber: (paymentMethod === 'Bank Transfer' || paymentMethod === 'UPI') ? referenceNumber : undefined,
             paidTowards,
             createdBy,
-            transactionId: payment._id
+            transactionId: payment._id,
+            customer_id: (partyType === 'Customer' && partyLink && partyLink.ref) ? partyLink.ref : undefined
         });
         await voucher.save();
 
         res.status(201).json({ success: true, voucher, paymentId: payment._id });
     } catch (error: unknown) {
         logger.error('Error creating voucher:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+/**
+ * PUT /voucher/:id
+ * Update an existing voucher and its associated payment transaction
+ */
+router.put('/:id', async (req: Request, res: Response) => {
+    try {
+        const voucher = await VoucherModel.findById(req.params.id);
+        if (!voucher || voucher.is_deleted) {
+            return res.status(404).json({ success: false, message: 'Voucher not found' });
+        }
+
+        const {
+            date,
+            partyName,
+            partyType,
+            amount,
+            amountInWords,
+            paymentMethod,
+            chequeNumber,
+            bankName,
+            chequeDate,
+            referenceNumber,
+            paidTowards
+        } = req.body;
+
+        if (!partyName || !partyType || !amount || !paymentMethod || !paidTowards) {
+            return res.status(400).json({ success: false, message: 'Missing required voucher fields' });
+        }
+
+        const dateObj = date ? new Date(date) : new Date();
+
+        // 1. Resolve party link
+        let partyLink: any = undefined;
+        if (partyType === 'Customer' || partyType === 'Supplier') {
+            partyLink = await resolvePartyLink(partyType, partyName);
+        }
+
+        // 2. Construct transaction details
+        let transactionDetails = '';
+        if (paymentMethod === 'Cheque') {
+            transactionDetails = `Cheque No: ${chequeNumber || ''}, Bank: ${bankName || ''}${chequeDate ? ', Date: ' + new Date(chequeDate).toLocaleDateString('en-IN') : ''}`;
+        } else if (paymentMethod === 'Bank Transfer') {
+            transactionDetails = `Bank: ${bankName || ''}, Ref: ${referenceNumber || ''}`;
+        } else if (paymentMethod === 'UPI') {
+            transactionDetails = `UPI Ref: ${referenceNumber || ''}`;
+        }
+
+        // 3. Update the associated Payment transaction
+        let paymentId = voucher.transactionId;
+        if (paymentId) {
+            const payment = await PaymentModel.findById(paymentId);
+            if (payment) {
+                payment.payment_date = dateObj;
+                payment.amount = Number(amount);
+                payment.party = partyLink;
+                payment.mode = paymentMethod;
+                payment.transaction_details = transactionDetails || undefined;
+                payment.remarks = paidTowards;
+                await payment.save();
+            }
+        }
+
+        // 4. Update and save the Voucher fields
+        voucher.date = dateObj;
+        voucher.partyName = partyName;
+        voucher.partyType = partyType;
+        voucher.amount = Number(amount);
+        voucher.amountInWords = amountInWords;
+        voucher.paymentMethod = paymentMethod;
+        voucher.chequeNumber = paymentMethod === 'Cheque' ? chequeNumber : undefined;
+        voucher.bankName = (paymentMethod === 'Cheque' || paymentMethod === 'Bank Transfer') ? bankName : undefined;
+        voucher.chequeDate = paymentMethod === 'Cheque' ? chequeDate : undefined;
+        voucher.referenceNumber = (paymentMethod === 'Bank Transfer' || paymentMethod === 'UPI') ? referenceNumber : undefined;
+        voucher.paidTowards = paidTowards;
+        voucher.customer_id = (partyType === 'Customer' && partyLink && partyLink.ref) ? partyLink.ref : undefined;
+
+        await voucher.save();
+
+        res.status(200).json({ success: true, voucher });
+    } catch (error: unknown) {
+        logger.error('Error updating voucher:', error);
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
 });
