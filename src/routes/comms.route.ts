@@ -1010,7 +1010,7 @@ router.post('/webhook', async (req: Request, res: Response) => {
                                             updateData.errorMessage = statusObj.errors[0].message || statusObj.errors[0].title || 'Unknown failure';
                                         }
 
-                                        const updatedComm = await CommunicationModel.findOneAndUpdate(query, updateData, { new: true });
+                                        const updatedComm = await CommunicationModel.findOneAndUpdate(query, updateData, { returnDocument: 'after' });
                                         if (updatedComm) {
                                             logger.info(`WhatsApp webhook updated message ${messageId} to status: ${mappedStatus}`, { service: 'messaging' });
                                         } else {

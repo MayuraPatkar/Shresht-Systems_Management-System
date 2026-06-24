@@ -111,7 +111,7 @@ export async function generateNextId(moduleKey: string): Promise<string> {
     const docDay = await CounterModel.findOneAndUpdate(
         { _id: counterKey },
         { $inc: { seq: 1 } },
-        { new: true, upsert: true, setDefaultsOnInsert: true }
+        { returnDocument: "after", upsert: true, setDefaultsOnInsert: true }
     );
 
     let nextSeq = 0;

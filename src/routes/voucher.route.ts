@@ -224,7 +224,7 @@ router.post('/create', async (req: Request, res: Response) => {
         const counterDoc = await CounterModel.findOneAndUpdate(
             { _id: counterId },
             { $inc: { seq: 1 } },
-            { new: true, upsert: true }
+            { returnDocument: "after", upsert: true }
         );
         const seqNum = counterDoc.seq;
         const voucherNumber = `PV-${voucherYear}-${String(seqNum).padStart(4, '0')}`;

@@ -8,11 +8,11 @@ import { ReportModel } from "../models/Report.model";
 import fs from "fs";
 import path from "path";
 import logger from "./logger";
-import { migrateLegacyQuotations } from "./quotationMigration";
+import { runMigrations } from "../migrations/migrationRunner";
 
 async function initializeDatabase(): Promise<void> {
     try {
-        await migrateLegacyQuotations();
+        await runMigrations();
 
         // Drop reports collection if it exists to ensure it is not created
         const mongoose = require('mongoose');

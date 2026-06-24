@@ -24,6 +24,7 @@ import { migrateServices } from "./versions/v2/service";
 import { migrateStockMovements } from "./versions/v2/stockMovement";
 import { migrateEWayBills } from "./versions/v2/ewaybill";
 import { migrateCounters } from "./versions/v2/counter";
+import { migratePayments } from "./versions/v2/payment";
 import logger from "../utils/logger";
 import connectDB from "../config/database";
 
@@ -144,6 +145,10 @@ export async function runMigrations(): Promise<{
         logger.info("Step 7f: Executing counter migration...");
         const counterResult = await migrateCounters(db);
 
+        // Step 7g: Run Payment Migration (extract from invoices and purchases)
+        logger.info("Step 7g: Executing payment migration...");
+        const paymentResult = await migratePayments(db);
+
         // Commit transaction if active
         if (useTransaction && session) {
             await session.commitTransaction();
@@ -174,6 +179,7 @@ MIGRATION METRICS:
 - Purchase Orders Migrated: ${poResult.migrated} (Skipped: ${poResult.skipped}, Failed: ${poResult.failed})
 - Stock Items Migrated: ${stockResult.migrated} (Skipped: ${stockResult.skipped}, Failed: ${stockResult.failed})
 - Purchases Migrated: ${purchaseResult.migrated} (Skipped: ${purchaseResult.skipped}, Failed: ${purchaseResult.failed})
+- Payments Migrated: ${paymentResult.migrated} (Failed: ${paymentResult.failed})
 - Services Migrated: ${serviceResult.migrated} (Skipped: ${serviceResult.skipped}, Failed: ${serviceResult.failed})
 - Stock Movements Migrated: ${stockMovementResult.migrated} (Skipped: ${stockMovementResult.skipped}, Failed: ${stockMovementResult.failed})
 - E-Way Bills Migrated: ${ewaybillResult.migrated} (Skipped: ${ewaybillResult.skipped}, Failed: ${ewaybillResult.failed})

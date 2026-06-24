@@ -238,7 +238,7 @@ router.patch("/:quotationId/status", async (req: Request, res: Response) => {
         const quotation = await QuotationModel.findOneAndUpdate(
             activeQuotationQuery({ quotation_no: req.params.quotationId }),
             { $set: { quotation_status: status } },
-            { new: true }
+            { returnDocument: "after" }
         );
         if (!quotation) return res.status(404).json({ message: 'Quotation not found' });
         return res.status(200).json({ quotation: normalizeQuotationDocument(quotation) });
@@ -253,7 +253,7 @@ router.put("/:quotationId/archive", async (req: Request, res: Response) => {
         const quotation = await QuotationModel.findOneAndUpdate(
             activeQuotationQuery({ quotation_no: req.params.quotationId }),
             { $set: { is_archived: true } },
-            { new: true }
+            { returnDocument: "after" }
         );
         if (!quotation) return res.status(404).json({ message: 'Quotation not found' });
         return res.status(200).json({ message: 'Quotation archived successfully', quotation: normalizeQuotationDocument(quotation) });
@@ -268,7 +268,7 @@ router.put("/:quotationId/restore-from-archive", async (req: Request, res: Respo
         const quotation = await QuotationModel.findOneAndUpdate(
             { quotation_no: req.params.quotationId, is_archived: true, is_deleted: { $ne: true }, 'deletion.is_deleted': { $ne: true } },
             { $set: { is_archived: false } },
-            { new: true }
+            { returnDocument: "after" }
         );
         if (!quotation) return res.status(404).json({ message: 'Quotation not found' });
         return res.status(200).json({ message: 'Quotation restored from archive successfully', quotation: normalizeQuotationDocument(quotation) });
@@ -346,7 +346,7 @@ router.post("/:quotationId/restore", async (req: Request, res: Response) => {
                     'deletion.deleted_by': 1,
                 },
             },
-            { new: true }
+            { returnDocument: "after" }
         );
         if (!quotation) return res.status(404).json({ message: 'Quotation not found' });
         return res.status(200).json({ message: 'Quotation restored successfully', quotation: normalizeQuotationDocument(quotation) });
@@ -480,7 +480,7 @@ router.delete("/:quotationId", async (req: Request, res: Response) => {
                     'deletion.deleted_by': String(req.body?.deleted_by || req.query.deleted_by || 'Admin'),
                 },
             },
-            { new: true }
+            { returnDocument: "after" }
         );
         if (!quotation) return res.status(404).json({ message: 'Quotation not found' });
         return res.status(200).json({ message: 'Quotation archived successfully', quotation: normalizeQuotationDocument(quotation) });

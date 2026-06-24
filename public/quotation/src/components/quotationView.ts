@@ -367,9 +367,9 @@ async function generateViewPreviewHTML(quotation, viewType) {
     document.getElementById("view-preview-content").innerHTML = `
     <div class="preview-container doc-quotation">
         ${headerHTML}
-        <div class="title">Quotation-${quotation.quotation_id}</div>
-        <div class="quotation-letter-date">
-            <p><strong>Date:</strong> ${formattedDate}</p>
+        <div class="title" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Quotation-${quotation.quotation_id}</span>
+            <span style="font-size: 15px; font-weight: 600; text-transform: none;"><strong>Date: </strong>${formattedDate}</span>
         </div>
         <div class="quotation-letter-content">
             <p><strong>To:</strong><br>${quotation.customer_name}<br>${quotation.customer_address}<br>${quotation.customer_phone}${quotation.customer_GSTIN ? '<br>GSTIN: ' + quotation.customer_GSTIN : ''}</p>

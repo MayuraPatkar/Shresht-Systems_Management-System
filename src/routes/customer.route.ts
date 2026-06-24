@@ -213,7 +213,7 @@ router.put('/:id', async (req: Request, res: Response) => {
         const customer = await CustomerModel.findOneAndUpdate(
             { _id: customerId, 'deletion.is_deleted': false },
             { $set: payload },
-            { new: true }
+            { returnDocument: "after" }
         );
         if (!customer) return res.status(404).json({ error: 'Customer not found' });
         res.json(customer);
@@ -244,7 +244,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
                     is_active: false
                 } 
             },
-            { new: true }
+            { returnDocument: "after" }
         );
         if (!customer) return res.status(404).json({ error: 'Customer not found' });
         res.json({ message: 'Customer deleted successfully' });
@@ -267,7 +267,7 @@ router.put('/:id/archive', async (req: Request, res: Response) => {
         const customer = await CustomerModel.findOneAndUpdate(
             { _id: customerId, 'deletion.is_deleted': false },
             { $set: { is_archived: true } },
-            { new: true }
+            { returnDocument: "after" }
         );
         if (!customer) return res.status(404).json({ error: 'Customer not found' });
         res.json({ message: 'Customer archived successfully', customer });
@@ -290,7 +290,7 @@ router.put('/:id/restore', async (req: Request, res: Response) => {
         const customer = await CustomerModel.findOneAndUpdate(
             { _id: customerId, 'deletion.is_deleted': false },
             { $set: { is_archived: false } },
-            { new: true }
+            { returnDocument: "after" }
         );
         if (!customer) return res.status(404).json({ error: 'Customer not found' });
         res.json({ message: 'Customer restored successfully', customer });

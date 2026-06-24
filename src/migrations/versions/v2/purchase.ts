@@ -47,12 +47,18 @@ export async function migratePurchases(db: any): Promise<{
                 continue;
             }
 
+            const gstin = doc.supplier_GSTIN || doc.supplier_snapshot?.gstin || "";
+            const name = doc.supplier_name || doc.supplier_snapshot?.name || "";
+            const phone = doc.supplier_phone || doc.supplier_snapshot?.phone || "";
+            const email = doc.supplier_email || doc.supplier_snapshot?.email || "";
+            const address = doc.supplier_address || doc.supplier_snapshot?.address;
+
             // Resolve supplier
             let supplierId: Types.ObjectId | undefined = undefined;
             const supplierDoc = await SupplierModel.findOne({
                 $or: [
-                    { gstin: doc.supplier_GSTIN },
-                    { name: doc.supplier_name }
+                    ...(gstin ? [{ gstin }] : []),
+                    ...(name ? [{ name }] : [])
                 ]
             });
             if (supplierDoc) {
@@ -62,11 +68,16 @@ export async function migratePurchases(db: any): Promise<{
             // Resolve PO
             let poObjectId: Types.ObjectId | undefined = undefined;
             if (doc.purchase_order_id) {
+                const queryConditions: any[] = [];
+                try {
+                    queryConditions.push({ _id: new Types.ObjectId(doc.purchase_order_id) });
+                } catch {
+                    // ignore if invalid object id
+                }
+                queryConditions.push({ purchase_order_no: doc.purchase_order_no || doc.purchase_order_id });
+                
                 const poDoc = await rawPurchaseOrderCollection.findOne({
-                    $or: [
-                        { purchase_order_id: doc.purchase_order_id },
-                        { po_no: doc.purchase_order_id }
-                    ]
+                    $or: queryConditions
                 });
                 if (poDoc) {
                     poObjectId = poDoc._id;
@@ -75,11 +86,11 @@ export async function migratePurchases(db: any): Promise<{
 
             // Map supplier snapshot
             const supplierSnapshot = {
-                name: doc.supplier_name || "",
-                gstin: doc.supplier_GSTIN || "",
-                phone: doc.supplier_phone || "",
-                email: doc.supplier_email || "",
-                address: addressFromLegacy(doc.supplier_address)
+                name,
+                gstin,
+                phone,
+                email,
+                address: addressFromLegacy(address)
             };
 
             // Map items
@@ -87,17 +98,17 @@ export async function migratePurchases(db: any): Promise<{
                 ? doc.items.map((item: any) => {
                       const qty = Number(item.quantity || 0);
                       const price = Number(item.unit_price || item.rate || 0);
-                      const gst = Number(item.rate || 18);
+                      const gst = Number(item.rate || item.gst_rate || 18);
                       const taxable = qty * price;
                       return {
-                          item_id: item.stock_id ? new Types.ObjectId(item.stock_id) : undefined,
+                          item_id: item.stock_id || item.item_id ? new Types.ObjectId(item.stock_id || item.item_id) : undefined,
                           description: item.description || "",
                           specification: item.specification || "",
-                          hsn_sac: item.HSN_SAC || "",
-                          brand: item.company || "",
-                          item_type: item.type === "Asset" ? "Asset" : "Material",
+                          hsn_sac: item.HSN_SAC || item.hsn_sac || "",
+                          brand: item.company || item.brand || "",
+                          item_type: item.type === "Asset" || item.item_type === "Asset" ? "Asset" : "Material",
                           category: item.category || "",
-                          unit: "Nos",
+                          unit: item.unit || "Nos",
                           quantity: qty,
                           unit_price: price,
                           taxable_value: taxable,
@@ -114,7 +125,7 @@ export async function migratePurchases(db: any): Promise<{
                 taxableValue += item.taxable_value;
                 totalTax += (item.total - item.taxable_value);
             }
-            const grandTotal = Number(doc.total_amount || (taxableValue + totalTax));
+            const grandTotal = Number(doc.total_amount || doc.totals?.grand_total || (taxableValue + totalTax));
 
             const isInterState = String(supplierSnapshot.address?.state || "Karnataka").toLowerCase().trim() !== "karnataka";
             const igst = isInterState ? totalTax : 0;
@@ -131,15 +142,17 @@ export async function migratePurchases(db: any): Promise<{
                 grand_total: Math.round(grandTotal * 100) / 100
             };
 
+            const purchaseInvoiceNo = doc.purchase_invoice_no || doc.purchase_no || String(doc._id);
+
             await rawPurchaseCollection.updateOne(
                 { _id: doc._id },
                 {
                     $set: {
                         schema_version: 2,
-                        purchase_no: doc.purchase_invoice_id || String(doc._id),
-                        purchase_order_no: doc.purchase_order_id || "",
+                        purchase_no: purchaseInvoiceNo,
+                        purchase_order_no: doc.purchase_order_no || "",
                         purchase_order_id: poObjectId,
-                        purchase_invoice_no: doc.purchase_invoice_id || "",
+                        purchase_invoice_no: purchaseInvoiceNo,
                         purchase_date: doc.purchase_date ? new Date(doc.purchase_date) : new Date(),
                         purchase_status: "Received",
                         purchase_type: isInterState ? "Interstate" : "Local",
@@ -147,10 +160,10 @@ export async function migratePurchases(db: any): Promise<{
                         supplier_snapshot: supplierSnapshot,
                         items: mappedItems,
                         totals,
-                        remarks: `Migrated from legacy purchase. Original ID: ${doc.purchase_invoice_id}`,
+                        remarks: `Migrated from legacy purchase. Original No: ${doc.purchase_invoice_no || doc.purchase_no}`,
                         total_paid_amount: grandTotal,
-                        payment_status: "Paid",
-                        payments: [
+                        payment_status: doc.payment_status || "Paid",
+                        payments: doc.payments || [
                             {
                                 payment_date: doc.purchase_date ? new Date(doc.purchase_date) : new Date(),
                                 payment_mode: "Cash",
@@ -159,7 +172,7 @@ export async function migratePurchases(db: any): Promise<{
                             }
                         ],
                         deletion: doc.deletion || { is_deleted: false },
-                        is_archived: false
+                        is_archived: doc.is_archived ?? false
                     },
                     $unset: {
                         purchase_order_id_string: "",

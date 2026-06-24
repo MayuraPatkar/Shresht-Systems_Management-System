@@ -1521,9 +1521,9 @@ async function generatePreview() {
     <div class="preview-container doc-quotation">
         ${headerHTML}
 
-        <div class="title">Quotation-${quotationId}</div>
-        <div class="quotation-letter-date">
-            <p><strong>Date:</strong> ${formattedDate}</p>
+        <div class="title" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Quotation-${quotationId}</span>
+            <span style="font-size: 15px; font-weight: 600; text-transform: none;"><strong>Date: </strong>${formattedDate}</span>
         </div>
         <div class="quotation-letter-content" >
             <p><strong>To:</strong></p>
@@ -1680,9 +1680,9 @@ async function generatePreview() {
     <div class="preview-container doc-quotation">
         ${headerHTML}
 
-        <div class="title">Quotation-${quotationId}</div>
-        <div class="quotation-letter-date">
-            <p><strong>Date:</strong> ${formattedDate}</p>
+        <div class="title" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Quotation-${quotationId}</span>
+            <span style="font-size: 15px; font-weight: 600; text-transform: none;"><strong>Date: </strong>${formattedDate}</span>
         </div>
         <div class="quotation-letter-content" >
             <p><strong>To:</strong></p>
@@ -1832,9 +1832,9 @@ async function generatePreview() {
     <div class="preview-container doc-quotation">
         ${headerHTML}
 
-        <div class="title">Quotation-${quotationId}</div>
-        <div class="quotation-letter-date">
-            <p><strong>Date:</strong> ${formattedDate}</p>
+        <div class="title" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Quotation-${quotationId}</span>
+            <span style="font-size: 15px; font-weight: 600; text-transform: none;"><strong>Date: </strong>${formattedDate}</span>
         </div>
         <div class="quotation-letter-content" >
             <p><strong>To:</strong></p>

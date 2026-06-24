@@ -244,7 +244,7 @@ router.delete("/:purchaseOrderId", async (req: Request, res: Response) => {
                     'deletion.deleted_by': username
                 }
             },
-            { new: true }
+            { returnDocument: "after" }
         );
         
         if (!purchaseOrder) {
@@ -265,7 +265,7 @@ router.put("/:purchaseOrderId/archive", async (req: Request, res: Response) => {
         const purchaseOrder = await PurchaseOrderModel.findOneAndUpdate(
             { purchase_order_no: purchaseOrderId, 'deletion.is_deleted': false },
             { $set: { is_archived: true } },
-            { new: true }
+            { returnDocument: "after" }
         );
         if (!purchaseOrder) return res.status(404).json({ message: 'Purchase order not found' });
         res.json({ message: 'Purchase order archived successfully', purchaseOrder });
@@ -282,7 +282,7 @@ router.put("/:purchaseOrderId/restore", async (req: Request, res: Response) => {
         const purchaseOrder = await PurchaseOrderModel.findOneAndUpdate(
             { purchase_order_no: purchaseOrderId, 'deletion.is_deleted': false },
             { $set: { is_archived: false } },
-            { new: true }
+            { returnDocument: "after" }
         );
         if (!purchaseOrder) return res.status(404).json({ message: 'Purchase order not found' });
         res.json({ message: 'Purchase order restored successfully', purchaseOrder });

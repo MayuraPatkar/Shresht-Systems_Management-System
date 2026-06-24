@@ -968,7 +968,7 @@ router.delete("/:invoiceId", async (req: Request, res: Response) => {
                     'deletion.deleted_by': username
                 }
             },
-            { new: true }
+            { returnDocument: "after" }
         );
         if (!invoice) {
             return res.status(404).json({ message: 'invoice not found' });
@@ -987,7 +987,7 @@ router.put("/:invoiceId/archive", async (req: Request, res: Response) => {
         const invoice = await InvoiceModel.findOneAndUpdate(
             { invoice_id: invoiceId, 'deletion.is_deleted': false },
             { $set: { is_archived: true } },
-            { new: true }
+            { returnDocument: "after" }
         );
         if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
         res.json({ message: 'Invoice archived successfully', invoice });
@@ -1004,7 +1004,7 @@ router.put("/:invoiceId/restore", async (req: Request, res: Response) => {
         const invoice = await InvoiceModel.findOneAndUpdate(
             { invoice_id: invoiceId, 'deletion.is_deleted': false },
             { $set: { is_archived: false } },
-            { new: true }
+            { returnDocument: "after" }
         );
         if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
         res.json({ message: 'Invoice restored successfully', invoice });
@@ -1027,7 +1027,7 @@ router.patch("/:invoiceId/status", async (req: Request, res: Response) => {
         const invoice = await InvoiceModel.findOneAndUpdate(
             { invoice_id: invoiceId, 'deletion.is_deleted': false },
             { $set: { status: status } },
-            { new: true }
+            { returnDocument: "after" }
         );
         
         if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
