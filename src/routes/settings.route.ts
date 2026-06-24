@@ -310,6 +310,12 @@ router.get("/preferences", asyncHandler(async (req: Request, res: Response) => {
             );
         }
 
+        // Email settings — strip password, expose hasPassword flag
+        settings.email = settings.email || {};
+        const emailHasPassword = !!(settings.email.passwordEncrypted);
+        delete settings.email.passwordEncrypted;
+        settings.email.hasPassword = emailHasPassword;
+
         res.json({ success: true, settings });
     } catch (error: unknown) { res.status(500).json({ success: false, message: 'Failed to fetch settings', error: (error as Error).message }); }
 }));

@@ -967,13 +967,12 @@ class SettingsPreferences {
             });
     }
 
-    private loadEmailStatus(): void {
+    loadEmailStatus(): void {
         const statusEl = document.getElementById('email-status');
-        fetch('/api/settings/preferences')
-            .then(r => r.json())
-            .then((data: any) => {
-                const email = data?.preferences?.email || data?.email;
+        settingsApi.getPreferences()
+            .then((data: { success: boolean; settings: any }) => {
                 if (!statusEl) return;
+                const email = data?.settings?.email;
 
                 // Populate fields
                 const enabledEl   = document.getElementById('email-enabled')   as HTMLInputElement;
@@ -1003,7 +1002,7 @@ class SettingsPreferences {
                     } else if (email.host || email.user) {
                         statusEl.innerHTML = `
                             <i class="fas fa-exclamation-triangle text-yellow-500 text-sm"></i>
-                            <span class="text-yellow-700 font-medium">Email partially configured${!email.enabled ? ' — Enable to activate' : ''}</span>
+                            <span class="text-yellow-700 font-medium">Partially configured${!email.enabled ? ' — enable to activate' : ''}</span>
                         `;
                         statusEl.className = 'flex items-center gap-2 p-3.5 rounded-lg bg-yellow-50 border border-yellow-200 text-xs font-semibold mb-4';
                     } else {
