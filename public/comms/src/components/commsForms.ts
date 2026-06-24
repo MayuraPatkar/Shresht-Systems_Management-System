@@ -7,6 +7,7 @@ declare var commsApi: any;
 
 class CommsForms {
     private activeTab: string = 'message';
+    private activeChannel: CommsChannel = 'whatsapp';
     private selectedCustomer: any = null;
     private customerQuotations: any[] = [];
     private customerInvoices: any[] = [];
@@ -20,8 +21,10 @@ class CommsForms {
     private allInvoices: any[] = [];
 
     init() {
+        this.setupChannelSelector();
         this.setupTabs();
         this.setupCustomerAutocomplete();
+        this.setupEmailInput();
         this.setupQuotationSelectListener();
         this.setupInvoiceSelectListener();
         this.setupReminderInvoiceSelectListener();
@@ -39,6 +42,76 @@ class CommsForms {
         // Initial setup
         this.renderRecentLogs();
         this.loadReminderStats();
+    }
+
+    private setupChannelSelector() {
+        const btns = document.querySelectorAll('.channel-btn');
+        btns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const ch = btn.getAttribute('data-channel') as CommsChannel;
+                if (!ch) return;
+                this.activeChannel = ch;
+                this.applyChannelStyles();
+                this.updateFormFieldsDisabledState();
+                this.updateSendButtonLabels();
+
+                // Show/hide email subject field on message panel
+                const subjectRow = document.getElementById('message-email-subject-row');
+                if (subjectRow) {
+                    subjectRow.classList.toggle('hidden', ch === 'whatsapp');
+                }
+            });
+        });
+    }
+
+    private applyChannelStyles() {
+        const ch = this.activeChannel;
+        const configs: Record<CommsChannel, { id: string; active: string; inactive: string }> = {
+            whatsapp: {
+                id: 'ch-whatsapp',
+                active:   'channel-btn flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-green-500 bg-green-50 text-green-700 text-sm font-semibold transition-all',
+                inactive: 'channel-btn flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-slate-200 bg-white text-slate-500 text-sm font-medium hover:border-green-400 hover:text-green-600 transition-all'
+            },
+            email: {
+                id: 'ch-email',
+                active:   'channel-btn flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-blue-500 bg-blue-50 text-blue-700 text-sm font-semibold transition-all',
+                inactive: 'channel-btn flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-slate-200 bg-white text-slate-500 text-sm font-medium hover:border-blue-400 hover:text-blue-600 transition-all'
+            },
+            both: {
+                id: 'ch-both',
+                active:   'channel-btn flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-purple-500 bg-purple-50 text-purple-700 text-sm font-semibold transition-all',
+                inactive: 'channel-btn flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-slate-200 bg-white text-slate-500 text-sm font-medium hover:border-purple-400 hover:text-purple-600 transition-all'
+            }
+        };
+        (Object.keys(configs) as CommsChannel[]).forEach(key => {
+            const el = document.getElementById(configs[key].id);
+            if (el) el.className = (key === ch) ? configs[key].active : configs[key].inactive;
+        });
+    }
+
+    private updateSendButtonLabels() {
+        const ch = this.activeChannel;
+        const suffix = ch === 'whatsapp' ? 'via WhatsApp' : ch === 'email' ? 'via Email' : 'via Both';
+        const map: Record<string, string> = {
+            'btn-send-message-label':   `Send Message ${suffix}`,
+            'btn-send-quotation-label': `Send Quotation ${suffix}`,
+            'btn-send-invoice-label':   `Send Invoice ${suffix}`,
+            'btn-send-reminder-label':  `Send Reminder ${suffix}`,
+            'btn-send-receipt-label':   `Send Receipt ${suffix}`,
+            'btn-send-voucher-label':   `Send Voucher ${suffix}`,
+        };
+        Object.entries(map).forEach(([id, label]) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = label;
+        });
+    }
+
+    private setupEmailInput() {
+        const emailInput = document.getElementById('customer-email-input') as HTMLInputElement;
+        if (!emailInput) return;
+        emailInput.addEventListener('input', () => {
+            this.updateFormFieldsDisabledState();
+        });
     }
 
     private setupTabs() {
@@ -98,6 +171,7 @@ class CommsForms {
         const input = document.getElementById('customer-search-input') as HTMLInputElement;
         const suggestionsList = document.getElementById('customer-search-suggestions') as HTMLUListElement;
         const phoneInput = document.getElementById('customer-phone-input') as HTMLInputElement;
+        const emailInput = document.getElementById('customer-email-input') as HTMLInputElement;
         if (!input || !suggestionsList || !phoneInput) return;
 
         let debounceTimer: any;
@@ -207,11 +281,13 @@ class CommsForms {
         this.selectedCustomer = customer;
         const input = document.getElementById('customer-search-input') as HTMLInputElement;
         const phoneInput = document.getElementById('customer-phone-input') as HTMLInputElement;
+        const emailInput = document.getElementById('customer-email-input') as HTMLInputElement;
         const suggestionsList = document.getElementById('customer-search-suggestions') as HTMLUListElement;
 
         const name = customer.customer?.name || `${customer.customer?.first_name || ''} ${customer.customer?.last_name || ''}`.trim();
         if (input) input.value = name;
         if (phoneInput) phoneInput.value = customer.customer?.phone || '';
+        if (emailInput) emailInput.value = customer.customer?.email || '';
         if (suggestionsList) {
             suggestionsList.style.display = 'none';
             suggestionsList.innerHTML = '';
@@ -253,6 +329,9 @@ class CommsForms {
 
         const phoneInput = document.getElementById('customer-phone-input') as HTMLInputElement;
         if (phoneInput) phoneInput.value = '';
+
+        const emailInput = document.getElementById('customer-email-input') as HTMLInputElement;
+        if (emailInput) emailInput.value = '';
 
         this.populateQuotationSelect();
         this.populateInvoiceSelect();
@@ -674,45 +753,57 @@ class CommsForms {
 
     private updateFormFieldsDisabledState() {
         const phoneInput = document.getElementById('customer-phone-input') as HTMLInputElement;
+        const emailInput = document.getElementById('customer-email-input') as HTMLInputElement;
         const phone = phoneInput ? phoneInput.value.trim() : '';
-        const hasCustomer = !!this.selectedCustomer && commsUtils.validatePhone(phone);
+        const email = emailInput ? emailInput.value.trim() : '';
+        const ch = this.activeChannel;
+
+        const phoneValid = commsUtils.validatePhone(phone);
+        const emailValid = email.includes('@') && email.includes('.');
+
+        const hasCustomer = !!this.selectedCustomer;
+        const channelReady = hasCustomer && (
+            (ch === 'whatsapp' && phoneValid) ||
+            (ch === 'email'    && emailValid) ||
+            (ch === 'both'     && phoneValid && emailValid)
+        );
 
         // Message submit
         const msgTextarea = document.getElementById('message-content-input') as HTMLTextAreaElement;
         const msgText = msgTextarea ? msgTextarea.value.trim() : '';
         const btnMsg = document.getElementById('btn-send-message') as HTMLButtonElement;
         if (btnMsg) {
-            btnMsg.disabled = !hasCustomer || !msgText || msgText.length > 1000;
+            btnMsg.disabled = !channelReady || !msgText || msgText.length > 1000;
         }
 
         // Quotation submit
         const btnQuo = document.getElementById('btn-send-quotation') as HTMLButtonElement;
         if (btnQuo) {
-            btnQuo.disabled = !hasCustomer || !this.selectedQuotation;
+            btnQuo.disabled = !channelReady || !this.selectedQuotation;
         }
 
         // Invoice submit
         const btnInv = document.getElementById('btn-send-invoice') as HTMLButtonElement;
         if (btnInv) {
-            btnInv.disabled = !hasCustomer || !this.selectedInvoice;
+            btnInv.disabled = !channelReady || !this.selectedInvoice;
         }
 
         // Single reminder submit
         const btnRem = document.getElementById('btn-send-single-reminder') as HTMLButtonElement;
         if (btnRem) {
-            btnRem.disabled = !hasCustomer || !this.selectedReminderInvoice;
+            btnRem.disabled = !channelReady || !this.selectedReminderInvoice;
         }
 
         // Receipt submit
         const btnRec = document.getElementById('btn-send-receipt') as HTMLButtonElement;
         if (btnRec) {
-            btnRec.disabled = !hasCustomer || !this.selectedPayment;
+            btnRec.disabled = !channelReady || !this.selectedPayment;
         }
 
         // Voucher submit
         const btnVou = document.getElementById('btn-send-voucher') as HTMLButtonElement;
         if (btnVou) {
-            btnVou.disabled = !hasCustomer || !this.selectedVoucher;
+            btnVou.disabled = !channelReady || !this.selectedVoucher;
         }
     }
 
@@ -764,26 +855,47 @@ class CommsForms {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const phoneInput = document.getElementById('customer-phone-input') as HTMLInputElement;
+            const emailInput = document.getElementById('customer-email-input') as HTMLInputElement;
             const phone = phoneInput ? phoneInput.value.trim() : '';
+            const email = emailInput ? emailInput.value.trim() : '';
             const contentInput = document.getElementById('message-content-input') as HTMLTextAreaElement;
             const content = contentInput.value.trim();
+            const subjectInput = document.getElementById('message-email-subject') as HTMLInputElement;
+            const subject = subjectInput ? subjectInput.value.trim() : '';
             const btn = document.getElementById('btn-send-message') as HTMLButtonElement;
+            const ch = this.activeChannel;
 
-            if (!phone || !content || !this.selectedCustomer) return;
+            if (!content || !this.selectedCustomer) return;
 
             const formattedPhone = commsUtils.formatPhoneNumber(phone);
             const customerName = this.selectedCustomer.customer?.name || `${this.selectedCustomer.customer?.first_name || ''} ${this.selectedCustomer.customer?.last_name || ''}`.trim();
 
             try {
                 commsUtils.setLoading(btn, true);
-                const res = await commsApi.sendMessage({
-                    phoneNumber: formattedPhone,
-                    message: content
-                });
+                const promises: Promise<any>[] = [];
 
-                commsUtils.showNotification(res.message || 'Message sent successfully!', 'success');
-                this.addLog('message', customerName, phone, `Sent: "${content.substring(0, 30)}${content.length > 30 ? '...' : ''}"`, 'success');
-                
+                if (ch === 'whatsapp' || ch === 'both') {
+                    promises.push(
+                        commsApi.sendMessage({ phoneNumber: formattedPhone, message: content })
+                            .then(() => ({ channel: 'WhatsApp', ok: true }))
+                            .catch((err: any) => ({ channel: 'WhatsApp', ok: false, err: err.message }))
+                    );
+                }
+                if (ch === 'email' || ch === 'both') {
+                    promises.push(
+                        commsApi.sendEmailMessage({ email, subject, message: content })
+                            .then(() => ({ channel: 'Email', ok: true }))
+                            .catch((err: any) => ({ channel: 'Email', ok: false, err: err.message }))
+                    );
+                }
+
+                const results = await Promise.all(promises);
+                const allOk = results.every(r => r.ok);
+                const summary = results.map(r => `${r.channel}: ${r.ok ? '✓' : '✗ ' + r.err}`).join(' | ');
+
+                commsUtils.showNotification(allOk ? `Message sent! (${summary})` : `Partial result: ${summary}`, allOk ? 'success' : 'warning');
+                this.addLog('message', customerName, ch === 'email' ? email : phone, `Sent: "${content.substring(0, 30)}${content.length > 30 ? '...' : ''}"`, allOk ? 'success' : 'failed');
+
                 contentInput.value = '';
                 const counter = document.getElementById('message-char-count') as HTMLDivElement;
                 if (counter) counter.textContent = '0 / 1000 characters';
@@ -804,11 +916,14 @@ class CommsForms {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const phoneInput = document.getElementById('customer-phone-input') as HTMLInputElement;
+            const emailInput = document.getElementById('customer-email-input') as HTMLInputElement;
             const phone = phoneInput ? phoneInput.value.trim() : '';
+            const email = emailInput ? emailInput.value.trim() : '';
             const select = document.getElementById('quotation-select') as HTMLSelectElement;
             const btn = document.getElementById('btn-send-quotation') as HTMLButtonElement;
+            const ch = this.activeChannel;
 
-            if (!phone || !this.selectedQuotation || !this.selectedCustomer) return;
+            if (!this.selectedQuotation || !this.selectedCustomer) return;
 
             const formattedPhone = commsUtils.formatPhoneNumber(phone);
             const customerName = this.selectedCustomer.customer?.name || `${this.selectedCustomer.customer?.first_name || ''} ${this.selectedCustomer.customer?.last_name || ''}`.trim();
@@ -816,14 +931,30 @@ class CommsForms {
 
             try {
                 commsUtils.setLoading(btn, true);
-                const res = await commsApi.sendQuotation({
-                    phone: formattedPhone,
-                    quotationId: quoNo
-                });
+                const promises: Promise<any>[] = [];
 
-                commsUtils.showNotification(res.message || 'Quotation sent successfully!', 'success');
-                this.addLog('quotation', customerName, phone, `Quotation ${quoNo} shared`, 'success');
-                
+                if (ch === 'whatsapp' || ch === 'both') {
+                    promises.push(
+                        commsApi.sendQuotation({ phone: formattedPhone, quotationId: quoNo })
+                            .then(() => ({ channel: 'WhatsApp', ok: true }))
+                            .catch((err: any) => ({ channel: 'WhatsApp', ok: false, err: err.message }))
+                    );
+                }
+                if (ch === 'email' || ch === 'both') {
+                    promises.push(
+                        commsApi.sendEmailQuotation({ email, quotationId: quoNo })
+                            .then(() => ({ channel: 'Email', ok: true }))
+                            .catch((err: any) => ({ channel: 'Email', ok: false, err: err.message }))
+                    );
+                }
+
+                const results = await Promise.all(promises);
+                const allOk = results.every(r => r.ok);
+                const summary = results.map(r => `${r.channel}: ${r.ok ? '✓' : '✗'}`).join(' | ');
+
+                commsUtils.showNotification(allOk ? `Quotation ${quoNo} sent! (${summary})` : `Partial result: ${summary}`, allOk ? 'success' : 'warning');
+                this.addLog('quotation', customerName, ch === 'email' ? email : phone, `Quotation ${quoNo} shared`, allOk ? 'success' : 'failed');
+
                 select.value = '';
                 document.getElementById('quotation-preview-container')!.classList.add('hidden');
                 this.selectedQuotation = null;
@@ -844,11 +975,14 @@ class CommsForms {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const phoneInput = document.getElementById('customer-phone-input') as HTMLInputElement;
+            const emailInput = document.getElementById('customer-email-input') as HTMLInputElement;
             const phone = phoneInput ? phoneInput.value.trim() : '';
+            const email = emailInput ? emailInput.value.trim() : '';
             const select = document.getElementById('invoice-select') as HTMLSelectElement;
             const btn = document.getElementById('btn-send-invoice') as HTMLButtonElement;
+            const ch = this.activeChannel;
 
-            if (!phone || !this.selectedInvoice || !this.selectedCustomer) return;
+            if (!this.selectedInvoice || !this.selectedCustomer) return;
 
             const formattedPhone = commsUtils.formatPhoneNumber(phone);
             const customerName = this.selectedCustomer.customer?.name || `${this.selectedCustomer.customer?.first_name || ''} ${this.selectedCustomer.customer?.last_name || ''}`.trim();
@@ -856,14 +990,30 @@ class CommsForms {
 
             try {
                 commsUtils.setLoading(btn, true);
-                const res = await commsApi.sendInvoice({
-                    phone: formattedPhone,
-                    invoiceId: invNo
-                });
+                const promises: Promise<any>[] = [];
 
-                commsUtils.showNotification(res.message || 'Invoice sent successfully!', 'success');
-                this.addLog('invoice', customerName, phone, `Invoice ${invNo} sent`, 'success');
-                
+                if (ch === 'whatsapp' || ch === 'both') {
+                    promises.push(
+                        commsApi.sendInvoice({ phone: formattedPhone, invoiceId: invNo })
+                            .then(() => ({ channel: 'WhatsApp', ok: true }))
+                            .catch((err: any) => ({ channel: 'WhatsApp', ok: false, err: err.message }))
+                    );
+                }
+                if (ch === 'email' || ch === 'both') {
+                    promises.push(
+                        commsApi.sendEmailInvoice({ email, invoiceId: invNo })
+                            .then(() => ({ channel: 'Email', ok: true }))
+                            .catch((err: any) => ({ channel: 'Email', ok: false, err: err.message }))
+                    );
+                }
+
+                const results = await Promise.all(promises);
+                const allOk = results.every(r => r.ok);
+                const summary = results.map(r => `${r.channel}: ${r.ok ? '✓' : '✗'}`).join(' | ');
+
+                commsUtils.showNotification(allOk ? `Invoice ${invNo} sent! (${summary})` : `Partial result: ${summary}`, allOk ? 'success' : 'warning');
+                this.addLog('invoice', customerName, ch === 'email' ? email : phone, `Invoice ${invNo} sent`, allOk ? 'success' : 'failed');
+
                 select.value = '';
                 document.getElementById('invoice-preview-container')!.classList.add('hidden');
                 this.selectedInvoice = null;
@@ -884,11 +1034,14 @@ class CommsForms {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const phoneInput = document.getElementById('customer-phone-input') as HTMLInputElement;
+            const emailInput = document.getElementById('customer-email-input') as HTMLInputElement;
             const phone = phoneInput ? phoneInput.value.trim() : '';
+            const email = emailInput ? emailInput.value.trim() : '';
             const select = document.getElementById('reminder-invoice-select') as HTMLSelectElement;
             const btn = document.getElementById('btn-send-single-reminder') as HTMLButtonElement;
+            const ch = this.activeChannel;
 
-            if (!phone || !this.selectedReminderInvoice || !this.selectedCustomer) return;
+            if (!this.selectedReminderInvoice || !this.selectedCustomer) return;
 
             const formattedPhone = commsUtils.formatPhoneNumber(phone);
             const customerName = this.selectedCustomer.customer?.name || `${this.selectedCustomer.customer?.first_name || ''} ${this.selectedCustomer.customer?.last_name || ''}`.trim();
@@ -896,18 +1049,34 @@ class CommsForms {
 
             try {
                 commsUtils.setLoading(btn, true);
-                const res = await commsApi.sendManualReminder({
-                    phoneNumber: formattedPhone,
-                    invoiceId: invNo
-                });
+                const promises: Promise<any>[] = [];
 
-                commsUtils.showNotification(res.message || 'Payment reminder sent successfully!', 'success');
-                this.addLog('reminder', customerName, phone, `Reminder for ${invNo} sent`, 'success');
-                
+                if (ch === 'whatsapp' || ch === 'both') {
+                    promises.push(
+                        commsApi.sendManualReminder({ phoneNumber: formattedPhone, invoiceId: invNo })
+                            .then(() => ({ channel: 'WhatsApp', ok: true }))
+                            .catch((err: any) => ({ channel: 'WhatsApp', ok: false, err: err.message }))
+                    );
+                }
+                if (ch === 'email' || ch === 'both') {
+                    promises.push(
+                        commsApi.sendEmailReminder({ email, invoiceId: invNo })
+                            .then(() => ({ channel: 'Email', ok: true }))
+                            .catch((err: any) => ({ channel: 'Email', ok: false, err: err.message }))
+                    );
+                }
+
+                const results = await Promise.all(promises);
+                const allOk = results.every(r => r.ok);
+                const summary = results.map(r => `${r.channel}: ${r.ok ? '✓' : '✗'}`).join(' | ');
+
+                commsUtils.showNotification(allOk ? `Reminder sent! (${summary})` : `Partial result: ${summary}`, allOk ? 'success' : 'warning');
+                this.addLog('reminder', customerName, ch === 'email' ? email : phone, `Reminder for ${invNo} sent`, allOk ? 'success' : 'failed');
+
                 select.value = '';
                 document.getElementById('reminder-preview-container')!.classList.add('hidden');
                 this.selectedReminderInvoice = null;
-                
+
                 // Refresh stats
                 this.loadReminderStats();
             } catch (err: any) {
@@ -928,11 +1097,14 @@ class CommsForms {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const phoneInput = document.getElementById('customer-phone-input') as HTMLInputElement;
+            const emailInput = document.getElementById('customer-email-input') as HTMLInputElement;
             const phone = phoneInput ? phoneInput.value.trim() : '';
+            const emailVal = emailInput ? emailInput.value.trim() : '';
             const select = document.getElementById('receipt-select') as HTMLSelectElement;
             const btn = document.getElementById('btn-send-receipt') as HTMLButtonElement;
+            const ch = this.activeChannel;
 
-            if (!phone || !this.selectedPayment || !this.selectedCustomer) return;
+            if (!this.selectedPayment || !this.selectedCustomer) return;
 
             const formattedPhone = commsUtils.formatPhoneNumber(phone);
             const customerName = this.selectedCustomer.customer?.name || `${this.selectedCustomer.customer?.first_name || ''} ${this.selectedCustomer.customer?.last_name || ''}`.trim();
@@ -981,34 +1153,56 @@ class CommsForms {
 
                 const htmlContent = this.getReceiptHTML(payment, companyInfo, partyDetails, refDetails);
 
-                const res = await fetch('/comms/send-payment', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        phone: formattedPhone,
-                        paymentId: `Receipt-${paymentIdStr}`,
-                        htmlContent: htmlContent,
-                        documentType: 'payment receipt',
-                        partyName: partyDetails.name,
-                        amount: payment.amount,
-                        date: payment.payment_date
-                    })
-                });
+                const promises: Promise<any>[] = [];
 
-                const result = await res.json();
-                if (!res.ok) {
-                    throw new Error(result.message || result.error || 'Failed to send receipt.');
+                if (ch === 'whatsapp' || ch === 'both') {
+                    promises.push(
+                        fetch('/comms/send-payment', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                phone: formattedPhone,
+                                paymentId: `Receipt-${paymentIdStr}`,
+                                htmlContent,
+                                documentType: 'payment receipt',
+                                partyName: partyDetails.name,
+                                amount: payment.amount,
+                                date: payment.payment_date
+                            })
+                        })
+                        .then(res => res.ok ? ({ channel: 'WhatsApp', ok: true }) : res.json().then(d => { throw new Error(d.message); }))
+                        .catch((err: any) => ({ channel: 'WhatsApp', ok: false, err: err.message }))
+                    );
+                }
+                if (ch === 'email' || ch === 'both') {
+                    promises.push(
+                        commsApi.sendEmailPayment({
+                            email: emailVal,
+                            paymentId: `Receipt-${paymentIdStr}`,
+                            htmlContent,
+                            documentType: 'payment receipt',
+                            partyName: partyDetails.name,
+                            amount: payment.amount,
+                            date: payment.payment_date
+                        })
+                        .then(() => ({ channel: 'Email', ok: true }))
+                        .catch((err: any) => ({ channel: 'Email', ok: false, err: err.message }))
+                    );
                 }
 
-                commsUtils.showNotification(result.message || 'Receipt sent successfully!', 'success');
-                this.addLog('receipt', customerName, phone, `Receipt #${paymentIdStr} sent`, 'success');
+                const results = await Promise.all(promises);
+                const allOk = results.every(r => r.ok);
+                const summary = results.map(r => `${r.channel}: ${r.ok ? '✓' : '✗'}`).join(' | ');
+
+                commsUtils.showNotification(allOk ? `Receipt sent! (${summary})` : `Partial: ${summary}`, allOk ? 'success' : 'warning');
+                this.addLog('receipt', customerName, ch === 'email' ? emailVal : phone, `Receipt #${paymentIdStr} sent`, allOk ? 'success' : 'failed');
 
                 select.value = '';
                 document.getElementById('receipt-preview-container')!.classList.add('hidden');
                 this.selectedPayment = null;
             } catch (err: any) {
                 commsUtils.showNotification(err.message || 'Failed to send receipt.', 'error');
-                this.addLog('receipt', customerName, phone, `Failed to send receipt #${paymentIdStr}`, 'failed');
+                this.addLog('receipt', customerName, phone, `Failed to send receipt`, 'failed');
             } finally {
                 commsUtils.setLoading(btn, false);
                 this.updateFormFieldsDisabledState();
@@ -1023,11 +1217,14 @@ class CommsForms {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const phoneInput = document.getElementById('customer-phone-input') as HTMLInputElement;
+            const emailInput = document.getElementById('customer-email-input') as HTMLInputElement;
             const phone = phoneInput ? phoneInput.value.trim() : '';
+            const emailVal = emailInput ? emailInput.value.trim() : '';
             const select = document.getElementById('voucher-select') as HTMLSelectElement;
             const btn = document.getElementById('btn-send-voucher') as HTMLButtonElement;
+            const ch = this.activeChannel;
 
-            if (!phone || !this.selectedVoucher || !this.selectedCustomer) return;
+            if (!this.selectedVoucher || !this.selectedCustomer) return;
 
             const formattedPhone = commsUtils.formatPhoneNumber(phone);
             const customerName = this.selectedCustomer.customer?.name || `${this.selectedCustomer.customer?.first_name || ''} ${this.selectedCustomer.customer?.last_name || ''}`.trim();
@@ -1049,27 +1246,49 @@ class CommsForms {
 
                 const htmlContent = this.generateVoucherPrintHTML(voucher, companyInfo);
 
-                const res = await fetch('/comms/send-payment', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        phone: formattedPhone,
-                        paymentId: `Voucher-${voucherNo}`,
-                        htmlContent: htmlContent,
-                        documentType: 'payment voucher',
-                        partyName: voucher.partyName,
-                        amount: voucher.amount,
-                        date: voucher.date
-                    })
-                });
+                const promises: Promise<any>[] = [];
 
-                const result = await res.json();
-                if (!res.ok) {
-                    throw new Error(result.message || result.error || 'Failed to send voucher.');
+                if (ch === 'whatsapp' || ch === 'both') {
+                    promises.push(
+                        fetch('/comms/send-payment', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                phone: formattedPhone,
+                                paymentId: `Voucher-${voucherNo}`,
+                                htmlContent,
+                                documentType: 'payment voucher',
+                                partyName: voucher.partyName,
+                                amount: voucher.amount,
+                                date: voucher.date
+                            })
+                        })
+                        .then(res => res.ok ? ({ channel: 'WhatsApp', ok: true }) : res.json().then(d => { throw new Error(d.message); }))
+                        .catch((err: any) => ({ channel: 'WhatsApp', ok: false, err: err.message }))
+                    );
+                }
+                if (ch === 'email' || ch === 'both') {
+                    promises.push(
+                        commsApi.sendEmailPayment({
+                            email: emailVal,
+                            paymentId: `Voucher-${voucherNo}`,
+                            htmlContent,
+                            documentType: 'payment voucher',
+                            partyName: voucher.partyName,
+                            amount: voucher.amount,
+                            date: voucher.date
+                        })
+                        .then(() => ({ channel: 'Email', ok: true }))
+                        .catch((err: any) => ({ channel: 'Email', ok: false, err: err.message }))
+                    );
                 }
 
-                commsUtils.showNotification(result.message || 'Voucher sent successfully!', 'success');
-                this.addLog('voucher', customerName, phone, `Voucher ${voucherNo} sent`, 'success');
+                const results = await Promise.all(promises);
+                const allOk = results.every(r => r.ok);
+                const summary = results.map(r => `${r.channel}: ${r.ok ? '✓' : '✗'}`).join(' | ');
+
+                commsUtils.showNotification(allOk ? `Voucher sent! (${summary})` : `Partial: ${summary}`, allOk ? 'success' : 'warning');
+                this.addLog('voucher', customerName, ch === 'email' ? emailVal : phone, `Voucher ${voucherNo} sent`, allOk ? 'success' : 'failed');
 
                 select.value = '';
                 document.getElementById('voucher-preview-container')!.classList.add('hidden');

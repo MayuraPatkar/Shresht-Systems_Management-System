@@ -25,13 +25,16 @@ try {
     logger.warn('Backup/cleanup utilities not available', { service: 'settings' });
 }
 
-// Import cache invalidation function from comms route
+// Import cache invalidation functions from comms route
 let invalidateWhatsAppCache: () => void;
+let invalidateEmailCache: () => void;
 try {
     const commsRoute = require('./comms.route');
     invalidateWhatsAppCache = commsRoute.invalidateWhatsAppCache;
+    invalidateEmailCache = commsRoute.invalidateEmailCache || (() => { });
 } catch {
     invalidateWhatsAppCache = () => { };
+    invalidateEmailCache = () => { };
 }
 
 const router: Router = Router();
@@ -398,6 +401,39 @@ router.patch('/preferences/cloudinary', asyncHandler(async (req: Request, res: R
         process.env.CLOUDINARY_API_KEY = apiKey;
         return res.json({ success: true, message: 'Cloudinary settings saved successfully' });
     } catch (error: unknown) { return res.status(500).json({ success: false, message: 'Failed to update Cloudinary settings', error: (error as Error).message }); }
+}));
+
+router.patch('/preferences/email', asyncHandler(async (req: Request, res: Response) => {
+    try {
+        const { enabled, host, port, secure, user, password, fromName } = req.body;
+        let settings = await SettingsModel.findOne() as any;
+        if (!settings) settings = new SettingsModel({});
+        settings.email = settings.email || {};
+        if (enabled  !== undefined) settings.email.enabled  = !!enabled;
+        if (host     !== undefined) settings.email.host     = String(host);
+        if (port     !== undefined) settings.email.port     = Number(port) || 587;
+        if (secure   !== undefined) settings.email.secure   = !!secure;
+        if (user     !== undefined) settings.email.user     = String(user);
+        if (fromName !== undefined) settings.email.fromName = String(fromName);
+
+        // Encrypt the password if a new one is provided (not the masked placeholder)
+        if (password && password !== '••••••••••••••••') {
+            const { encryptEmailPassword } = require('../utils/emailService');
+            settings.email.passwordEncrypted = encryptEmailPassword(password);
+        }
+
+        await settings.save();
+        if (invalidateEmailCache) invalidateEmailCache();
+        return res.json({ success: true, message: 'Email settings updated', email: {
+            enabled: settings.email.enabled,
+            host: settings.email.host,
+            port: settings.email.port,
+            secure: settings.email.secure,
+            user: settings.email.user,
+            fromName: settings.email.fromName,
+            hasPassword: !!settings.email.passwordEncrypted
+        }});
+    } catch (error: unknown) { return res.status(500).json({ success: false, message: 'Failed to update Email settings', error: (error as Error).message }); }
 }));
 
 router.put("/company-info", asyncHandler(async (req: Request, res: Response) => {

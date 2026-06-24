@@ -138,6 +138,88 @@ class CommsApi {
             throw error;
         }
     }
+
+    // ─── Email API methods ─────────────────────────────────────────────────────
+
+    async sendEmailMessage(data: SendEmailMessageData): Promise<CommsApiResponse> {
+        try {
+            const res = await fetch('/comms/send-email-message', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.message || 'Failed to send email message');
+            return result;
+        } catch (error) {
+            console.error('Error sending email message:', error);
+            throw error;
+        }
+    }
+
+    async sendEmailInvoice(data: SendEmailInvoiceData): Promise<CommsApiResponse> {
+        try {
+            const res = await fetch('/comms/send-email-invoice', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.message || 'Failed to send email invoice');
+            return result;
+        } catch (error) {
+            console.error('Error sending email invoice:', error);
+            throw error;
+        }
+    }
+
+    async sendEmailQuotation(data: SendEmailQuotationData): Promise<CommsApiResponse> {
+        try {
+            const res = await fetch('/comms/send-email-quotation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.message || 'Failed to send email quotation');
+            return result;
+        } catch (error) {
+            console.error('Error sending email quotation:', error);
+            throw error;
+        }
+    }
+
+    async sendEmailReminder(data: SendEmailReminderData): Promise<CommsApiResponse> {
+        try {
+            const res = await fetch('/comms/send-email-reminder', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.message || 'Failed to send email reminder');
+            return result;
+        } catch (error) {
+            console.error('Error sending email reminder:', error);
+            throw error;
+        }
+    }
+
+    async sendEmailPayment(data: SendEmailPaymentData): Promise<CommsApiResponse> {
+        try {
+            const res = await fetch('/comms/send-email-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.message || 'Failed to send email payment');
+            return result;
+        } catch (error) {
+            console.error('Error sending email payment:', error);
+            throw error;
+        }
+    }
 }
 
 (window as any).commsApi = new CommsApi();

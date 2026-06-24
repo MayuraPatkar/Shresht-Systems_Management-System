@@ -11,6 +11,8 @@ interface UnpaidCountResponse {
     count: number;
 }
 
+// ─── WhatsApp types ────────────────────────────────────────────────────────────
+
 interface ManualReminderData {
     phoneNumber: string;
     invoiceId: string;
@@ -30,3 +32,40 @@ interface SendQuotationData {
     phone: string;
     quotationId: string;
 }
+
+// ─── Email types ───────────────────────────────────────────────────────────────
+
+interface SendEmailMessageData {
+    email: string;
+    subject?: string;
+    message: string;
+}
+
+interface SendEmailInvoiceData {
+    email: string;
+    invoiceId: string;
+}
+
+interface SendEmailQuotationData {
+    email: string;
+    quotationId: string;
+}
+
+interface SendEmailReminderData {
+    email: string;
+    invoiceId: string;
+}
+
+interface SendEmailPaymentData {
+    email: string;
+    paymentId: string;
+    htmlContent: string;
+    documentType: string;
+    partyName?: string;
+    amount?: number;
+    date?: string;
+}
+
+// ─── Channel type ──────────────────────────────────────────────────────────────
+
+type CommsChannel = 'whatsapp' | 'email' | 'both';

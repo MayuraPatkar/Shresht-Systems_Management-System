@@ -8,6 +8,7 @@ import logger from '../utils/logger';
 import secureStore from '../utils/secureStore';
 import { formatDateReadable as formatDateForTemplate } from '../utils/dateUtils';
 import { quotationPrintHandler } from '../utils/quotationPrintHandler';
+import * as emailService from '../utils/emailService';
 
 // Lazy-loaded utilities (may not be available in all environments)
 let pdfGenerator: any;
@@ -41,6 +42,14 @@ export function invalidateWhatsAppCache(): void {
     cachedWhatsApp = null;
     cachedAt = 0;
     logger.info('WhatsApp cache invalidated', { service: "messaging" });
+}
+
+/**
+ * Invalidate the cached Email credentials
+ * Call this when settings are updated to force re-fetching credentials
+ */
+export function invalidateEmailCache(): void {
+    emailService.invalidateEmailCache();
 }
 
 async function resolveWhatsAppCredentials(): Promise<WhatsAppCreds> {
@@ -123,6 +132,7 @@ async function getCompanyInfo(): Promise<Record<string, string>> {
 
 async function logCommunication(options: {
     recipient: string;
+    type?: "WhatsApp" | "Email" | "SMS";
     messageType: "Invoice" | "Quotation" | "Manual Reminder" | "Automated Reminder" | "Document" | "Custom Message";
     referenceId?: string;
     content?: string;
@@ -134,7 +144,7 @@ async function logCommunication(options: {
     try {
         await CommunicationModel.create({
             recipient: options.recipient,
-            type: "WhatsApp",
+            type: options.type || "WhatsApp",
             messageType: options.messageType,
             referenceId: options.referenceId,
             content: options.content,
@@ -950,6 +960,377 @@ router.post('/send-automated-reminders', async (req: Request, res: Response) => 
         res.status(500).json({ message: 'Failed to send automated reminders.', error: (err as Error).message });
     }
 });
+
+// ─── EMAIL ENDPOINTS ─────────────────────────────────────────────────────────
+
+/**
+ * Get company info helper (shared)
+ */
+async function getCompanyInfoForEmail(): Promise<{ name: string; phone?: string; email?: string }> {
+    try {
+        const settings = await SettingsModel.findOne();
+        const cd = settings?.company_details as any;
+        return {
+            name: cd?.company_name || 'Shresht Systems',
+            phone: cd?.phone?.ph1 || '',
+            email: cd?.email || '',
+        };
+    } catch {
+        return { name: 'Shresht Systems' };
+    }
+}
+
+// POST /comms/send-email-message — Send custom text message via email
+router.post('/send-email-message', async (req: Request, res: Response) => {
+    const { email, subject, message } = req.body;
+    if (!email || !message) {
+        return res.status(400).json({ message: 'Email address and message are required.' });
+    }
+
+    try {
+        await emailService.checkEmailConfig();
+        const company = await getCompanyInfoForEmail();
+        const html = emailService.buildCustomMessageEmailBody({ message, companyName: company.name });
+        const result = await emailService.sendEmail({
+            to: email,
+            subject: subject || `Message from ${company.name}`,
+            html,
+            text: message
+        });
+
+        await logCommunication({
+            recipient: email,
+            type: 'Email',
+            messageType: 'Custom Message',
+            content: message,
+            status: 'Success',
+            messageId: result.messageId
+        });
+
+        return res.json({ message: 'Message sent successfully via Email.' });
+    } catch (err: any) {
+        logger.error('Email message send failed', { service: 'email', error: err.message, email });
+        const errMsg = err.message || String(err);
+        await logCommunication({
+            recipient: email,
+            type: 'Email',
+            messageType: 'Custom Message',
+            content: message,
+            status: 'Failed',
+            errorMessage: errMsg
+        });
+        return res.status(500).json({ message: 'Failed to send email message.', error: errMsg });
+    }
+});
+
+// POST /comms/send-email-invoice — Send invoice as email with PDF attachment
+router.post('/send-email-invoice', async (req: Request, res: Response) => {
+    const { email, invoiceId } = req.body;
+    if (!email || !invoiceId) {
+        return res.status(400).json({ message: 'Email and Invoice ID are required.' });
+    }
+
+    try {
+        await emailService.checkEmailConfig();
+
+        const invoice = await InvoiceModel.findOne({ invoice_id: invoiceId }) as any;
+        if (!invoice) return res.status(404).json({ message: `Invoice "${invoiceId}" not found.` });
+
+        const company = await getCompanyInfo();
+        const companyObj = await getCompanyInfoForEmail();
+        const totalAmount = invoice.total_amount_original || invoice.total_amount_duplicate || 0;
+        const customerName = invoice.customer_name || 'Customer';
+        const invoiceDate = invoice.invoice_date || invoice.createdAt || new Date();
+
+        let pdfPath: string | undefined;
+        let pdfFilename = `${invoiceId}.pdf`;
+
+        if (pdfGenerator) {
+            const pdfResult = await pdfGenerator.generateInvoicePDF(invoice, company);
+            if (pdfResult && pdfResult.success) {
+                pdfPath = pdfResult.path;
+                pdfFilename = pdfResult.filename || pdfFilename;
+            }
+        }
+
+        const html = emailService.buildDocumentEmailBody({
+            documentType: 'Invoice',
+            customerName,
+            referenceNo: invoiceId,
+            date: formatDateForTemplate(invoiceDate),
+            amount: formatAmountForTemplate(totalAmount),
+            companyName: companyObj.name
+        });
+
+        const attachments = pdfPath
+            ? [{ filename: pdfFilename, path: pdfPath, contentType: 'application/pdf' }]
+            : [];
+
+        const result = await emailService.sendEmail({
+            to: email,
+            subject: `Invoice ${invoiceId} from ${companyObj.name}`,
+            html,
+            attachments
+        });
+
+        await logCommunication({
+            recipient: email,
+            type: 'Email',
+            messageType: 'Invoice',
+            referenceId: invoiceId,
+            content: `Invoice ${invoiceId} emailed to ${customerName}. Amount: ${formatAmountForTemplate(totalAmount)}`,
+            status: 'Success',
+            messageId: result.messageId
+        });
+
+        // Clean up temp PDF if generated locally
+        if (pdfPath) {
+            try { fs.unlinkSync(pdfPath); } catch { /* ignore */ }
+        }
+
+        return res.json({ message: 'Invoice sent via Email.' });
+    } catch (err: any) {
+        logger.error('Email invoice send failed', { service: 'email', error: err.message, invoiceId });
+        const errMsg = err.message || String(err);
+        await logCommunication({
+            recipient: email,
+            type: 'Email',
+            messageType: 'Invoice',
+            referenceId: invoiceId,
+            status: 'Failed',
+            errorMessage: errMsg
+        });
+        return res.status(500).json({ message: 'Failed to send invoice via email.', error: errMsg });
+    }
+});
+
+// POST /comms/send-email-quotation — Send quotation as email with PDF attachment
+router.post('/send-email-quotation', async (req: Request, res: Response) => {
+    const { email, quotationId } = req.body;
+    if (!email || !quotationId) {
+        return res.status(400).json({ message: 'Email and Quotation ID are required.' });
+    }
+
+    try {
+        await emailService.checkEmailConfig();
+
+        const quotation = await QuotationModel.findOne({ quotation_no: quotationId }) as any;
+        if (!quotation) return res.status(404).json({ message: `Quotation "${quotationId}" not found.` });
+
+        const company = await getCompanyInfo();
+        const companyObj = await getCompanyInfoForEmail();
+        const totalAmount = quotation.total_amount_tax || quotation.total_amount_no_tax || 0;
+        const customerName = quotation.customer_name || 'Customer';
+        const quotationDate = quotation.quotation_date || quotation.createdAt || new Date();
+
+        let pdfPath: string | undefined;
+        let pdfFilename = `${quotationId}.pdf`;
+
+        if (pdfGenerator) {
+            const pdfResult = await pdfGenerator.generateQuotationPDF(quotation, company);
+            if (pdfResult && pdfResult.success) {
+                pdfPath = pdfResult.path;
+                pdfFilename = pdfResult.filename || pdfFilename;
+            }
+        }
+
+        const html = emailService.buildDocumentEmailBody({
+            documentType: 'Quotation',
+            customerName,
+            referenceNo: quotationId,
+            date: formatDateForTemplate(quotationDate),
+            amount: formatAmountForTemplate(totalAmount),
+            companyName: companyObj.name
+        });
+
+        const attachments = pdfPath
+            ? [{ filename: pdfFilename, path: pdfPath, contentType: 'application/pdf' }]
+            : [];
+
+        const result = await emailService.sendEmail({
+            to: email,
+            subject: `Quotation ${quotationId} from ${companyObj.name}`,
+            html,
+            attachments
+        });
+
+        await logCommunication({
+            recipient: email,
+            type: 'Email',
+            messageType: 'Quotation',
+            referenceId: quotationId,
+            content: `Quotation ${quotationId} emailed to ${customerName}. Amount: ${formatAmountForTemplate(totalAmount)}`,
+            status: 'Success',
+            messageId: result.messageId
+        });
+
+        if (pdfPath) {
+            try { fs.unlinkSync(pdfPath); } catch { /* ignore */ }
+        }
+
+        return res.json({ message: 'Quotation sent via Email.' });
+    } catch (err: any) {
+        logger.error('Email quotation send failed', { service: 'email', error: err.message, quotationId });
+        const errMsg = err.message || String(err);
+        await logCommunication({
+            recipient: email,
+            type: 'Email',
+            messageType: 'Quotation',
+            referenceId: quotationId,
+            status: 'Failed',
+            errorMessage: errMsg
+        });
+        return res.status(500).json({ message: 'Failed to send quotation via email.', error: errMsg });
+    }
+});
+
+// POST /comms/send-email-reminder — Send payment reminder via email
+router.post('/send-email-reminder', async (req: Request, res: Response) => {
+    const { email, invoiceId } = req.body;
+    if (!email || !invoiceId) {
+        return res.status(400).json({ message: 'Email and Invoice ID are required.' });
+    }
+
+    try {
+        await emailService.checkEmailConfig();
+
+        const invoice = await InvoiceModel.findOne({ invoice_id: invoiceId }) as any;
+        if (!invoice) return res.status(404).json({ message: `Invoice "${invoiceId}" not found.` });
+
+        const isPaid = invoice.payment_status?.toUpperCase() === 'PAID';
+        if (isPaid) {
+            return res.status(200).json({ message: 'Invoice already paid. No reminder sent.' });
+        }
+
+        const totalDue = invoice.total_amount_original || 0;
+        const totalPaid = invoice.total_paid_amount || 0;
+        const amountDue = Math.max(totalDue - totalPaid, 0);
+        const customerName = invoice.customer_name || 'Customer';
+        const dueDate = invoice.due_date
+            ? new Date(invoice.due_date).toLocaleDateString('en-IN')
+            : undefined;
+
+        const companyObj = await getCompanyInfoForEmail();
+        const html = emailService.buildReminderEmailBody({
+            customerName,
+            invoiceId,
+            amountDue: amountDue.toLocaleString('en-IN', { minimumFractionDigits: 2 }),
+            dueDate,
+            companyName: companyObj.name
+        });
+
+        const result = await emailService.sendEmail({
+            to: email,
+            subject: `Payment Reminder — Invoice ${invoiceId} | ${companyObj.name}`,
+            html
+        });
+
+        await logCommunication({
+            recipient: email,
+            type: 'Email',
+            messageType: 'Manual Reminder',
+            referenceId: invoiceId,
+            content: `Payment reminder emailed for Invoice ${invoiceId}. Amount due: ₹${amountDue.toFixed(2)}`,
+            status: 'Success',
+            messageId: result.messageId
+        });
+
+        return res.json({ message: 'Payment reminder sent successfully via Email.' });
+    } catch (err: any) {
+        logger.error('Email reminder send failed', { service: 'email', error: err.message, invoiceId });
+        const errMsg = err.message || String(err);
+        await logCommunication({
+            recipient: email,
+            type: 'Email',
+            messageType: 'Manual Reminder',
+            referenceId: invoiceId,
+            status: 'Failed',
+            errorMessage: errMsg
+        });
+        return res.status(500).json({ message: 'Failed to send payment reminder via email.', error: errMsg });
+    }
+});
+
+// POST /comms/send-email-payment — Send receipt/voucher PDF via email
+router.post('/send-email-payment', async (req: Request, res: Response) => {
+    const { email, paymentId, htmlContent, documentType, partyName, amount, date } = req.body;
+    if (!email || !paymentId || !htmlContent || !documentType) {
+        return res.status(400).json({ message: 'Email, Payment ID, HTML Content, and Document Type are required.' });
+    }
+
+    const tempFilename = `${paymentId.replace(/[^a-zA-Z0-9-_]/g, '_')}.pdf`;
+    let pdfPath: string | undefined;
+
+    try {
+        await emailService.checkEmailConfig();
+
+        if (pdfGenerator) {
+            const outputPath = path.join(pdfGenerator.UPLOADS_DIR, tempFilename);
+            const printResult = await quotationPrintHandler.generatePDF(htmlContent, outputPath);
+            if (printResult.success) {
+                pdfPath = outputPath;
+            }
+        }
+
+        const companyObj = await getCompanyInfoForEmail();
+        const typeLabel = documentType === 'payment voucher' ? 'Payment Voucher' : 'Payment Receipt';
+        const formattedAmount = amount ? formatAmountForTemplate(parseFloat(amount) || 0) : '—';
+        const formattedDate = date ? formatDateForTemplate(date) : formatDateForTemplate(new Date());
+
+        const html = emailService.buildDocumentEmailBody({
+            documentType: typeLabel,
+            customerName: partyName || 'Valued Client',
+            referenceNo: paymentId,
+            date: formattedDate,
+            amount: formattedAmount,
+            companyName: companyObj.name
+        });
+
+        const attachments = pdfPath
+            ? [{ filename: tempFilename, path: pdfPath, contentType: 'application/pdf' }]
+            : [];
+
+        const result = await emailService.sendEmail({
+            to: email,
+            subject: `${typeLabel} — ${paymentId} | ${companyObj.name}`,
+            html,
+            attachments
+        });
+
+        await logCommunication({
+            recipient: email,
+            type: 'Email',
+            messageType: 'Document',
+            referenceId: paymentId,
+            content: `${typeLabel} emailed to ${partyName || 'Valued Client'}. Reference: ${paymentId}. Amount: ${formattedAmount}`,
+            status: 'Success',
+            messageId: result.messageId
+        });
+
+        if (pdfPath) {
+            try { fs.unlinkSync(pdfPath); } catch { /* ignore */ }
+        }
+
+        return res.json({ message: `${typeLabel} sent via Email.` });
+    } catch (err: any) {
+        logger.error('Email payment send failed', { service: 'email', error: err.message, paymentId });
+        const errMsg = err.message || String(err);
+        await logCommunication({
+            recipient: email,
+            type: 'Email',
+            messageType: 'Document',
+            referenceId: paymentId,
+            status: 'Failed',
+            errorMessage: errMsg
+        });
+        if (pdfPath) {
+            try { fs.unlinkSync(pdfPath); } catch { /* ignore */ }
+        }
+        return res.status(500).json({ message: 'Failed to send payment document via email.', error: errMsg });
+    }
+});
+
+// ─── WEBHOOK ROUTES ───────────────────────────────────────────────────────────
 
 // GET /webhook - WhatsApp Webhook verification
 router.get('/webhook', async (req: Request, res: Response) => {

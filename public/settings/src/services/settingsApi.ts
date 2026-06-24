@@ -117,6 +117,14 @@ class SettingsApi {
         });
     }
 
+    async updateEmailPreferences(data: { enabled: boolean; host: string; port: number; secure: boolean; user: string; password?: string; fromName: string }): Promise<{ success: boolean; message?: string; email?: any }> {
+        return this.request("/settings/preferences/email", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+    }
+
     async getSystemInfo(): Promise<{ success: boolean; system: SystemStaticInfo }> {
         return this.request("/settings/system-info");
     }

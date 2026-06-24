@@ -56,6 +56,19 @@ export interface IWhatsApp {
 }
 
 /**
+ * Email (SMTP) sub-document interface
+ */
+export interface IEmail {
+    enabled?: boolean;
+    host?: string;          // e.g. smtp.gmail.com
+    port?: number;          // 587 (TLS) or 465 (SSL)
+    secure?: boolean;       // true for port 465 (SSL)
+    user?: string;          // sender email / SMTP username
+    passwordEncrypted?: string; // encrypted SMTP password
+    fromName?: string;      // display name for sent emails
+}
+
+/**
  * Cloudinary sub-document interface
  */
 export interface ICloudinary {
@@ -151,6 +164,7 @@ export interface ISettings extends Document {
     security?: ISecurity;
     notifications?: INotifications;
     whatsapp?: IWhatsApp;
+    email?: IEmail;
     cloudinary?: ICloudinary;
     defaults?: IDefaults;
     system?: ISystem;
@@ -290,6 +304,22 @@ const whatsappSchema = new Schema<IWhatsApp>(
 );
 
 /**
+ * Email (SMTP) sub-schema
+ */
+const emailSchema = new Schema<IEmail>(
+    {
+        enabled: { type: Boolean, default: false },
+        host: { type: String, default: "" },
+        port: { type: Number, default: 587 },
+        secure: { type: Boolean, default: false },
+        user: { type: String, default: "" },
+        passwordEncrypted: { type: String, default: "" },
+        fromName: { type: String, default: "" },
+    },
+    { _id: false }
+);
+
+/**
  * Cloudinary sub-schema
  */
 const cloudinarySchema = new Schema<ICloudinary>(
@@ -379,6 +409,11 @@ const settingsSchema = new Schema<ISettings>(
 
         whatsapp: {
             type: whatsappSchema,
+            default: () => ({}),
+        },
+
+        email: {
+            type: emailSchema,
             default: () => ({}),
         },
 

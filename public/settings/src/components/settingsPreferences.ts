@@ -20,6 +20,7 @@ class SettingsPreferences {
         document.getElementById("restore-backup-schedule-defaults-button")?.addEventListener("click", () => this.restoreBackupScheduleDefaults());
         document.getElementById("save-whatsapp-button")?.addEventListener("click", () => this.saveWhatsAppSettings());
         document.getElementById("save-cloudinary-button")?.addEventListener("click", () => this.saveCloudinarySettings());
+        document.getElementById("save-email-button")?.addEventListener("click", () => this.saveEmailSettings());
 
         document.getElementById("backup-browse")?.addEventListener("click", async (e) => {
             e.preventDefault();
@@ -41,7 +42,7 @@ class SettingsPreferences {
         }
 
         // Add clearing behavior for masked values on focus or input
-        const maskFields = ['whatsapp-token', 'cloudinary-api-secret'];
+        const maskFields = ['whatsapp-token', 'cloudinary-api-secret', 'email-password'];
         maskFields.forEach(id => {
             const input = document.getElementById(id) as HTMLInputElement;
             if (input) {
@@ -919,6 +920,109 @@ class SettingsPreferences {
             .finally(() => {
                 saveButton.disabled = false;
                 saveButton.innerHTML = originalContent;
+            });
+    }
+
+    private saveEmailSettings(): void {
+        const saveButton = document.getElementById('save-email-button') as HTMLButtonElement;
+        if (!saveButton) return;
+        const originalContent = saveButton.innerHTML;
+        saveButton.disabled = true;
+        saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+        const enabled  = (document.getElementById('email-enabled')   as HTMLInputElement).checked;
+        const host     = (document.getElementById('email-host')       as HTMLInputElement).value.trim();
+        const port     = parseInt((document.getElementById('email-port') as HTMLInputElement).value) || 587;
+        const secure   = (document.getElementById('email-secure')     as HTMLInputElement).checked;
+        const user     = (document.getElementById('email-user')       as HTMLInputElement).value.trim();
+        const password = (document.getElementById('email-password')   as HTMLInputElement).value.trim();
+        const fromName = (document.getElementById('email-from-name')  as HTMLInputElement).value.trim();
+
+        if (enabled && (!host || !user)) {
+            (window as any).electronAPI.showAlert1('Please enter SMTP Host and Sender Email before enabling.');
+            saveButton.disabled = false;
+            saveButton.innerHTML = originalContent;
+            return;
+        }
+
+        const payload: any = { enabled, host, port, secure, user, fromName };
+        if (password && password !== '••••••••••••••••') payload.password = password;
+
+        settingsApi.updateEmailPreferences(payload)
+            .then((data: { success: boolean; message?: string }) => {
+                if (data.success) {
+                    (window as any).electronAPI.showAlert1('Email settings saved successfully!');
+                    this.loadEmailStatus();
+                } else {
+                    (window as any).electronAPI.showAlert1(`Failed to save: ${data.message}`);
+                }
+            })
+            .catch((err: any) => {
+                console.error('Failed to save Email settings:', err);
+                (window as any).electronAPI.showAlert1('Failed to save Email settings. Please try again.');
+            })
+            .finally(() => {
+                saveButton.disabled = false;
+                saveButton.innerHTML = originalContent;
+            });
+    }
+
+    private loadEmailStatus(): void {
+        const statusEl = document.getElementById('email-status');
+        fetch('/api/settings/preferences')
+            .then(r => r.json())
+            .then((data: any) => {
+                const email = data?.preferences?.email || data?.email;
+                if (!statusEl) return;
+
+                // Populate fields
+                const enabledEl   = document.getElementById('email-enabled')   as HTMLInputElement;
+                const hostEl      = document.getElementById('email-host')       as HTMLInputElement;
+                const portEl      = document.getElementById('email-port')       as HTMLInputElement;
+                const secureEl    = document.getElementById('email-secure')     as HTMLInputElement;
+                const userEl      = document.getElementById('email-user')       as HTMLInputElement;
+                const fromNameEl  = document.getElementById('email-from-name')  as HTMLInputElement;
+                const passwordEl  = document.getElementById('email-password')   as HTMLInputElement;
+
+                if (email) {
+                    if (enabledEl)  enabledEl.checked  = !!email.enabled;
+                    if (hostEl)     hostEl.value       = email.host     || '';
+                    if (portEl)     portEl.value       = String(email.port || 587);
+                    if (secureEl)   secureEl.checked   = !!email.secure;
+                    if (userEl)     userEl.value       = email.user     || '';
+                    if (fromNameEl) fromNameEl.value   = email.fromName || '';
+                    if (passwordEl && email.hasPassword) passwordEl.value = '••••••••••••••••';
+
+                    const isReady = email.enabled && email.host && email.user && email.hasPassword;
+                    if (isReady) {
+                        statusEl.innerHTML = `
+                            <i class="fas fa-check-circle text-green-500 text-sm"></i>
+                            <span class="text-green-700 font-medium">Email configured — sending as ${email.user}</span>
+                        `;
+                        statusEl.className = 'flex items-center gap-2 p-3.5 rounded-lg bg-green-50 border border-green-200 text-xs font-semibold mb-4';
+                    } else if (email.host || email.user) {
+                        statusEl.innerHTML = `
+                            <i class="fas fa-exclamation-triangle text-yellow-500 text-sm"></i>
+                            <span class="text-yellow-700 font-medium">Email partially configured${!email.enabled ? ' — Enable to activate' : ''}</span>
+                        `;
+                        statusEl.className = 'flex items-center gap-2 p-3.5 rounded-lg bg-yellow-50 border border-yellow-200 text-xs font-semibold mb-4';
+                    } else {
+                        statusEl.innerHTML = `
+                            <i class="fas fa-circle text-slate-400 text-[10px]"></i>
+                            <span>Not configured — fill in your SMTP details below</span>
+                        `;
+                        statusEl.className = 'flex items-center gap-2 p-3.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-semibold mb-4';
+                    }
+                } else {
+                    statusEl.innerHTML = `<i class="fas fa-circle text-slate-400 text-[10px]"></i><span>Not configured</span>`;
+                    statusEl.className = 'flex items-center gap-2 p-3.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-semibold mb-4';
+                }
+            })
+            .catch(() => {
+                if (statusEl) {
+                    statusEl.innerHTML = `<i class="fas fa-times-circle text-red-500 text-sm"></i><span class="text-red-700 font-medium">Error checking status</span>`;
+                    statusEl.className = 'flex items-center gap-2 p-3.5 rounded-lg bg-red-50 border border-red-200 text-xs font-semibold mb-4';
+                }
             });
     }
 
