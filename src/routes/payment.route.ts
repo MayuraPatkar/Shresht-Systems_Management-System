@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { PaymentModel, CustomerModel, SupplierModel, InvoiceModel, PurchaseModel, PurchaseOrderModel, ServiceModel, VoucherModel, AdminModel, CounterModel } from '../models';
+import { PaymentModel, CustomerModel, SupplierModel, InvoiceModel, PurchaseModel, PurchaseOrderModel, ServiceModel, VoucherModel, CounterModel } from '../models';
 import { Types } from 'mongoose';
 import logger from '../utils/logger';
 import { syncReferencePayments } from '../utils/paymentSync';

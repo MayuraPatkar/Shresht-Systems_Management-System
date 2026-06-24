@@ -8,7 +8,7 @@ import fs from 'fs';
 import fsSync from 'fs';
 import mongoose from 'mongoose';
 import crypto from 'crypto';
-import { SettingsModel, AdminModel } from '../models';
+import { SettingsModel, UserModel } from '../models';
 import logger from '../utils/logger';
 import config from '../config/config';
 import secureStore from '../utils/secureStore';
@@ -404,17 +404,33 @@ router.put("/company-info", asyncHandler(async (req: Request, res: Response) => 
     try {
         const updates = req.body;
         const currentUsername = req.headers['x-username'] as string;
-        const admins = await AdminModel.find();
-        if (!admins || admins.length === 0) return res.status(404).json({ success: false, message: 'Admin records not found' });
         
-        const allowedFields = ['company_name', 'address', 'phone', 'email', 'website', 'gstin', 'bank_details'];
-        for (const admin of admins) {
-            allowedFields.forEach(field => { if (updates[field] !== undefined) (admin as any)[field] = updates[field]; });
-            await admin.save();
+        let settings = await SettingsModel.findOne();
+        if (!settings) {
+            settings = new SettingsModel({});
+        }
+        if (!settings.company_details) {
+            settings.company_details = {};
         }
         
-        const currentUser = await AdminModel.findOne(currentUsername ? { username: currentUsername } : {}) || admins[0];
-        res.json({ success: true, message: 'Company information updated successfully', admin: currentUser });
+        const allowedFields = ['company_name', 'address', 'phone', 'email', 'website', 'gstin', 'bank_details'];
+        allowedFields.forEach(field => {
+            if (updates[field] !== undefined) {
+                (settings!.company_details as any)[field] = updates[field];
+            }
+        });
+        
+        await settings.save();
+        
+        const currentUser = await UserModel.findOne(currentUsername ? { username: currentUsername } : {}) || await UserModel.findOne();
+        const settingsObj: any = settings ? settings.toObject() : {};
+        const companyDetails = settingsObj.company_details || {};
+        const legacyAdminResponse = {
+            ...currentUser?.toObject(),
+            ...companyDetails
+        };
+        
+        res.json({ success: true, message: 'Company information updated successfully', admin: legacyAdminResponse });
     } catch (error: unknown) { res.status(500).json({ success: false, message: 'Failed to update company information', error: (error as Error).message }); }
 }));
 
@@ -422,7 +438,8 @@ router.get("/company-info/export", asyncHandler(async (req: Request, res: Respon
     let browser: any = null;
     try {
         const { generateCompanyProfilePDF } = require('../utils/pdfGenerator');
-        const admin = await AdminModel.findOne() as any;
+        const settings = await SettingsModel.findOne();
+        const admin = settings?.company_details as any;
         if (!admin) return res.status(404).json({ success: false, message: 'Company information not found' });
 
         const timestamp = new Date().toISOString().split("T")[0];

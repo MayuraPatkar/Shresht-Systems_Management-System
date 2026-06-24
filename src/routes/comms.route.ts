@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
 import axios from 'axios';
-import { QuotationModel, InvoiceModel, AdminModel, SettingsModel, CommunicationModel } from '../models';
+import { QuotationModel, InvoiceModel, UserModel, SettingsModel, CommunicationModel } from '../models';
 import config from '../config/config';
 import logger from '../utils/logger';
 import secureStore from '../utils/secureStore';
@@ -99,10 +99,11 @@ async function resolveWhatsAppCredentials(): Promise<WhatsAppCreds> {
  */
 async function getCompanyInfo(): Promise<Record<string, string>> {
     try {
-        const admin = await AdminModel.findOne() as any;
-        if (!admin) {
+        const settings = await SettingsModel.findOne();
+        if (!settings || !settings.company_details) {
             return {};
         }
+        const admin = settings.company_details as any;
         const addr = admin.address || {};
         const addressStr = typeof addr === 'string' ? addr : [addr.line1, addr.line2, addr.city, addr.state ? addr.state + (addr.pincode ? ' - ' + addr.pincode : '') : ''].filter(Boolean).join(', ');
         return {

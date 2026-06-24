@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
-import { AdminModel, SettingsModel } from '../models';
+import { UserModel, SettingsModel } from '../models';
 import logger from '../utils/logger';
 
 const router: Router = Router();
@@ -15,10 +15,10 @@ router.post('/login', async (req: Request, res: Response) => {
         const lockoutDuration = settings?.security?.lockout_duration || 15; // minutes
 
         // Fetch the user document from the collection
-        const user = await AdminModel.findOne(username ? { username } : {});
+        const user = await UserModel.findOne(username ? { username } : {});
         if (!user || user.username !== username) {
             // Fallback to the main admin account to track failed attempts and prevent username enumeration
-            const fallbackUser = await AdminModel.findOne({ role: 'admin' }) || await AdminModel.findOne();
+            const fallbackUser = await UserModel.findOne({ role: 'admin' }) || await UserModel.findOne();
             if (fallbackUser) {
                 if (fallbackUser.lockUntil) {
                     if (fallbackUser.lockUntil > new Date(Date.now())) {
@@ -167,11 +167,18 @@ router.get("/admin-info", async (req: Request, res: Response) => {
         return res.status(400).json({ message: "Username header is required" });
     }
     try {
-        const admin = await AdminModel.findOne({ username: currentUsername });
-        if (!admin) {
+        const user = await UserModel.findOne({ username: currentUsername });
+        if (!user) {
             return res.status(404).json({ message: "User data not found" });
         }
-        res.json(admin);
+        const settings = await SettingsModel.findOne();
+        const settingsObj: any = settings ? settings.toObject() : {};
+        const companyDetails = settingsObj.company_details || {};
+        const adminInfo = {
+            ...user.toObject(),
+            ...companyDetails
+        };
+        res.json(adminInfo);
     } catch (error: unknown) {
         logger.error("Error fetching user info:", error);
         res.status(500).json({ message: "Internal server error" });
@@ -186,7 +193,7 @@ router.post("/change-username", async (req: Request, res: Response) => {
         return res.status(400).json({ message: "Username header is required" });
     }
     try {
-        const admin = await AdminModel.findOne({ username: currentUsername });
+        const admin = await UserModel.findOne({ username: currentUsername });
         if (!admin) {
             return res.status(404).json({ message: "User not found" });
         }
@@ -194,7 +201,7 @@ router.post("/change-username", async (req: Request, res: Response) => {
             return res.status(400).json({ message: "New username must be different from current username" });
         }
         // Check if the username is already taken by another account
-        const existingUser = await AdminModel.findOne({ username });
+        const existingUser = await UserModel.findOne({ username });
         if (existingUser && existingUser._id.toString() !== admin._id.toString()) {
             return res.status(400).json({ message: "Username is already taken" });
         }
@@ -215,7 +222,7 @@ router.post("/change-password", async (req: Request, res: Response) => {
         return res.status(400).json({ message: "Username header is required" });
     }
     try {
-        const admin = await AdminModel.findOne({ username: currentUsername });
+        const admin = await UserModel.findOne({ username: currentUsername });
         if (!admin) {
             return res.status(404).json({ message: "User not found" });
         }
@@ -249,23 +256,30 @@ router.get("/export-data", async (req: Request, res: Response) => {
         return res.status(400).json({ message: "Username header is required" });
     }
     try {
-        const admin = await AdminModel.findOne({ username: currentUsername });
-        if (!admin) {
+        const user = await UserModel.findOne({ username: currentUsername });
+        if (!user) {
             return res.status(404).json({ message: "User data not found" });
         }
 
-        const addr = (admin as any).address || {};
+        const settings = await SettingsModel.findOne();
+        const comp = settings?.company_details || {};
+        const addr = comp.address || {};
         const addressStr = typeof addr === 'string' ? addr : [addr.line1, addr.line2, addr.city, addr.state ? addr.state + (addr.pincode ? ' - ' + addr.pincode : '') : ''].filter(Boolean).join(', ');
+        const companyEmail = comp.email || '';
 
         let data: string;
         if (format === "csv") {
-            data = `Username,Address,Email\n${admin.username},${addressStr},${admin.email}`;
+            data = `Username,Address,Email\n${user.username},${addressStr},${companyEmail}`;
             res.setHeader("Content-Type", "text/csv");
         } else if (format === "xml") {
-            data = `<admin><username>${admin.username}</username><address>${addressStr}</address><email>${admin.email}</email></admin>`;
+            data = `<admin><username>${user.username}</username><address>${addressStr}</address><email>${companyEmail}</email></admin>`;
             res.setHeader("Content-Type", "application/xml");
         } else {
-            data = JSON.stringify(admin, null, 2);
+            const combinedData = {
+                ...user.toObject(),
+                company_details: comp
+            };
+            data = JSON.stringify(combinedData, null, 2);
             res.setHeader("Content-Type", "application/json");
         }
 

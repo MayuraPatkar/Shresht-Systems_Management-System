@@ -1,6 +1,6 @@
 // Central export point for all database models
 
-export { AdminModel, IAdmin } from "./Admin.model";
+export { UserModel, IUser } from "./User.model";
 export { CounterModel, ICounter } from "./Counter.model";
 export { VoucherModel, IVoucher } from "./Voucher.model";
 export { CustomerModel, ICustomer } from "./Customer.model";
@@ -22,7 +22,7 @@ export { CommunicationModel, ICommunication } from "./Communication.model";
 // The JS routes destructure names like { Admin, Invoices, Stock, ... }
 // from require('../models'). These aliases bridge the TS model names
 // to the legacy JS names so that both TS and JS consumers work.
-import { AdminModel } from "./Admin.model";
+import { UserModel } from "./User.model";
 import { CounterModel } from "./Counter.model";
 import { EWayBillModel } from "./EWayBill.model";
 import { InvoiceModel } from "./Invoice.model";
@@ -39,7 +39,8 @@ import { VoucherModel } from "./Voucher.model";
 import { CommunicationModel } from "./Communication.model";
 
 // Re-export under the names the JS routes expect
-export const Admin = AdminModel;
+export const User = UserModel;
+export const Admin = UserModel;
 export const Counters = CounterModel;
 export const Invoices = InvoiceModel;
 export const Quotations = QuotationModel;

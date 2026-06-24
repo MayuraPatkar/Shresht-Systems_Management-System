@@ -96,6 +96,51 @@ export interface ISystem {
 }
 
 /**
+ * Address sub-document interface
+ */
+export interface IAddress {
+    line1?: string;
+    line2?: string;
+    city?: string;
+    state?: string;
+    pincode?: string;
+    country?: string;
+}
+
+/**
+ * Phone sub-document interface
+ */
+export interface IPhone {
+    ph1: string;
+    ph2?: string;
+}
+
+/**
+ * Bank details sub-document interface
+ */
+export interface IBankDetails {
+    bank_name?: string;
+    account_holder_name?: string;
+    account_number?: string;
+    type?: string;
+    ifsc_code?: string;
+    branch?: string;
+}
+
+/**
+ * Company details sub-document interface
+ */
+export interface ICompanyDetails {
+    company_name?: string;
+    address?: IAddress;
+    phone?: IPhone;
+    email?: string;
+    website?: string;
+    gstin?: string;
+    bank_details?: IBankDetails;
+}
+
+/**
  * Settings document interface
  */
 export interface ISettings extends Document {
@@ -110,10 +155,69 @@ export interface ISettings extends Document {
     defaults?: IDefaults;
     system?: ISystem;
     branding?: IBranding;
+    company_details?: ICompanyDetails;
 
     createdAt: Date;
     updatedAt: Date;
 }
+
+/**
+ * Address sub-schema
+ */
+const addressSchema = new Schema<IAddress>(
+    {
+        line1: { type: String, trim: true },
+        line2: { type: String, trim: true },
+        city: { type: String, trim: true },
+        state: { type: String, trim: true },
+        pincode: { type: String, trim: true },
+        country: { type: String, trim: true, default: "India" },
+    },
+    { _id: false }
+);
+
+/**
+ * Phone sub-schema
+ */
+const phoneSchema = new Schema<IPhone>(
+    {
+        ph1: { type: String, required: true, trim: true },
+        ph2: { type: String, trim: true },
+    },
+    { _id: false }
+);
+
+/**
+ * Bank details sub-schema
+ */
+const bankDetailsSchema = new Schema<IBankDetails>(
+    {
+        bank_name: { type: String, trim: true },
+        account_holder_name: { type: String, trim: true },
+        account_number: { type: String, trim: true },
+        type: { type: String, trim: true },
+        ifsc_code: { type: String, trim: true },
+        branch: { type: String, trim: true },
+    },
+    { _id: false }
+);
+
+/**
+ * Company details sub-schema
+ */
+const companyDetailsSchema = new Schema<ICompanyDetails>(
+    {
+        company_name: { type: String, trim: true },
+        address: { type: addressSchema },
+        phone: { type: phoneSchema },
+        email: { type: String, lowercase: true, trim: true },
+        website: { type: String, trim: true },
+        gstin: { type: String, trim: true },
+        bank_details: { type: bankDetailsSchema },
+    },
+    { _id: false }
+);
+
 
 /**
  * Numbering sub-schema
@@ -290,6 +394,11 @@ const settingsSchema = new Schema<ISettings>(
 
         system: {
             type: systemSchema,
+            default: () => ({}),
+        },
+
+        company_details: {
+            type: companyDetailsSchema,
             default: () => ({}),
         },
     },

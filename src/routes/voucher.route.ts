@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { PaymentModel, CustomerModel, SupplierModel, VoucherModel, AdminModel, CounterModel } from '../models';
+import { PaymentModel, CustomerModel, SupplierModel, VoucherModel, SettingsModel, CounterModel } from '../models';
 import { Types } from 'mongoose';
 import logger from '../utils/logger';
 
@@ -140,7 +140,8 @@ router.get('/by-no/:no', async (req: Request, res: Response) => {
             return res.status(404).json({ success: false, message: 'Voucher not found' });
         }
 
-        const admin = await AdminModel.findOne().lean() as any;
+        const settings = await SettingsModel.findOne().lean();
+        const admin = settings?.company_details as any;
         const companyInfo = {
             name: admin?.company_name || 'Shresht Systems',
             address: admin?.address ? [admin.address.line1, admin.address.line2, admin.address.city, admin.address.state, admin.address.pincode].filter(Boolean).join(', ') : '',
@@ -173,7 +174,8 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
             return res.status(404).json({ success: false, message: 'Voucher not found' });
         }
 
-        const admin = await AdminModel.findOne().lean() as any;
+        const settings = await SettingsModel.findOne().lean();
+        const admin = settings?.company_details as any;
         const companyInfo = {
             name: admin?.company_name || 'Shresht Systems',
             address: admin?.address ? [admin.address.line1, admin.address.line2, admin.address.city, admin.address.state, admin.address.pincode].filter(Boolean).join(', ') : '',
