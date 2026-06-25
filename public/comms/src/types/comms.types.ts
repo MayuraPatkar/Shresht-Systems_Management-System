@@ -44,11 +44,17 @@ interface SendEmailMessageData {
 interface SendEmailInvoiceData {
     email: string;
     invoiceId: string;
+    /** Optional rendered print HTML — when provided, uses the same high-fidelity
+     *  quotationPrintHandler PDF generation path as WhatsApp / PDF save. */
+    htmlContent?: string;
 }
 
 interface SendEmailQuotationData {
     email: string;
     quotationId: string;
+    /** Optional rendered print HTML — when provided, uses the same high-fidelity
+     *  quotationPrintHandler PDF generation path as WhatsApp / PDF save. */
+    htmlContent?: string;
 }
 
 interface SendEmailReminderData {

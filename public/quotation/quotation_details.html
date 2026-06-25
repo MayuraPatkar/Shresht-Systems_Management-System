@@ -309,6 +309,13 @@
                     <i class="fab fa-whatsapp"></i>
                     Send via WhatsApp
                 </button>
+                <button type="button" id="sendEmailBtn"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-blue-300 bg-white px-4 h-10 text-sm font-semibold text-blue-700 transition-all hover:border-blue-500 hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-200 cursor-pointer shadow-sm"
+                    style="display: none;"
+                    title="Send via Email">
+                    <i class="fas fa-envelope"></i>
+                    Send via Email
+                </button>
                 <button type="button" id="restoreQuotationBtnView"
                     class="bg-emerald-600 text-white px-4 h-10 rounded-lg hover:bg-emerald-700 flex items-center gap-2 font-semibold text-sm transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
                     style="display: none;"
@@ -965,6 +972,7 @@
                 const duplicateBtn = document.getElementById('duplicateQuotationBtnView');
                 const convertBtn = document.getElementById('convertToInvoiceBtn');
                 const sendWhatsAppBtn = document.getElementById('sendWhatsAppBtn');
+                const sendEmailBtn = document.getElementById('sendEmailBtn');
                 const restoreBtnView = document.getElementById('restoreQuotationBtnView');
 
                 if (quotation && (quotation.is_deleted || quotation.deletion?.is_deleted)) {
@@ -972,6 +980,7 @@
                     if (duplicateBtn) duplicateBtn.style.display = 'none';
                     if (convertBtn) convertBtn.style.display = 'none';
                     if (sendWhatsAppBtn) sendWhatsAppBtn.style.display = 'none';
+                    if (sendEmailBtn) sendEmailBtn.style.display = 'none';
                     
                     if (restoreBtnView) restoreBtnView.style.display = 'flex';
                 } else {
@@ -979,6 +988,7 @@
                     if (duplicateBtn) duplicateBtn.style.display = 'flex';
                     if (convertBtn) convertBtn.style.display = 'flex';
                     if (sendWhatsAppBtn) sendWhatsAppBtn.style.display = 'flex';
+                    if (sendEmailBtn) sendEmailBtn.style.display = 'flex';
                     
                     if (restoreBtnView) restoreBtnView.style.display = 'none';
                 }

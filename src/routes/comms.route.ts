@@ -1025,7 +1025,7 @@ router.post('/send-email-message', async (req: Request, res: Response) => {
 
 // POST /comms/send-email-invoice — Send invoice as email with PDF attachment
 router.post('/send-email-invoice', async (req: Request, res: Response) => {
-    const { email, invoiceId } = req.body;
+    const { email, invoiceId, htmlContent } = req.body;
     if (!email || !invoiceId) {
         return res.status(400).json({ message: 'Email and Invoice ID are required.' });
     }
@@ -1046,7 +1046,23 @@ router.post('/send-email-invoice', async (req: Request, res: Response) => {
         let pdfFilename = `${invoiceId}.pdf`;
 
         if (pdfGenerator) {
-            const pdfResult = await pdfGenerator.generateInvoicePDF(invoice, company);
+            let pdfResult;
+            if (htmlContent) {
+                // Use the same native Electron-based PDF generation as WhatsApp / PDF save
+                try {
+                    const outputPath = path.join(pdfGenerator.UPLOADS_DIR, pdfFilename);
+                    const printResult = await quotationPrintHandler.generatePDF(htmlContent, outputPath);
+                    if (printResult.success) {
+                        pdfResult = { success: true, path: outputPath, filename: pdfFilename };
+                    } else {
+                        pdfResult = { success: false, error: printResult.error };
+                    }
+                } catch (e: any) {
+                    pdfResult = { success: false, error: e.message };
+                }
+            } else {
+                pdfResult = await pdfGenerator.generateInvoicePDF(invoice, company);
+            }
             if (pdfResult && pdfResult.success) {
                 pdfPath = pdfResult.path;
                 pdfFilename = pdfResult.filename || pdfFilename;
@@ -1106,7 +1122,7 @@ router.post('/send-email-invoice', async (req: Request, res: Response) => {
 
 // POST /comms/send-email-quotation — Send quotation as email with PDF attachment
 router.post('/send-email-quotation', async (req: Request, res: Response) => {
-    const { email, quotationId } = req.body;
+    const { email, quotationId, htmlContent } = req.body;
     if (!email || !quotationId) {
         return res.status(400).json({ message: 'Email and Quotation ID are required.' });
     }
@@ -1127,7 +1143,23 @@ router.post('/send-email-quotation', async (req: Request, res: Response) => {
         let pdfFilename = `${quotationId}.pdf`;
 
         if (pdfGenerator) {
-            const pdfResult = await pdfGenerator.generateQuotationPDF(quotation, company);
+            let pdfResult;
+            if (htmlContent) {
+                // Use the same native Electron-based PDF generation as WhatsApp / PDF save
+                try {
+                    const outputPath = path.join(pdfGenerator.UPLOADS_DIR, pdfFilename);
+                    const printResult = await quotationPrintHandler.generatePDF(htmlContent, outputPath);
+                    if (printResult.success) {
+                        pdfResult = { success: true, path: outputPath, filename: pdfFilename };
+                    } else {
+                        pdfResult = { success: false, error: printResult.error };
+                    }
+                } catch (e: any) {
+                    pdfResult = { success: false, error: e.message };
+                }
+            } else {
+                pdfResult = await pdfGenerator.generateQuotationPDF(quotation, company);
+            }
             if (pdfResult && pdfResult.success) {
                 pdfPath = pdfResult.path;
                 pdfFilename = pdfResult.filename || pdfFilename;

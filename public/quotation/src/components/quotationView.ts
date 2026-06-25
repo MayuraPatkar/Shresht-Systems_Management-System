@@ -1126,6 +1126,79 @@ async function renderQuotationView(quotation, viewType) {
         });
     }
 
+    const sendEmailBtnEl = document.getElementById('sendEmailBtn') as HTMLButtonElement;
+    if (sendEmailBtnEl) {
+        const newSendEmailBtn = sendEmailBtnEl.cloneNode(true) as HTMLButtonElement;
+        sendEmailBtnEl.parentNode?.replaceChild(newSendEmailBtn, sendEmailBtnEl);
+        newSendEmailBtn.addEventListener('click', () => {
+            const quotationId = quotation.quotation_id || quotation.quotation_no;
+            const defaultEmail = quotation.customer_snapshot?.email || quotation.customer_email || '';
+
+            showEmailPromptModal(defaultEmail, async (email: string) => {
+                newSendEmailBtn.disabled = true;
+                newSendEmailBtn.classList.add('opacity-70', 'cursor-not-allowed');
+                const originalHTML = newSendEmailBtn.innerHTML;
+                newSendEmailBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+                const previewContentEl = document.getElementById('view-preview-content');
+                const htmlContent = previewContentEl ? previewContentEl.innerHTML : '';
+
+                try {
+                    const res = await fetch('/comms/send-email-quotation', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            email,
+                            quotationId,
+                            htmlContent
+                        })
+                    });
+
+                    const result = await res.json();
+                    if (!res.ok) {
+                        throw new Error(result.message || result.error || 'Failed to send email');
+                    }
+
+                    // Update status from Draft → Sent when emailed
+                    if (quotation.quotation_status === 'Draft') {
+                        const statusRes = await fetch(`/quotation/${encodeURIComponent(quotationId)}/status`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ status: 'Sent' })
+                        });
+                        if (!statusRes.ok) {
+                            const statusResult = await statusRes.json();
+                            throw new Error(statusResult.message || 'Failed to update quotation status to Sent');
+                        }
+                    }
+
+                    if (typeof showToast === 'function') {
+                        showToast('Quotation PDF sent via Email successfully!');
+                    }
+
+                    newSendEmailBtn.disabled = false;
+                    newSendEmailBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+                    newSendEmailBtn.innerHTML = originalHTML;
+
+                    await (window as any).viewQuotation(quotationId, currentViewType);
+
+                } catch (err: any) {
+                    console.error('Email send error:', err);
+                    const errMsg = err.message || 'Error occurred while sending';
+                    if ((window as any).electronAPI?.showAlert1) {
+                        (window as any).electronAPI.showAlert1(errMsg);
+                    } else {
+                        alert(errMsg);
+                    }
+                } finally {
+                    newSendEmailBtn.disabled = false;
+                    newSendEmailBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+                    newSendEmailBtn.innerHTML = originalHTML;
+                }
+            });
+        });
+    }
+
     updateQuotationStatusTracker(quotation);
 }
 
@@ -1404,6 +1477,84 @@ function showWhatsAppPromptModal(defaultPhone: string, callback: (phone: string)
     });
 
     setTimeout(() => phoneInput.focus(), 100);
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+}
+
+function showEmailPromptModal(defaultEmail: string, callback: (email: string) => void) {
+    const modalHTML = `
+        <div id="email-prompt-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-[4px] z-[999] flex items-center justify-center transition-all duration-200">
+            <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden border border-slate-100 flex flex-col">
+                <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-envelope text-blue-500 text-xl"></i>
+                        <h3 class="text-lg font-bold text-slate-800">Send via Email</h3>
+                    </div>
+                    <button id="close-email-modal" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-200 cursor-pointer">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label for="email-prompt-address" class="block text-sm font-medium text-slate-700 mb-2">
+                            Recipient Email Address
+                        </label>
+                        <input type="email" id="email-prompt-address" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-medium transition-all"
+                            placeholder="e.g., client@example.com" value="${defaultEmail}">
+                        <p class="text-xs text-slate-400 mt-2">The quotation PDF will be attached to the email.</p>
+                    </div>
+                </div>
+                <div class="p-6 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
+                    <button id="cancel-email-modal" class="px-5 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 font-semibold text-sm transition-all cursor-pointer">
+                        Cancel
+                    </button>
+                    <button id="submit-email-modal" class="px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold text-sm transition-all cursor-pointer shadow-sm shadow-blue-500/10 flex items-center gap-2">
+                        <i class="fas fa-paper-plane text-xs"></i> Send
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const existingModal = document.getElementById('email-prompt-modal');
+    if (existingModal) existingModal.remove();
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    const modal = document.getElementById('email-prompt-modal')!;
+    const closeBtn = document.getElementById('close-email-modal')!;
+    const cancelBtn = document.getElementById('cancel-email-modal')!;
+    const submitBtn = document.getElementById('submit-email-modal')!;
+    const emailInput = document.getElementById('email-prompt-address') as HTMLInputElement;
+
+    const closeModal = () => modal.remove();
+
+    closeBtn.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
+
+    const submit = () => {
+        const email = emailInput.value.trim();
+        if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            callback(email);
+            closeModal();
+        } else {
+            emailInput.classList.add('border-red-500');
+            emailInput.focus();
+        }
+    };
+
+    submitBtn.addEventListener('click', submit);
+    emailInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            submit();
+        } else if (e.key === 'Escape') {
+            closeModal();
+        }
+    });
+
+    setTimeout(() => emailInput.focus(), 100);
 
     modal.addEventListener('click', (e) => {
         if (e.target === modal) closeModal();

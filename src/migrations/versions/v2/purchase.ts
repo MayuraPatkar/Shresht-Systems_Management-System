@@ -2,6 +2,7 @@ import { Types } from "mongoose";
 import { SupplierModel } from "../../../models/Supplier.model";
 import logger from "../../../utils/logger";
 import { addressFromLegacy } from "./customer";
+import { generateNextId } from "../../../utils/idGenerator";
 
 /**
  * Migrates legacy purchases to V2 in-place.
@@ -123,7 +124,7 @@ export async function migratePurchases(db: any): Promise<{
                 grand_total: Math.round(grandTotal * 100) / 100
             };
 
-            const purchaseInvoiceNo = doc.purchase_invoice_no || doc.purchase_no || String(doc._id);
+            const purchaseInvoiceNo = doc.purchase_invoice_no || doc.purchase_no || await generateNextId('purchase');
 
             await rawPurchaseCollection.updateOne(
                 { _id: doc._id },
