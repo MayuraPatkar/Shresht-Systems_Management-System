@@ -201,9 +201,7 @@ class CustomerTable {
             : '?';
 
         const phone = customer.customer?.phone || '-';
-        const city = customer.billing_address?.city || '';
-        const state = customer.billing_address?.state || '';
-        const fullAddress = (city || state) ? `${city}${state ? ', ' + state : ''}`.trim() : '-';
+        const fullAddress = customer.billing_address?.line1 || '-';
 
         row.innerHTML = `
             <td class="px-4 py-3 text-slate-850 font-bold whitespace-nowrap text-xs">

@@ -27,7 +27,9 @@
     "exclude": [
         "node_modules",
         "dist",
-        "src/public"
+        "src/public",
+        "src/**/*.test.ts",
+        "src/**/*.spec.ts"
     ],
     "references": [
         { "path": "./tsconfig.public.json" }

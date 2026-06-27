@@ -15,7 +15,7 @@
     "build": "npm run build:css && npm run build:ts && npm run build:public",
     "electron": "npm run build && electron .",
     "start": "node dist/server.js",
-    "test": "vitest",
+    "test": "vitest run",
     "backup": "node dist/utils/backup.js",
     "migrate": "node dist/utils/migrate.js",
     "logs": "tail -f logs/app.log",
