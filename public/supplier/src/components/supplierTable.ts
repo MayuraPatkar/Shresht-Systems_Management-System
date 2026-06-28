@@ -195,9 +195,7 @@ class SupplierTable {
             : '?';
 
         const phone = supplier.phone || '-';
-        const city = supplier.billing_address?.city || '';
-        const state = supplier.billing_address?.state || '';
-        const fullAddress = (city || state) ? `${city}${state ? ', ' + state : ''}`.trim() : '-';
+        const fullAddress = supplier.billing_address?.line1 || '-';
 
         row.innerHTML = `
             <td class="px-4 py-3 text-slate-850 font-bold whitespace-nowrap text-xs">
