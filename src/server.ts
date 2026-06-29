@@ -518,20 +518,23 @@ const gracefulShutdown = async (signal: string): Promise<void> => {
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
-// Handle uncaught exceptions
-process.on('uncaughtException', (error: Error) => {
-    logger.error('Uncaught Exception:', error);
-    gracefulShutdown('UNCAUGHT_EXCEPTION');
-});
-
-process.on('unhandledRejection', (reason: unknown, promise: Promise<unknown>) => {
-    logger.error('Unhandled Rejection detected', {
-        promise: String(promise),
-        reason: reason instanceof Error ? reason.message : String(reason),
-        stack: reason instanceof Error ? reason.stack : undefined
+// Only register process-level error handlers if running as a standalone Node.js server
+if (!process.versions || !process.versions.electron) {
+    // Handle uncaught exceptions
+    process.on('uncaughtException', (error: Error) => {
+        logger.error('Uncaught Exception:', error);
+        gracefulShutdown('UNCAUGHT_EXCEPTION');
     });
-    gracefulShutdown('UNHANDLED_REJECTION');
-});
+
+    process.on('unhandledRejection', (reason: unknown, promise: Promise<unknown>) => {
+        logger.error('Unhandled Rejection detected', {
+            promise: String(promise),
+            reason: reason instanceof Error ? reason.message : String(reason),
+            stack: reason instanceof Error ? reason.stack : undefined
+        });
+        gracefulShutdown('UNHANDLED_REJECTION');
+    });
+}
 
 // Auto-start server when this module is required
 // Store the startup promise so main.ts can await it
