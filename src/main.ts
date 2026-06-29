@@ -613,6 +613,7 @@ async function createWindow(): Promise<void> {
         mainWindow.once('ready-to-show', () => {
             mainWindow!.show();
             mainWindow!.maximize();
+            // mainWindow!.webContents.openDevTools();
         });
 
         // Enhanced frontend loading with retry logic
