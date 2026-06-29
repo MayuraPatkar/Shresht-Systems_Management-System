@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Performance & Reviews</title>
+    <link rel="stylesheet" href="../css/tailwind.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: Inter, sans-serif; overflow: hidden; user-select: none; }
+        .sidebar { width: 240px; }
+        input, select, textarea { user-select: text; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-thumb { background: #2563eb; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-slate-100">
+    <header class="fixed top-0 left-0 right-0 bg-white border-b border-slate-200 z-30 h-24 flex items-center px-4">
+        <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-3">
+                <img src="../assets/icon.png" class="h-10 w-10 object-contain" alt="Icon">
+                <div>
+                    <h1 class="text-xl font-bold text-slate-800">Performance Evaluator</h1>
+                    <p class="text-xs text-slate-500 font-medium">Record work feedback, review core competencies, and assign grades</p>
+                </div>
+            </div>
+            <button id="refresh-btn" class="bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 w-10 h-10 rounded-lg shadow-sm flex items-center justify-center">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
+    </header>
+    <div class="flex pt-24 h-screen w-full overflow-hidden">
+        <aside class="sidebar bg-white h-full flex flex-col border-r border-slate-200 flex-shrink-0">
+            <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav"></nav>
+        </aside>
+        <main class="flex-1 h-full overflow-y-auto p-6 lg:p-8 flex flex-col md:flex-row gap-6">
+            <!-- Review Details Panel -->
+            <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:w-96 flex-shrink-0 flex flex-col">
+                <div class="flex items-center gap-2 mb-5 pb-3 border-b border-slate-100 flex-shrink-0">
+                    <i class="fas fa-star text-blue-600 text-lg"></i>
+                    <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Evaluation Form</h2>
+                </div>
+                <div class="flex-1 space-y-5">
+                    <div>
+                        <label for="select-employee" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Select Employee</label>
+                        <select id="select-employee" class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500">
+                            <option value="">-- Select Employee --</option>
+                        </select>
+                    </div>
+                    
+                    <div class="space-y-4 pt-2 border-t border-slate-100">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Productivity</label>
+                                <span id="prod-val" class="text-xs font-bold text-blue-600">5 / 10</span>
+                            </div>
+                            <input type="range" id="rating-prod" min="1" max="10" value="5" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Communication</label>
+                                <span id="comm-val" class="text-xs font-bold text-blue-600">5 / 10</span>
+                            </div>
+                            <input type="range" id="rating-comm" min="1" max="10" value="5" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Punctuality</label>
+                                <span id="punc-val" class="text-xs font-bold text-blue-600">5 / 10</span>
+                            </div>
+                            <input type="range" id="rating-punc" min="1" max="10" value="5" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center justify-between">
+                        <div>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Calculated Grade</p>
+                            <p id="grade-calc" class="text-4xl font-black text-slate-800 mt-1">C</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Average Score</p>
+                            <p id="score-calc" class="text-lg font-bold text-slate-700 mt-1">5.0 / 10</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="review-feedback" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Review Feedback</label>
+                        <textarea id="review-feedback" rows="3" placeholder="Enter evaluation feedback notes..." class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+                    </div>
+                </div>
+                <button id="save-review-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-semibold shadow-sm flex items-center justify-center gap-2 mt-4 flex-shrink-0">
+                    <i class="fas fa-save"></i> Save Evaluation
+                </button>
+            </section>
+
+            <!-- Dashboard / History Section -->
+            <section class="bg-white rounded-xl shadow-sm border border-slate-200 flex-1 flex flex-col min-h-0">
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
+                    <div>
+                        <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Evaluation History Log</h2>
+                        <p class="text-xs text-slate-500 mt-1">Recorded competency files</p>
+                    </div>
+                </div>
+                <div class="overflow-y-auto flex-1 p-6" id="history-log">
+                    <!-- Loaded dynamically -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../dist/public/ts/shared/core/globalScript.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadEmployees();
+            setupFormListeners();
+            loadSavedReviews();
+            document.getElementById('refresh-btn').addEventListener('click', () => {
+                loadEmployees();
+                loadSavedReviews();
+            });
+        });
+
+        let employees = [];
+
+        async function loadEmployees() {
+            try {
+                const res = await fetch('/employee/getEmployees');
+                const data = await res.json();
+                if (data && data.employees) {
+                    employees = data.employees;
+                    populateDropdown();
+                }
+            } catch (err) {
+                console.error("Failed to load staff list:", err);
+            }
+        }
+
+        function populateDropdown() {
+            const select = document.getElementById('select-employee');
+            select.innerHTML = '<option value="">-- Select Employee --</option>' + 
+                employees.map(emp => `<option value="${emp.emp_id}">${emp.name} (EMP-${emp.emp_id})</option>`).join('');
+        }
+
+        function setupFormListeners() {
+            const prod = document.getElementById('rating-prod');
+            const comm = document.getElementById('rating-comm');
+            const punc = document.getElementById('rating-punc');
+
+            prod.addEventListener('input', updateScores);
+            comm.addEventListener('input', updateScores);
+            punc.addEventListener('input', updateScores);
+
+            document.getElementById('save-review-btn').addEventListener('click', saveEvaluation);
+        }
+
+        function updateScores() {
+            const p = Number(document.getElementById('rating-prod').value);
+            const c = Number(document.getElementById('rating-comm').value);
+            const t = Number(document.getElementById('rating-punc').value);
+
+            document.getElementById('prod-val').textContent = `${p} / 10`;
+            document.getElementById('comm-val').textContent = `${c} / 10`;
+            document.getElementById('punc-val').textContent = `${t} / 10`;
+
+            const avg = (p + c + t) / 3;
+            document.getElementById('score-calc').textContent = `${avg.toFixed(1)} / 10`;
+
+            let grade = 'D';
+            if (avg >= 9.0) grade = 'A+';
+            else if (avg >= 8.0) grade = 'A';
+            else if (avg >= 7.0) grade = 'B';
+            else if (avg >= 5.0) grade = 'C';
+
+            const gradeEl = document.getElementById('grade-calc');
+            gradeEl.textContent = grade;
+            
+            // Adjust coloring
+            gradeEl.className = 'text-4xl font-black mt-1 ' + 
+                (grade.startsWith('A') ? 'text-emerald-600' : grade === 'B' ? 'text-blue-600' : grade === 'C' ? 'text-amber-500' : 'text-red-500');
+        }
+
+        function saveEvaluation() {
+            const empId = document.getElementById('select-employee').value;
+            if (!empId) {
+                alert('Please select an employee first.');
+                return;
+            }
+
+            const empName = document.getElementById('select-employee').options[document.getElementById('select-employee').selectedIndex].text;
+            const p = Number(document.getElementById('rating-prod').value);
+            const c = Number(document.getElementById('rating-comm').value);
+            const t = Number(document.getElementById('rating-punc').value);
+            const avg = ((p + c + t) / 3).toFixed(1);
+            const grade = document.getElementById('grade-calc').textContent;
+            const feedback = document.getElementById('review-feedback').value.trim() || 'No feedback notes recorded.';
+
+            const review = {
+                empId,
+                name: empName.split(' (')[0],
+                p, c, t, avg, grade, feedback,
+                date: new Date().toLocaleDateString('en-IN')
+            };
+
+            const saved = JSON.parse(localStorage.getItem('hr_reviews') || '[]');
+            saved.unshift(review);
+            localStorage.setItem('hr_reviews', JSON.stringify(saved));
+
+            alert('Performance evaluation saved!');
+            document.getElementById('review-feedback').value = '';
+            document.getElementById('select-employee').value = '';
+            document.getElementById('rating-prod').value = 5;
+            document.getElementById('rating-comm').value = 5;
+            document.getElementById('rating-punc').value = 5;
+            updateScores();
+            loadSavedReviews();
+        }
+
+        function loadSavedReviews() {
+            const log = document.getElementById('history-log');
+            const saved = JSON.parse(localStorage.getItem('hr_reviews') || '[]');
+
+            if (saved.length === 0) {
+                log.innerHTML = `
+                    <div class="py-16 text-center text-slate-400">
+                        <i class="fas fa-award text-4xl text-slate-300 mb-3 block"></i>
+                        No evaluations logged yet. Complete the form on the left.
+                    </div>
+                `;
+                return;
+            }
+
+            log.innerHTML = saved.map((rev, idx) => `
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 mb-4 hover:border-blue-300 transition-all flex flex-col md:flex-row justify-between gap-4">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-3 mb-2">
+                            <h3 class="text-sm font-bold text-slate-800">${rev.name}</h3>
+                            <span class="bg-slate-200 text-slate-600 text-[9px] font-bold px-2 py-0.5 rounded">EMP-${rev.empId}</span>
+                            <span class="text-[10px] text-slate-400">${rev.date}</span>
+                        </div>
+                        <p class="text-xs text-slate-600 italic bg-white p-3 border border-slate-100 rounded-lg">"${rev.feedback}"</p>
+                        <div class="flex gap-4 mt-3 text-[11px] font-medium text-slate-500">
+                            <span>Productivity: <strong>${rev.p}/10</strong></span>
+                            <span>Communication: <strong>${rev.c}/10</strong></span>
+                            <span>Punctuality: <strong>${rev.t}/10</strong></span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-center justify-center md:border-l border-slate-200 pl-4 md:w-24 text-center">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Grade</span>
+                        <span class="text-3xl font-black mt-1 ${rev.grade.startsWith('A') ? 'text-emerald-600' : rev.grade === 'B' ? 'text-blue-600' : rev.grade === 'C' ? 'text-amber-500' : 'text-red-500'}">${rev.grade}</span>
+                        <span class="text-[10px] font-semibold text-slate-500 mt-1">${rev.avg}/10 avg</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

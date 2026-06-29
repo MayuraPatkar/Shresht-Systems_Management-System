@@ -1,45 +1,8 @@
 import { Router, Request, Response } from 'express';
 import logger from '../utils/logger';
+import { EmployeeModel as Employee, AttendenceBookModel as AttendenceBook } from '../models';
 
 const router: Router = Router();
-
-// TODO: Employee feature is planned for future implementation.
-// The Employee and AttendenceBook models are not yet defined in the new
-// TypeScript model layer. Once the models are created, uncomment / update
-// the imports below and remove the placeholder types.
-
-// Placeholder types until official models are created
-interface IEmployeeDoc {
-    emp_id: number;
-    name: string;
-    address: string;
-    phone: string;
-    email: string;
-    join_date: Date;
-    salary: number;
-    save(): Promise<IEmployeeDoc>;
-}
-
-interface IAttendenceDoc {
-    date: Date;
-    emp_id: string;
-    present: boolean;
-    start_time: Date;
-    end_time: Date;
-    save(): Promise<IAttendenceDoc>;
-}
-
-// Stub model references — replace with real models when implemented
-let Employee: any;
-let AttendenceBook: any;
-try {
-    // Attempt to load models if they exist
-    const models = require('../models');
-    Employee = models.Employee;
-    AttendenceBook = models.AttendenceBook;
-} catch {
-    // Models not yet available — routes will return 501
-}
 
 // Function to generate unique 3-digit Employee ID starting from 101
 async function generateEmpId(): Promise<number> {

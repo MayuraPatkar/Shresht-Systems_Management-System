@@ -18,6 +18,8 @@ export { StockMovementModel, IStockMovement } from "./StockMovement.model";
 export { SupplierModel, ISupplier } from "./Supplier.model";
 export { CommunicationModel, ICommunication } from "./Communication.model";
 export { CustomDocumentModel, ICustomDocument } from "./CustomDocument.model";
+export { EmployeeModel, IEmployee } from "./Employee.model";
+export { AttendenceBookModel, IAttendenceBook } from "./AttendenceBook.model";
 
 // ── Aliases expected by the JS route files (src/routes/*.js) ──
 // The JS routes destructure names like { Admin, Invoices, Stock, ... }
@@ -39,6 +41,8 @@ import { SupplierModel } from "./Supplier.model";
 import { VoucherModel } from "./Voucher.model";
 import { CommunicationModel } from "./Communication.model";
 import { CustomDocumentModel } from "./CustomDocument.model";
+import { EmployeeModel } from "./Employee.model";
+import { AttendenceBookModel } from "./AttendenceBook.model";
 
 // Re-export under the names the JS routes expect
 export const User = UserModel;
@@ -58,3 +62,5 @@ export const Suppliers = SupplierModel;
 export const Voucher = VoucherModel;
 export const Communication = CommunicationModel;
 export const CustomDocument = CustomDocumentModel;
+export const Employee = EmployeeModel;
+export const AttendenceBook = AttendenceBookModel;

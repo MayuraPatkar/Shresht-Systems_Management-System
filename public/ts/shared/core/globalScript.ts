@@ -321,6 +321,16 @@ function setupCollapsibleSidebar() {
       ]
     },
     {
+      name: 'Human Resources (HR)',
+      icon: 'fa-solid fa-users-gear',
+      items: [
+        { id: 'employee', label: 'Employees', path: '/employee', icon: 'fa-solid fa-users' },
+        { id: 'attendance', label: 'Attendance', path: '/attendance', icon: 'fa-solid fa-calendar-check' },
+        { id: 'payroll', label: 'Payroll', path: '/payroll', icon: 'fa-solid fa-money-check-dollar' },
+        { id: 'performance', label: 'Performance', path: '/performance', icon: 'fa-solid fa-chart-line' }
+      ]
+    },
+    {
       name: 'Analytics',
       icon: 'fa-solid fa-chart-line',
       items: [
@@ -487,6 +497,10 @@ document.addEventListener('DOMContentLoaded', () => {
     '/stock-movements': 'stockMovements',
     '/stock-statement': 'stockStatement',
     '/stock': 'stock',
+    '/employee': 'employee',
+    '/attendance': 'attendance',
+    '/payroll': 'payroll',
+    '/performance': 'performance',
     '/comms': 'comms',
     '/reports': 'reports',
     '/calculations': 'calculations',
