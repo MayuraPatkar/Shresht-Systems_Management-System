@@ -1,302 +1,47 @@
 {
-  "versions": [
+  "version": "4.0.0",
+  "date": "2026-06-29",
+  "title": "TypeScript Rewrite & Next-Generation Foundation",
+  "changes": [
     {
-      "version": "3.6.0",
-      "date": "2026-01-09",
-      "title": "Custom IDs & Module Overhauls",
-      "changes": [
-        {
-          "type": "feature",
-          "description": "Custom Document IDs: Manually override auto-generated IDs for most modules"
-        },
-        {
-          "type": "feature",
-          "description": "Service Module Overhaul: Seamless workflow with new payment tracking features"
-        },
-        {
-          "type": "feature",
-          "description": "E-Way Bill Redesign: Overhauled to better meet business requirements"
-        },
-        {
-          "type": "improvement",
-          "description": "Dashboard Activity: Upgraded feed to accurately reflect latest actions"
-        },
-        {
-          "type": "bugfix",
-          "description": "Date Consistency: Fixed inconsistent date formats across modules"
-        },
-        {
-          "type": "bugfix",
-          "description": "General Polish: Fixed over a dozen minor UI and logic glitches"
-        }
-      ]
+      "type": "feature",
+      "description": "New Customer Module: Dedicated customer management built on the redesigned data model"
     },
     {
-      "version": "3.5.2",
-      "date": "2025-12-31",
-      "title": "Quotation Upgrade",
-      "changes": [
-        {
-          "type": "improvement",
-          "description": "Dynamic pages: Better pagination for multi-page PDFs"
-        },
-        {
-          "type": "improvement",
-          "description": "Enhanced Editor: Refactored logic for smoother item management"
-        },
-        {
-          "type": "bugfix",
-          "description": "Fixed data loss issue where manual specifications were not saved"
-        },
-        {
-          "type": "bugfix",
-          "description": "Resolved issue where Intro and Conclusion text in documents failed to save"
-        }
-      ]
+      "type": "feature",
+      "description": "New Supplier Module: Improved supplier records with the new database architecture"
     },
     {
-      "version": "3.5.1",
-      "date": "2025-12-31",
-      "title": "Hotfix: Update System & Docs",
-      "changes": [
-        {
-          "type": "bugfix",
-          "description": "Fixed a critical startup crash by converting the auto-update system to manual control"
-        },
-        {
-          "type": "feature",
-          "description": "Update Settings: Added a user-controlled option to toggle Pre-release builds"
-        },
-        {
-          "type": "bugfix",
-          "description": "Fixed an issue where release notes for v3.5.0 were not displaying in the app"
-        }
-      ]
+      "type": "feature",
+      "description": "New Payments Module: Centralized payment tracking independent of invoices"
     },
     {
-      "version": "3.5.0",
-      "date": "2025-12-31",
-      "title": "Reports, Copy & Polish",
-      "changes": [
-        {
-          "type": "feature",
-          "description": "Purchase Order GST Report: Generate tax summaries for supplier orders"
-        },
-        {
-          "type": "feature",
-          "description": "Copy Quotation: Duplicate existing quotations with a single click"
-        },
-        {
-          "type": "feature",
-          "description": "Persistent Report History: Recent reports are now saved to the database"
-        },
-        {
-          "type": "improvement",
-          "description": "View Redesign: Refreshed layouts across multiple modules"
-        },
-        {
-          "type": "improvement",
-          "description": "Settings Cleanup: Removed redundant options and improved organization"
-        },
-        {
-          "type": "bugfix",
-          "description": "Fixed validation and UI issues in Stock module"
-        }
-      ]
+      "type": "feature",
+      "description": "Automatic Data Migration: Existing v3.6 databases are migrated to the new v4 schema during upgrade"
     },
     {
-      "version": "3.4.1",
-      "date": "2025-12-03",
-      "title": "Reports, WhatsApp & Performance",
-      "changes": [
-        {
-          "type": "feature",
-          "description": "Added dedicated Reports Module with Stock Movement and Monthly GST reports"
-        },
-        {
-          "type": "feature",
-          "description": "WhatsApp Integration: Send Invoices and Quotations directly to clients with one click"
-        },
-        {
-          "type": "feature",
-          "description": "Cloud Document Links: PDFs are stored in the cloud for permanent WhatsApp accessibility"
-        },
-        {
-          "type": "feature",
-          "description": "Custom Document Numbering: Configure unique prefixes and sequences in Settings"
-        },
-        {
-          "type": "improvement",
-          "description": "Replaced Puppeteer with native Electron printing for faster PDF generation"
-        },
-        {
-          "type": "improvement",
-          "description": "Smart Networking: Added dynamic port detection to solve startup errors"
-        },
-        {
-          "type": "bugfix",
-          "description": "Fixed visual glitches in the new reporting interfaces"
-        },
-        {
-          "type": "bugfix",
-          "description": "Resolved edge-case bugs affecting document saving and startup"
-        }
-      ]
+      "type": "improvement",
+      "description": "Complete TypeScript migration across Electron, backend, routes, utilities, middleware, and frontend scripts for improved reliability and maintainability"
     },
     {
-      "version": "3.2.1",
-      "date": "2025-11-30",
-      "title": "Readability & Stability Patch",
-      "changes": [
-        {
-          "type": "improvement",
-          "description": "Increased font sizes in Quotation module for better readability"
-        },
-        {
-          "type": "improvement",
-          "description": "Improved internal error log formatting for diagnostics"
-        },
-        {
-          "type": "bugfix",
-          "description": "Smoothed out interactions in data entry forms across modules"
-        },
-        {
-          "type": "bugfix",
-          "description": "Applied patch fixes for minor stability issues"
-        }
-      ]
+      "type": "improvement",
+      "description": "Database Architecture Redesign: Modernized MongoDB schemas for better scalability and future feature development"
     },
     {
-      "version": "3.2.0",
-      "date": "2025-11-30",
-      "title": "Validation & Document Polish",
-      "changes": [
-        {
-          "type": "feature",
-          "description": "Enhanced Form Validation: Proactive error prevention across all modules"
-        },
-        {
-          "type": "feature",
-          "description": "Robust Backups: Bundled native database tools for reliable self-contained backups"
-        },
-        {
-          "type": "improvement",
-          "description": "Updated Waybill layout with Compact Totals display"
-        },
-        {
-          "type": "improvement",
-          "description": "Polished Quotation PDF engine to fix layout shifts"
-        },
-        {
-          "type": "improvement",
-          "description": "Migrated internal routes to custom logging system"
-        },
-        {
-          "type": "bugfix",
-          "description": "Fixed critical issue where backups targeted the wrong directory"
-        },
-        {
-          "type": "bugfix",
-          "description": "Resolved logic bugs in Invoice saving and calculation"
-        },
-        {
-          "type": "bugfix",
-          "description": "Fixed auto-updater stability by removing conflicting loggers"
-        }
-      ]
+      "type": "improvement",
+      "description": "Service Layer Architecture: Business logic moved into dedicated services for cleaner, more maintainable code"
     },
     {
-      "version": "3.0.4",
-      "date": "2025-11-16",
-      "title": "Maintenance & Optimization",
-      "changes": [
-        {
-          "type": "improvement",
-          "description": "Significant codebase cleanup and removal of debug logs for optimization"
-        }
-      ]
+      "type": "improvement",
+      "description": "Build System Modernization: New TypeScript build pipeline, improved development workflow, and optimized project structure"
     },
     {
-      "version": "3.0.3",
-      "date": "2025-11-16",
-      "title": "The Productivity & Design Overhaul",
-      "changes": [
-        {
-          "type": "feature",
-          "description": "Automatic Updates: App now detects and installs new versions automatically"
-        },
-        {
-          "type": "feature",
-          "description": "Keyboard Navigation: Switch modules with Ctrl+Tab and use arrow keys in lists"
-        },
-        {
-          "type": "feature",
-          "description": "Service History: Dedicated view for tracking item/client service records"
-        },
-        {
-          "type": "feature",
-          "description": "Solar Data Worksheet: New module for energy saving calculations"
-        },
-        {
-          "type": "improvement",
-          "description": "Unified Document Design: Professional layout overhaul for all document types"
-        },
-        {
-          "type": "improvement",
-          "description": "Added global search bars and filtering options across all modules"
-        },
-        {
-          "type": "improvement",
-          "description": "Stock Printing: Generate and print filtered inventory reports"
-        },
-        {
-          "type": "improvement",
-          "description": "Dashboard Stats now support URL parameters for deep linking"
-        },
-        {
-          "type": "bugfix",
-          "description": "Fixed missing images/logos in printed documents"
-        },
-        {
-          "type": "bugfix",
-          "description": "Fixed total calculations in Dashboard and Invoices for financial accuracy"
-        },
-        {
-          "type": "bugfix",
-          "description": "Corrected Pending Services count logic"
-        }
-      ]
+      "type": "improvement",
+      "description": "Developer Infrastructure: Added automated testing with Vitest and GitHub Actions CI/CD pipeline"
     },
     {
-      "version": "2.5.6",
-      "date": "2025-10-11",
-      "title": "Initial Release",
-      "changes": [
-        {
-          "type": "feature",
-          "description": "Purchase Order Module: Create and track supplier orders"
-        },
-        {
-          "type": "feature",
-          "description": "Enhanced Stock Tracking with company/brand categorization"
-        },
-        {
-          "type": "improvement",
-          "description": "Updated sidebar navigation for consistent behavior"
-        },
-        {
-          "type": "improvement",
-          "description": "Improved local database backup reliability"
-        },
-        {
-          "type": "improvement",
-          "description": "Overhauled quotation viewing experience"
-        },
-        {
-          "type": "bugfix",
-          "description": "Fixed layout overflow errors in quotation forms and PDFs"
-        }
-      ]
+      "type": "bugfix",
+      "description": "Improved overall application stability through stricter type checking and extensive internal refactoring"
     }
   ]
 }
