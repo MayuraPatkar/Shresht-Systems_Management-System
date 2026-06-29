@@ -194,6 +194,121 @@ router.get('/stock', async (req: Request, res: Response) => {
     }
 });
 
+// GET /reports/stock-statement
+router.get('/stock-statement', async (req: Request, res: Response) => {
+    try {
+        const { start_date, end_date } = req.query as Record<string, string>;
+        
+        if (!start_date || !end_date) {
+            return res.status(400).json({ success: false, error: 'start_date and end_date query parameters are required.' });
+        }
+
+        const start = new Date(start_date);
+        const end = new Date(end_date);
+        end.setHours(23, 59, 59, 999);
+
+        // Fetch all active items (not deleted)
+        const items = await ItemModel.find({
+            'deletion.is_deleted': { $ne: true }
+        }).sort({ item_name: 1 }).lean() as any[];
+
+        // Fetch all movements since the start date (to calculate opening stock and period metrics)
+        const movements = await StockMovementModel.find({
+            createdAt: { $gte: start }
+        }).lean() as any[];
+
+        const reportData = items.map((item, idx) => {
+            const itemIdStr = item._id.toString();
+
+            // Movements for this item since start_date (all future movements)
+            const futureMovements = movements.filter(m => m.item_id?.toString() === itemIdStr);
+
+            // Calculate opening quantity
+            // Opening Qty = Current Qty - (IN movements since start_date) + (OUT movements since start_date)
+            const futureInQty = futureMovements
+                .filter(m => m.direction === 'IN')
+                .reduce((sum, m) => sum + (m.quantity || 0), 0);
+            const futureOutQty = futureMovements
+                .filter(m => m.direction === 'OUT')
+                .reduce((sum, m) => sum + (m.quantity || 0), 0);
+
+            const currentQty = item.stock_quantity ?? item.quantity ?? 0;
+            const openingQty = currentQty - futureInQty + futureOutQty;
+            const openingRate = item.purchase_price ?? item.unit_price ?? 0;
+            const openingAmount = openingQty * openingRate;
+
+            // Movements during the selected period (start_date <= date <= end_date)
+            const periodMovements = futureMovements.filter(m => new Date(m.createdAt) <= end);
+
+            // Purchase movements (IN) in period
+            const periodInMovements = periodMovements.filter(m => m.direction === 'IN');
+            const purchaseQty = periodInMovements.reduce((sum, m) => sum + (m.quantity || 0), 0);
+            const purchaseAmount = periodInMovements.reduce((sum, m) => {
+                const val = m.total_value || ((m.quantity || 0) * (m.unit_price || item.purchase_price || 0));
+                return sum + val;
+            }, 0);
+            const purchaseRate = purchaseQty > 0 ? purchaseAmount / purchaseQty : item.purchase_price;
+
+            // Sales movements (OUT) in period
+            const periodOutMovements = periodMovements.filter(m => m.direction === 'OUT');
+            const salesQty = periodOutMovements.reduce((sum, m) => sum + (m.quantity || 0), 0);
+            // Value sales at the period's purchase cost rate or the item's purchase price to reflect inventory value drop
+            const salesRate = purchaseQty > 0 ? purchaseRate : item.purchase_price;
+            const salesAmount = salesQty * salesRate;
+
+            // Closing quantity and amount
+            const closingQty = openingQty + purchaseQty - salesQty;
+            const closingAmount = openingAmount + purchaseAmount - salesAmount;
+            const closingRate = closingQty > 0 ? closingAmount / closingQty : (purchaseQty > 0 ? purchaseRate : item.purchase_price);
+
+            return {
+                slNo: idx + 1,
+                itemName: item.item_name,
+                opening: {
+                    qty: openingQty,
+                    rate: openingRate,
+                    amount: openingAmount
+                },
+                purchase: {
+                    qty: purchaseQty,
+                    rate: purchaseRate,
+                    amount: purchaseAmount
+                },
+                sales: {
+                    qty: salesQty,
+                    rate: salesRate,
+                    amount: salesAmount
+                },
+                closing: {
+                    qty: closingQty,
+                    rate: closingRate,
+                    amount: closingAmount
+                }
+            };
+        });
+
+        // Calculate totals for the bottom
+        const totalOpeningAmount = reportData.reduce((sum, row) => sum + row.opening.amount, 0);
+        const totalPurchaseAmount = reportData.reduce((sum, row) => sum + row.purchase.amount, 0);
+        const totalSalesAmount = reportData.reduce((sum, row) => sum + row.sales.amount, 0);
+        const totalClosingAmount = reportData.reduce((sum, row) => sum + row.closing.amount, 0);
+
+        res.json({
+            success: true,
+            data: reportData,
+            totals: {
+                openingAmount: totalOpeningAmount,
+                purchaseAmount: totalPurchaseAmount,
+                salesAmount: totalSalesAmount,
+                closingAmount: totalClosingAmount
+            }
+        });
+    } catch (error: any) {
+        logger.error('Error generating stock statement:', error);
+        res.status(500).json({ success: false, error: 'Failed to generate stock statement report.' });
+    }
+});
+
 router.get('/stock/summary', async (req: Request, res: Response) => {
     try {
         const { start_date, end_date } = req.query as Record<string, string>;

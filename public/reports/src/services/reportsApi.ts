@@ -87,6 +87,11 @@ class ReportsApi {
         }
         throw new Error('Failed to load CSS');
     }
+
+    async getStockStatement(params: URLSearchParams): Promise<{ success: boolean; data?: any[]; totals?: any }> {
+        const response = await fetch(`/reports/stock-statement?${params.toString()}`);
+        return response.json();
+    }
 }
 
 declare var reportsApi: any;

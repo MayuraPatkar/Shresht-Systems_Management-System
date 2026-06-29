@@ -201,6 +201,63 @@ class ReportsUtils {
                     font-weight: bold;
                 }
                 
+                /* Standardized Logo/Navy Header style */
+                .header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: 20px 30px;
+                    margin-bottom: 24px;
+                    background: #1a365d;
+                    border-radius: 12px;
+                    color: #ffffff;
+                }
+                .quotation-brand {
+                    display: flex;
+                    align-items: center;
+                    gap: 20px;
+                }
+                .logo {
+                    width: 80px;
+                    height: 80px;
+                    background: #ffffff;
+                    border-radius: 12px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                }
+                .logo img {
+                    width: 50px;
+                    height: 50px;
+                    object-fit: contain;
+                }
+                .quotation-brand-text h1 {
+                    margin: 0;
+                    color: #ffffff;
+                    font-size: 26px;
+                    letter-spacing: -0.5px;
+                    font-weight: 800;
+                    line-height: 1.1;
+                }
+                .quotation-tagline {
+                    margin-top: 4px;
+                    color: #e2e8f0;
+                    font-size: 13px;
+                    font-weight: 500;
+                    letter-spacing: 0.5px;
+                    text-transform: uppercase;
+                }
+                .company-details {
+                    text-align: right;
+                    line-height: 1.6;
+                }
+                .company-details p {
+                    margin: 0;
+                    font-size: 12px;
+                    color: #e2e8f0;
+                }
+                
                 @media print {
                     body {
                         padding: 0;
@@ -214,16 +271,28 @@ class ReportsUtils {
         </head>
         <body>
             <div class="report-container">
-                <div class="report-header">
-                    <div class="company-name">SHRESHT SYSTEMS</div>
-                    <div class="company-address">
-                        3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113<br>
-                        Ph: 7204657707 / 9901730305 | Email: shreshtsystems@gmail.com<br>
-                        GSTIN: 29AGCPN4093N1ZS
+                <div class="header">
+                    <div class="quotation-brand">
+                        <div class="logo">
+                            <img src="../assets/icon.png" alt="Company Logo">
+                        </div>
+                        <div class="quotation-brand-text">
+                            <h1>SHRESHT SYSTEMS</h1>
+                            <p class="quotation-tagline">CCTV & Energy Solutions</p>
+                        </div>
                     </div>
-                    <div class="report-title">${title}</div>
-                    <div class="report-date">Generated on: ${today}</div>
-                    ${options.subtitle ? `<div class="report-date">${options.subtitle}</div>` : ''}
+                    <div class="company-details">
+                        <p>3-125-13, Harshitha, Onthibettu, Hiriadka, Udupi - 576113</p>
+                        <p>Ph: 7204657707 / 9901730305</p>
+                        <p>GSTIN: 29AGCPN4093N1ZS</p>
+                        <p>Email: shreshtsystems@gmail.com</p>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <div style="font-size: 20px; font-weight: bold; color: #333; margin-bottom: 5px;">${title}</div>
+                    <div style="font-size: 12px; color: #666;">Generated on: ${today}</div>
+                    ${options.subtitle ? `<div style="font-size: 12px; color: #666; margin-top: 2px;">${options.subtitle}</div>` : ''}
                 </div>
                 
                 ${content}

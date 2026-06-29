@@ -36,6 +36,7 @@ const pages: Array<{ route: string; file: string }> = [
     { route: '/gst-reports', file: 'reports/gst_reports.html' },
     { route: '/stock', file: 'stock/stock.html' },
     { route: '/stock-movements', file: 'stock/stock_movements.html' },
+    { route: '/stock-statement', file: 'stock/stock_statement.html' },
     { route: '/comms', file: 'comms/comms.html' },
     { route: '/reports', file: 'reports/reports.html' },
     { route: '/data-worksheet', file: 'reports/reports.html' },

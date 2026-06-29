@@ -299,6 +299,7 @@ function setupCollapsibleSidebar() {
       items: [
         { id: 'stock', label: 'Stock', path: '/stock', icon: 'fa-solid fa-box' },
         { id: 'stockMovements', label: 'Stock Movements', path: '/stock-movements', icon: 'fa-solid fa-arrow-right-arrow-left' },
+        { id: 'stockStatement', label: 'Stock Statement', path: '/stock-statement', icon: 'fa-solid fa-file-invoice' },
         { id: 'wayBill', label: 'E-Way Bills', path: '/ewaybill', icon: 'fa-solid fa-truck-fast' }
       ]
     },
@@ -484,6 +485,7 @@ document.addEventListener('DOMContentLoaded', () => {
     '/payment': 'payment',
     '/voucher': 'voucher',
     '/stock-movements': 'stockMovements',
+    '/stock-statement': 'stockStatement',
     '/stock': 'stock',
     '/comms': 'comms',
     '/reports': 'reports',
