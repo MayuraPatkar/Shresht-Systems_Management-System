@@ -135,7 +135,7 @@
                     <td class="px-6 py-4 font-bold text-slate-800">${emp.name}</td>
                     <td class="px-6 py-4 text-center">
                         <label class="inline-flex items-center gap-1.5 cursor-pointer">
-                            <input type="checkbox" checked id="status-${emp.emp_id}" class="sr-only peer" onchange="toggleRowTime(${emp.emp_id})">
+                            <input type="checkbox" checked id="status-${emp.emp_id}" class="sr-only peer status-checkbox" data-id="${emp.emp_id}">
                             <div class="px-3 py-1 rounded-full border text-xs font-bold transition-all peer-checked:bg-green-50 peer-checked:text-green-700 peer-checked:border-green-200 bg-red-50 text-red-700 border-red-200">
                                 <span class="peer-checked:hidden">Absent</span>
                                 <span class="hidden peer-checked:inline">Present</span>
@@ -149,12 +149,27 @@
                         <input type="time" id="end-${emp.emp_id}" value="18:00" class="px-2 py-1 border border-slate-200 rounded text-xs bg-slate-50 outline-none">
                     </td>
                     <td class="px-6 py-4 text-right pr-8">
-                        <button onclick="saveAttendance(${emp.emp_id})" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold shadow-sm">
+                        <button class="btn-save-attendance bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold shadow-sm" data-id="${emp.emp_id}">
                             Submit
                         </button>
                     </td>
                 </tr>
             `).join('');
+
+            // Delegating change listener for checkboxes
+            tbody.onchange = (e) => {
+                if (e.target.classList.contains('status-checkbox')) {
+                    toggleRowTime(e.target.getAttribute('data-id'));
+                }
+            };
+
+            // Delegating click listener for buttons
+            tbody.onclick = (e) => {
+                const btn = e.target.closest('.btn-save-attendance');
+                if (btn) {
+                    saveAttendance(btn.getAttribute('data-id'));
+                }
+            };
         }
 
         function toggleRowTime(empId) {

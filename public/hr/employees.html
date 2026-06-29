@@ -299,7 +299,7 @@
             emptyState.classList.add('hidden');
             
             tbody.innerHTML = list.map(emp => `
-                <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100 cursor-pointer" onclick="viewDetails('${emp._id || emp.emp_id}')">
+                <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100 cursor-pointer" data-id="${emp._id || emp.emp_id}">
                     <td class="px-6 py-4 font-semibold text-slate-500">EMP-${emp.emp_id}</td>
                     <td class="px-6 py-4 font-bold text-slate-800">${emp.name}</td>
                     <td class="px-6 py-4">
@@ -313,13 +313,30 @@
                             ${emp.is_active !== false ? 'Active' : 'Inactive'}
                         </span>
                     </td>
-                    <td class="px-6 py-4 text-right pr-10" onclick="event.stopPropagation()">
-                        <button onclick="viewDetails('${emp._id || emp.emp_id}')" class="text-blue-600 hover:text-blue-800 font-semibold hover:underline">
+                    <td class="px-6 py-4 text-right pr-10 action-cell">
+                        <button class="btn-view-details text-blue-600 hover:text-blue-800 font-semibold hover:underline" data-id="${emp._id || emp.emp_id}">
                             View Details <i class="fas fa-chevron-right ml-1"></i>
                         </button>
                     </td>
                 </tr>
             `).join('');
+
+            // Bind click events on the tbody using event delegation
+            tbody.onclick = (e) => {
+                const tr = e.target.closest('tr');
+                if (!tr) return;
+                
+                if (e.target.closest('.action-cell')) {
+                    e.stopPropagation();
+                    const btn = e.target.closest('.btn-view-details');
+                    if (btn) {
+                        viewDetails(btn.getAttribute('data-id'));
+                    }
+                    return;
+                }
+                
+                viewDetails(tr.getAttribute('data-id'));
+            };
         }
 
         function openModal() {

@@ -25,7 +25,7 @@
     <header class="fixed top-0 left-0 right-0 bg-white border-b border-slate-200 z-30 h-24 flex items-center px-4">
         <div class="flex items-center justify-between w-full">
             <div class="flex items-center gap-3">
-                <button onclick="window.location.href='/employee'" class="bg-slate-50 hover:bg-slate-100 text-slate-650 border border-slate-200 w-10 h-10 rounded-lg shadow-sm flex items-center justify-center cursor-pointer transition-colors">
+                <button id="back-btn" class="bg-slate-50 hover:bg-slate-100 text-slate-650 border border-slate-200 w-10 h-10 rounded-lg shadow-sm flex items-center justify-center cursor-pointer transition-colors">
                     <i class="fas fa-arrow-left"></i>
                 </button>
                 <div>
@@ -80,17 +80,17 @@
                 <!-- Right Card: Tabbed Details Panel -->
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 lg:col-span-2 overflow-hidden flex flex-col">
                     <!-- Tab buttons -->
-                    <div class="border-b border-slate-200 px-6 flex gap-6 bg-slate-50 flex-shrink-0">
-                        <button onclick="switchTab('tab-overview')" id="btn-tab-overview" class="tab-btn active py-4 font-bold text-xs uppercase tracking-wider border-b-2 border-transparent text-slate-500 hover:text-slate-800 cursor-pointer">
+                    <div class="border-b border-slate-200 px-6 flex gap-6 bg-slate-50 flex-shrink-0" id="tabs-container">
+                        <button id="btn-tab-overview" data-tab="tab-overview" class="tab-btn active py-4 font-bold text-xs uppercase tracking-wider border-b-2 border-transparent text-slate-500 hover:text-slate-800 cursor-pointer">
                             Overview
                         </button>
-                        <button onclick="switchTab('tab-attendance')" id="btn-tab-attendance" class="tab-btn py-4 font-bold text-xs uppercase tracking-wider border-b-2 border-transparent text-slate-500 hover:text-slate-800 cursor-pointer">
+                        <button id="btn-tab-attendance" data-tab="tab-attendance" class="tab-btn py-4 font-bold text-xs uppercase tracking-wider border-b-2 border-transparent text-slate-500 hover:text-slate-800 cursor-pointer">
                             Attendance
                         </button>
-                        <button onclick="switchTab('tab-payroll')" id="btn-tab-payroll" class="tab-btn py-4 font-bold text-xs uppercase tracking-wider border-b-2 border-transparent text-slate-500 hover:text-slate-800 cursor-pointer">
+                        <button id="btn-tab-payroll" data-tab="tab-payroll" class="tab-btn py-4 font-bold text-xs uppercase tracking-wider border-b-2 border-transparent text-slate-500 hover:text-slate-800 cursor-pointer">
                             Payroll
                         </button>
-                        <button onclick="switchTab('tab-performance')" id="btn-tab-performance" class="tab-btn py-4 font-bold text-xs uppercase tracking-wider border-b-2 border-transparent text-slate-500 hover:text-slate-800 cursor-pointer">
+                        <button id="btn-tab-performance" data-tab="tab-performance" class="tab-btn py-4 font-bold text-xs uppercase tracking-wider border-b-2 border-transparent text-slate-500 hover:text-slate-800 cursor-pointer">
                             Performance
                         </button>
                     </div>
@@ -148,7 +148,7 @@
                         <div id="tab-attendance" class="tab-content space-y-4">
                             <div class="flex items-center justify-between mb-2">
                                 <h3 class="text-xs font-bold uppercase text-slate-500">Attendance Log</h3>
-                                <button onclick="window.location.href='/attendance'" class="text-blue-600 hover:text-blue-800 text-xs font-bold hover:underline">
+                                <button id="link-to-attendance" class="text-blue-600 hover:text-blue-800 text-xs font-bold hover:underline">
                                     Record Entry <i class="fas fa-chevron-right ml-1"></i>
                                 </button>
                             </div>
@@ -177,7 +177,7 @@
                         <div id="tab-payroll" class="tab-content space-y-4">
                             <div class="flex items-center justify-between mb-2">
                                 <h3 class="text-xs font-bold uppercase text-slate-500">Payroll Calculation Details</h3>
-                                <button onclick="window.location.href='/payroll'" class="text-blue-600 hover:text-blue-800 text-xs font-bold hover:underline">
+                                <button id="link-to-payroll" class="text-blue-600 hover:text-blue-800 text-xs font-bold hover:underline">
                                     Full Ledger <i class="fas fa-chevron-right ml-1"></i>
                                 </button>
                             </div>
@@ -205,7 +205,7 @@
                         <div id="tab-performance" class="tab-content space-y-4">
                             <div class="flex items-center justify-between mb-2">
                                 <h3 class="text-xs font-bold uppercase text-slate-500">Performance Grades & Reviews</h3>
-                                <button onclick="window.location.href='/performance'" class="text-blue-600 hover:text-blue-800 text-xs font-bold hover:underline">
+                                <button id="link-to-performance" class="text-blue-600 hover:text-blue-800 text-xs font-bold hover:underline">
                                     Evaluate Now <i class="fas fa-chevron-right ml-1"></i>
                                 </button>
                             </div>
@@ -228,6 +228,22 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadEmployeeProfile();
             document.getElementById('refresh-btn').addEventListener('click', loadEmployeeProfile);
+            
+            // Back button
+            document.getElementById('back-btn').addEventListener('click', () => window.location.href = '/employee');
+            
+            // Links inside tabs
+            document.getElementById('link-to-attendance')?.addEventListener('click', () => window.location.href = '/attendance');
+            document.getElementById('link-to-payroll')?.addEventListener('click', () => window.location.href = '/payroll');
+            document.getElementById('link-to-performance')?.addEventListener('click', () => window.location.href = '/performance');
+            
+            // Tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const tabId = e.currentTarget.getAttribute('data-tab');
+                    switchTab(tabId);
+                });
+            });
         });
 
         async function loadEmployeeProfile() {

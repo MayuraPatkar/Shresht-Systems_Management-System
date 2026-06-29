@@ -160,7 +160,8 @@
                         <td class="px-6 py-4 text-right text-red-600 font-semibold">-₹${deductions.toLocaleString('en-IN')} <span class="text-[10px] text-slate-400 block font-normal">(PF: ₹${pf} | PT: ₹${pt})</span></td>
                         <td class="px-6 py-4 text-right font-extrabold text-emerald-600">₹${net.toLocaleString('en-IN')}</td>
                         <td class="px-6 py-4 text-right pr-8">
-                            <button onclick="printPayslip(${emp.emp_id}, '${emp.name}', ${base}, ${pf}, ${pt}, ${net})" class="border border-slate-200 hover:bg-slate-100 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 shadow-sm flex items-center gap-1.5 justify-end ml-auto">
+                            <button class="btn-print-payslip border border-slate-200 hover:bg-slate-100 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 shadow-sm flex items-center gap-1.5 justify-end ml-auto"
+                                data-id="${emp.emp_id}" data-name="${emp.name}" data-base="${base}" data-pf="${pf}" data-pt="${pt}" data-net="${net}">
                                 <i class="fas fa-print"></i> Payslip
                             </button>
                         </td>
@@ -171,6 +172,20 @@
             totalPayrollEl.textContent = '₹' + totalGross.toLocaleString('en-IN', { minimumFractionDigits: 2 });
             avgSalaryEl.textContent = '₹' + Math.round(totalGross / employees.length).toLocaleString('en-IN', { minimumFractionDigits: 2 });
             tbody.innerHTML = rowsHTML;
+
+            // Bind click delegation
+            tbody.onclick = (e) => {
+                const btn = e.target.closest('.btn-print-payslip');
+                if (btn) {
+                    const empId = btn.getAttribute('data-id');
+                    const name = btn.getAttribute('data-name');
+                    const base = Number(btn.getAttribute('data-base'));
+                    const pf = Number(btn.getAttribute('data-pf'));
+                    const pt = Number(btn.getAttribute('data-pt'));
+                    const net = Number(btn.getAttribute('data-net'));
+                    printPayslip(empId, name, base, pf, pt, net);
+                }
+            };
         }
 
         function printPayslip(empId, name, base, pf, pt, net) {
