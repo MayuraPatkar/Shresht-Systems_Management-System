@@ -156,7 +156,7 @@ export async function findAvailablePort(options: FindPortOptions = {}): Promise<
     // All ports exhausted
     const error: Error & { code?: string } = new Error(
         `No available ports found. Tried ports ${startPort}-${startPort + maxRetries - 1}. ` +
-        `Please close other applications or set a custom PORT in your .env file.`
+        `Please close other applications or set a custom PORT environment variable.`
     );
     error.code = "ENOPORTS";
     throw error;

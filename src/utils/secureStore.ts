@@ -70,7 +70,7 @@ function decrypt(enc: string): string | null {
     } catch (e) {
         try {
             // eslint-disable-next-line @typescript-eslint/no-require-imports
-            require("./logger").error("Failed to decrypt secret fallback:", e);
+            require("./logger").error("Failed to decrypt secret fallback (the SESSION_SECRET might have changed, or the credentials file is corrupted):", e);
         } catch {
             /* ignore */
         }

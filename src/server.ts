@@ -525,8 +525,11 @@ process.on('uncaughtException', (error: Error) => {
 });
 
 process.on('unhandledRejection', (reason: unknown, promise: Promise<unknown>) => {
-    logger.error('Unhandled Rejection at:', promise);
-    logger.error('Reason:', reason instanceof Error ? reason.stack : reason);
+    logger.error('Unhandled Rejection detected', {
+        promise: String(promise),
+        reason: reason instanceof Error ? reason.message : String(reason),
+        stack: reason instanceof Error ? reason.stack : undefined
+    });
     gracefulShutdown('UNHANDLED_REJECTION');
 });
 

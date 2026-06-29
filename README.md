@@ -153,7 +153,6 @@ Shresht-Systems_Management-System/
 ├── src/main.ts                    # Electron main process
 ├── src/server.ts                  # Express server entry point
 ├── src/preload.ts                 # Electron preload (IPC bridge)
-├── .env                           # Environment variables
 ├── package.json                   # Dependencies & scripts
 ├── tailwind.config.js             # Tailwind configuration
 ├── tsconfig.json                  # Compiler configuration for server
@@ -193,21 +192,17 @@ Shresht-Systems_Management-System/
 
 3. **Configure environment:**
    
-   Create a `.env` file in the root directory:
-   ```env
-   # Server Configuration
-   NODE_ENV=development
-   PORT=3000
-   
-   # MongoDB Configuration
-   MONGO_URI=mongodb://127.0.0.1:27017/shreshtSystems
-   
-   # Security (change in production!)
-   JWT_SECRET=your-super-secret-jwt-key-change-this
-   SESSION_SECRET=your-session-secret-change-this
-   
-   # Logging
-   LOG_LEVEL=info
+   Set environment variables in your environment or terminal before running:
+   ```bash
+   # Windows (PowerShell):
+   $env:NODE_ENV="development"
+   $env:PORT="3000"
+   $env:MONGODB_URI="mongodb://127.0.0.1:27017/shreshtSystems"
+
+   # Linux/Mac (Bash):
+   export NODE_ENV="development"
+   export PORT="3000"
+   export MONGODB_URI="mongodb://127.0.0.1:27017/shreshtSystems"
    ```
 
 4. **Start the application:**
@@ -259,7 +254,7 @@ The startup logic prefers `UPLOADS_DIR` if present, then the `userData` folder, 
 
 When using WhatsApp integration, you may configure credentials via one of the following methods depending on your deployment model:
 
-- Development or server builds: Add credentials to your `.env` file (or system env), for example:
+- Development or server builds: Set process environment variables, for example:
 
 ```powershell
 # Windows PowerShell (dev):
@@ -398,9 +393,6 @@ Navigate to **Reports** from the sidebar to access:
 
 ## Documentation
 
-### Configuration Files
-
-- **`.env`** - Environment variables (create from `.env.example`)
 - **`src/config/config.js`** - Centralized configuration loader
 - **`src/config/database.js`** - MongoDB connection with retry logic
 - **`tailwind.config.js`** - Tailwind CSS customization
@@ -656,8 +648,8 @@ mongod --version
 
 **Port Already in Use:**
 ```bash
-# Change PORT in .env file
-PORT=3001
+# Set custom PORT environment variable (Windows PowerShell example)
+$env:PORT=3001
 ```
 
 **Module Not Found:**

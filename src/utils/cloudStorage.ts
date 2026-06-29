@@ -4,7 +4,7 @@
  *
  * Setup:
  * 1. Create free Cloudinary account at https://cloudinary.com
- * 2. Configure via Settings UI or add to .env file:
+ * 2. Configure via Settings UI or environment variables:
  *    CLOUDINARY_CLOUD_NAME=your_cloud_name
  *    CLOUDINARY_API_KEY=your_api_key
  *    CLOUDINARY_API_SECRET=your_api_secret

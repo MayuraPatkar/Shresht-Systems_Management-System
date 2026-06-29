@@ -9,8 +9,6 @@
  * before any other modules that depend on environment variables.
  */
 
-import path from "path";
-import fs from "fs";
 import secureStore from "./secureStore";
 
 /**
@@ -22,24 +20,6 @@ export function isPackaged(): boolean {
         __dirname.includes("app.asar") ||
         process.env.NODE_ENV === "production"
     );
-}
-
-/**
- * Load environment variables from .env file in development
- * In production, uses system environment variables only
- */
-export function loadEnvironment(): void {
-    const isProd = isPackaged();
-
-    if (!isProd) {
-        // Development: Load from .env file
-        const envPath = path.resolve(__dirname, "../../.env");
-
-        if (fs.existsSync(envPath)) {
-            // eslint-disable-next-line @typescript-eslint/no-require-imports
-            require("dotenv").config({ path: envPath });
-        }
-    }
 }
 
 /**
@@ -102,5 +82,3 @@ export function getSafeConfig(): Record<string, unknown> {
     };
 }
 
-// Load environment on module import
-loadEnvironment();

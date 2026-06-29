@@ -19,8 +19,6 @@
  */
 
 // Load environment variables FIRST before any other imports
-// In development: loads from .env file
-// In production: uses system environment variables
 import './utils/envLoader';
 
 import { app, BrowserWindow, ipcMain, screen, dialog, shell, IpcMainInvokeEvent } from 'electron';
@@ -720,7 +718,7 @@ app.whenReady().then(async () => {
         // Check for port-related errors
         if (error.code === 'ENOPORTS') {
             errorMessage = 'No available ports found';
-            errorDetail = error.message + '\n\nPlease close other applications or set a custom PORT in your .env file.';
+            errorDetail = error.message + '\n\nPlease close other applications or set a custom PORT environment variable.';
         } else if (error.message && error.message.includes('already in use')) {
             errorMessage = 'Port conflict detected';
             errorDetail = error.message;
@@ -913,6 +911,10 @@ process.on('uncaughtException', (error: Error) => {
 });
 
 process.on('unhandledRejection', (reason: unknown, promise: Promise<unknown>) => {
-    logger.error('Unhandled Rejection at:', promise);
-    logger.error('Reason:', reason instanceof Error ? reason.stack : reason);
+    logger.error('Unhandled Rejection detected', {
+        promise: String(promise),
+        reason: reason instanceof Error ? reason.message : String(reason),
+        stack: reason instanceof Error ? reason.stack : undefined
+    });
 });
+

@@ -9,13 +9,16 @@
     "dev:public": "tsc -p tsconfig.public.json --watch",
     "dev:electron": "wait-on dist/main.js && electron .",
     "dev": "concurrently -k -s none --names \"TS,CSS,PUBLIC,APP\" -c \"blue,yellow,green,magenta\" \"npm run dev:ts\" \"npm run dev:css\" \"npm run dev:public\" \"npm run dev:electron\"",
+
     "build:ts": "tsc",
     "build:public": "tsc -p tsconfig.public.json",
     "build:css": "tailwindcss -i ./public/css/input.css -o ./public/css/tailwind.css --minify",
     "build": "npm run build:css && npm run build:ts && npm run build:public",
+
     "electron": "npm run build && electron .",
     "dist": "npm run build && electron-builder --win",
     "dist:publish": "npm run build && electron-builder --win --publish always",
+
     "start": "node dist/server.js",
     "test": "vitest run",
     "backup": "node dist/utils/backup.js",
@@ -31,7 +34,6 @@
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.8.0",
     "cors": "^2.8.5",
-    "dotenv": "^17.2.2",
     "ejs": "^3.1.10",
     "electron-log": "^5.4.3",
     "electron-updater": "^6.6.2",
@@ -106,10 +108,8 @@
       }
     ],
     "nsis": {
-      "oneClick": true,
-      "perMachine": false,
-      "allowToChangeInstallationDirectory": false,
-      "deleteAppDataOnUninstall": false
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
     },
     "win": {
       "icon": "./public/assets/icon.ico",
