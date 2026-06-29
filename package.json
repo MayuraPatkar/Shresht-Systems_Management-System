@@ -16,11 +16,8 @@
     "build": "npm run build:css && npm run build:ts && npm run build:public",
 
     "electron": "npm run build && electron .",
-    "dist": "npm run build && electron-builder",
-    "dist:win": "npm run build && electron-builder --win",
-    "dist:portable": "npm run build && electron-builder --win portable",
-    "dist:publish": "npm run build && electron-builder --publish always",
-    "dist:github": "npm run build && electron-builder --win --publish always",
+    "dist": "npm run build && electron-builder --win",
+    "dist:publish": "npm run build && electron-builder --win --publish always",
 
     "start": "node dist/server.js",
     "test": "vitest run",
@@ -79,7 +76,7 @@
       "node_modules/@puppeteer/**/*"
     ],
     "directories": {
-      "output": "dist",
+      "output": "release",
       "buildResources": "public/assets"
     },
     "files": [
@@ -89,7 +86,6 @@
       "!uploads/**",
       "!.git/**",
       "!node_modules/**/.cache",
-      "!dist/**",
       "!**/*.md",
       "!.github/**",
       "!.env",

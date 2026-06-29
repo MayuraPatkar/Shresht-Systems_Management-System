@@ -14,3 +14,4 @@ electron-builder.env
 # Test outputs
 coverage/
 .vitest/
+release/
