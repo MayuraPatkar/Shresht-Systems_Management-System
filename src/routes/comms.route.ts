@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
 import axios from 'axios';
-import { QuotationModel, InvoiceModel, UserModel, SettingsModel, CommunicationModel } from '../models';
+import { QuotationModel, InvoiceModel, UserModel, SettingsModel, CommunicationModel, CustomerModel } from '../models';
 import config from '../config/config';
 import logger from '../utils/logger';
 import secureStore from '../utils/secureStore';
@@ -895,6 +895,110 @@ router.post('/send-message', async (req: Request, res: Response) => {
             errorMessage: errMsg
         });
         res.status(500).json({ message: 'Failed to send message.', error: err?.response?.data || err.message });
+    }
+});
+
+// POST /comms/broadcast — Send message/greeting/offer to all active customers
+router.post('/broadcast', async (req: Request, res: Response) => {
+    const { channel, messageType, subject, message } = req.body;
+    if (!channel || !message || !messageType) {
+        return res.status(400).json({ message: 'Channel, messageType, and message are required.' });
+    }
+
+    try {
+        const customers = await CustomerModel.find({
+            'deletion.is_deleted': false,
+            is_active: true
+        });
+
+        if (customers.length === 0) {
+            return res.json({ message: 'No active customers found for broadcast.', count: 0 });
+        }
+
+        // Run broadcast asynchronously in the background to prevent client timeouts
+        (async () => {
+            logger.info(`Starting bulk broadcast to ${customers.length} customers`, { service: 'messaging', channel, messageType });
+            
+            for (const customer of customers) {
+                const firstName = customer.customer?.first_name || '';
+                const lastName = customer.customer?.last_name || '';
+                const customerName = customer.customer?.name || `${firstName} ${lastName}`.trim() || 'Valued Customer';
+                
+                // Replace placeholders
+                const customizedMessage = message.replace(/\[Customer Name\]/g, customerName);
+
+                // Send WhatsApp
+                if (channel === 'whatsapp' || channel === 'both') {
+                    const phone = customer.customer?.phone;
+                    if (phone) {
+                        try {
+                            const result = await sendSimpleMessageTemplate(phone, customizedMessage);
+                            const messageId = result?.messages?.[0]?.id;
+                            await logCommunication({
+                                recipient: phone,
+                                type: 'WhatsApp',
+                                messageType: messageType as any,
+                                content: customizedMessage,
+                                status: 'Success',
+                                messageId
+                            });
+                        } catch (err: any) {
+                            const errMsg = err?.response?.data ? JSON.stringify(err.response.data) : err.message || String(err);
+                            await logCommunication({
+                                recipient: phone,
+                                type: 'WhatsApp',
+                                messageType: messageType as any,
+                                content: customizedMessage,
+                                status: 'Failed',
+                                errorMessage: errMsg
+                            });
+                        }
+                    }
+                }
+
+                // Send Email
+                if (channel === 'email' || channel === 'both') {
+                    const email = customer.customer?.email;
+                    if (email) {
+                        try {
+                            await emailService.checkEmailConfig();
+                            const company = await getCompanyInfoForEmail();
+                            const html = emailService.buildCustomMessageEmailBody({ message: customizedMessage, companyName: company.name });
+                            const result = await emailService.sendEmail({
+                                to: email,
+                                subject: subject || `${messageType} from ${company.name}`,
+                                html,
+                                text: customizedMessage
+                            });
+                            await logCommunication({
+                                recipient: email,
+                                type: 'Email',
+                                messageType: messageType as any,
+                                content: customizedMessage,
+                                status: 'Success',
+                                messageId: result.messageId
+                            });
+                        } catch (err: any) {
+                            const errMsg = err.message || String(err);
+                            await logCommunication({
+                                recipient: email,
+                                type: 'Email',
+                                messageType: messageType as any,
+                                content: customizedMessage,
+                                status: 'Failed',
+                                errorMessage: errMsg
+                            });
+                        }
+                    }
+                }
+            }
+            logger.info('Bulk broadcast complete', { service: 'messaging' });
+        })();
+
+        res.json({ message: 'Broadcast initiated successfully in the background.', count: customers.length });
+    } catch (err: any) {
+        logger.error('Failed to initiate broadcast', { service: 'messaging', error: err.message });
+        res.status(500).json({ message: 'Failed to initiate broadcast.', error: err.message });
     }
 });
 

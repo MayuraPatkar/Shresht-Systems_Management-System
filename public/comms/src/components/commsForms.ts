@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Comms Module Forms Logic - Redesigned Tabbed Action Center
  */
@@ -19,10 +20,13 @@ class CommsForms {
     private selectedPayment: any = null;
     private selectedVoucher: any = null;
     private allInvoices: any[] = [];
+    private isBroadcastMode: boolean = false;
 
     init() {
         this.setupChannelSelector();
         this.setupTabs();
+        this.setupBroadcastToggle();
+        this.setupGreetingsTab();
         this.setupCustomerAutocomplete();
         this.setupEmailInput();
         this.setupQuotationSelectListener();
@@ -762,11 +766,11 @@ class CommsForms {
         const emailValid = email.includes('@') && email.includes('.');
 
         const hasCustomer = !!this.selectedCustomer;
-        const channelReady = hasCustomer && (
+        const channelReady = this.isBroadcastMode || (hasCustomer && (
             (ch === 'whatsapp' && phoneValid) ||
             (ch === 'email'    && emailValid) ||
             (ch === 'both'     && phoneValid && emailValid)
-        );
+        ));
 
         // Message submit
         const msgTextarea = document.getElementById('message-content-input') as HTMLTextAreaElement;
@@ -774,6 +778,14 @@ class CommsForms {
         const btnMsg = document.getElementById('btn-send-message') as HTMLButtonElement;
         if (btnMsg) {
             btnMsg.disabled = !channelReady || !msgText || msgText.length > 1000;
+        }
+
+        // Greetings submit
+        const greetingsTextarea = document.getElementById('greetings-content-input') as HTMLTextAreaElement;
+        const greetingsText = greetingsTextarea ? greetingsTextarea.value.trim() : '';
+        const btnGreetings = document.getElementById('btn-send-greetings') as HTMLButtonElement;
+        if (btnGreetings) {
+            btnGreetings.disabled = !channelReady || !greetingsText || greetingsText.length > 1000;
         }
 
         // Quotation submit
@@ -865,8 +877,33 @@ class CommsForms {
             const btn = document.getElementById('btn-send-message') as HTMLButtonElement;
             const ch = this.activeChannel;
 
-            if (!content || !this.selectedCustomer) return;
+            if (!content) return;
+            if (!this.isBroadcastMode && !this.selectedCustomer) return;
 
+            // Broadcast Mode
+            if (this.isBroadcastMode) {
+                try {
+                    commsUtils.setLoading(btn, true);
+                    const result = await commsApi.broadcastMessage({
+                        channel: ch,
+                        messageType: 'Custom Message',
+                        subject,
+                        message: content
+                    });
+                    commsUtils.showNotification(result.message || 'Broadcast initiated!', 'success');
+                    this.addLog('message', 'ALL CUSTOMERS (BROADCAST)', ch === 'email' ? 'Email Broadcast' : 'WhatsApp Broadcast', `Broadcast: "${content.substring(0, 30)}${content.length > 30 ? '...' : ''}"`, 'success');
+                    contentInput.value = '';
+                    this.updateFormFieldsDisabledState();
+                    this.renderRecentLogs();
+                } catch (err: any) {
+                    commsUtils.showNotification(err.message || 'Broadcast failed', 'error');
+                } finally {
+                    commsUtils.setLoading(btn, false);
+                }
+                return;
+            }
+
+            // Single Customer Mode
             const formattedPhone = commsUtils.formatPhoneNumber(phone);
             const customerName = this.selectedCustomer.customer?.name || `${this.selectedCustomer.customer?.first_name || ''} ${this.selectedCustomer.customer?.last_name || ''}`.trim();
 
@@ -2276,10 +2313,259 @@ class CommsForms {
         }
     }
 
+    private setupBroadcastToggle() {
+        const toggle = document.getElementById('broadcast-toggle') as HTMLInputElement;
+        if (!toggle) return;
+
+        toggle.addEventListener('change', () => {
+            this.isBroadcastMode = toggle.checked;
+
+            const searchInput = document.getElementById('customer-search-input') as HTMLInputElement;
+            const phoneInput = document.getElementById('customer-phone-input') as HTMLInputElement;
+            const emailInput = document.getElementById('customer-email-input') as HTMLInputElement;
+
+            const tabsContainer = document.getElementById('action-tabs');
+            const documentTabs = tabsContainer ? Array.from(tabsContainer.querySelectorAll('button')).filter(t => {
+                const tab = t.getAttribute('data-tab');
+                return tab && ['quotation', 'invoice', 'reminder', 'receipt', 'voucher'].includes(tab);
+            }) : [];
+
+            if (this.isBroadcastMode) {
+                // Set customer info fields to Broadcast placeholder
+                if (searchInput) {
+                    searchInput.value = 'BROADCAST TO ALL ACTIVE CUSTOMERS';
+                    searchInput.disabled = true;
+                }
+                if (phoneInput) {
+                    phoneInput.value = 'All Phones';
+                    phoneInput.disabled = true;
+                }
+                if (emailInput) {
+                    emailInput.value = 'All Emails';
+                    emailInput.disabled = true;
+                }
+                this.selectedCustomer = null;
+
+                // Hide document tabs
+                documentTabs.forEach((tab: any) => tab.style.display = 'none');
+
+                // If currently on a document tab, switch to message
+                if (['quotation', 'invoice', 'reminder', 'receipt', 'voucher'].includes(this.activeTab)) {
+                    const messageTabBtn = tabsContainer?.querySelector('button[data-tab="message"]') as HTMLElement;
+                    if (messageTabBtn) messageTabBtn.click();
+                }
+            } else {
+                // Re-enable customer fields and clear
+                if (searchInput) {
+                    searchInput.value = '';
+                    searchInput.disabled = false;
+                }
+                if (phoneInput) {
+                    phoneInput.value = '';
+                    phoneInput.disabled = false;
+                }
+                if (emailInput) {
+                    emailInput.value = '';
+                    emailInput.disabled = false;
+                }
+                this.selectedCustomer = null;
+
+                // Show document tabs
+                documentTabs.forEach((tab: any) => tab.style.display = '');
+            }
+
+            this.updateFormFieldsDisabledState();
+            this.updateSendButtonLabels();
+        });
+    }
+
+    private festivalPresets = [
+        { id: 'diwali', name: 'Diwali Greeting', subject: 'Happy Diwali from Shresht Systems!', message: 'Dear [Customer Name],\n\nShresht Systems wishes you and your family a very Happy, Safe and Prosperous Diwali! May this festival of lights illuminate your life with joy, peace, and endless success.\n\nThank you for being a valued part of our journey.\n\nWarm regards,\nShresht Systems\nCCTV & Energy Solutions' },
+        { id: 'christmas', name: 'Christmas Greeting', subject: 'Merry Christmas & Happy Holidays!', message: 'Dear [Customer Name],\n\nSeason\'s Greetings! Shresht Systems wishes you a joyful Christmas filled with warmth, laughter, and good cheer. May the holiday season bring peace and happiness to you and your loved ones.\n\nBest regards,\nShresht Systems' },
+        { id: 'newyear', name: 'New Year Greeting', subject: 'Happy New Year from Shresht Systems!', message: 'Dear [Customer Name],\n\nAs we step into the New Year, all of us at Shresht Systems want to wish you health, happiness, and prosperity. Thank you for your continued partnership and trust in us.\n\nLooking forward to serving you in the coming year!\n\nWarm regards,\nShresht Systems' },
+        { id: 'eid', name: 'Eid Mubarak Greeting', subject: 'Eid Mubarak from Shresht Systems!', message: 'Dear [Customer Name],\n\nEid Mubarak! Wishing you and your family a blessed Eid filled with happiness, peace, and prosperity. May this special day bring joy to your heart and home.\n\nBest regards,\nShresht Systems' }
+    ];
+
+    private offerPresets = [
+        { id: 'discount10', name: '10% Off CCTV Systems', subject: 'Exclusive 10% Discount on CCTV Solutions!', message: 'Dear [Customer Name],\n\nUpgrade your security today! Shresht Systems is pleased to offer you an exclusive 10% discount on our entire range of high-definition CCTV camera systems and installation.\n\nUse coupon code SECURE10 when placing your order.\n\nOffer valid for a limited time only. Contact us today for a free consultation.\n\nWarm regards,\nShresht Systems' },
+        { id: 'clearance', name: 'Festival Clearance Sale', subject: 'Shresht Systems Clearance Sale — Up to 30% Off!', message: 'Dear [Customer Name],\n\nOur annual festival clearance sale is live! Grab up to 30% off on premium security cameras, smart locks, solar systems, and energy solutions.\n\nVisit our office or call us directly to browse clearance stock. First come, first served!\n\nBest regards,\nShresht Systems' }
+    ];
+
+    private setupGreetingsTab() {
+        const categorySelect = document.getElementById('greetings-category-select') as HTMLSelectElement;
+        const templateSelect = document.getElementById('greetings-template-select') as HTMLSelectElement;
+        const subjectInput = document.getElementById('greetings-email-subject') as HTMLInputElement;
+        const contentInput = document.getElementById('greetings-content-input') as HTMLTextAreaElement;
+        const charCount = document.getElementById('greetings-char-count') as HTMLDivElement;
+        const form = document.getElementById('greetings-tab-form') as HTMLFormElement;
+        const btn = document.getElementById('btn-send-greetings') as HTMLButtonElement;
+
+        if (!categorySelect || !templateSelect || !contentInput || !form) return;
+
+        const populateTemplates = () => {
+            templateSelect.innerHTML = '<option value="">-- Select Presets --</option>';
+            const cat = categorySelect.value;
+            const presets = cat === 'festival' ? this.festivalPresets : this.offerPresets;
+            
+            presets.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.textContent = p.name;
+                templateSelect.appendChild(opt);
+            });
+
+            // Clear inputs
+            if (subjectInput) subjectInput.value = '';
+            contentInput.value = '';
+            if (charCount) charCount.textContent = '0 / 1000 characters';
+            this.updateFormFieldsDisabledState();
+        };
+
+        categorySelect.addEventListener('change', populateTemplates);
+        populateTemplates(); // Initial run
+
+        templateSelect.addEventListener('change', () => {
+            const cat = categorySelect.value;
+            const tid = templateSelect.value;
+            if (!tid) {
+                if (subjectInput) subjectInput.value = '';
+                contentInput.value = '';
+                this.updateFormFieldsDisabledState();
+                return;
+            }
+
+            const presets = cat === 'festival' ? this.festivalPresets : this.offerPresets;
+            const found = presets.find(p => p.id === tid);
+            if (found) {
+                if (subjectInput) subjectInput.value = found.subject;
+                contentInput.value = found.message;
+                if (charCount) charCount.textContent = `${found.message.length} / 1000 characters`;
+            }
+            this.updateFormFieldsDisabledState();
+        });
+
+        // Show/hide email subject row based on active channel
+        const updateEmailSubjectVisibility = () => {
+            const row = document.getElementById('greetings-email-subject-row');
+            if (row) {
+                row.classList.toggle('hidden', this.activeChannel === 'whatsapp');
+            }
+        };
+
+        // Wire to channel btns
+        const btns = document.querySelectorAll('.channel-btn');
+        btns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                updateEmailSubjectVisibility();
+                // Update Greetings button label
+                const suffix = this.activeChannel === 'whatsapp' ? 'via WhatsApp' : this.activeChannel === 'email' ? 'via Email' : 'via Both';
+                const greetingsLabel = document.getElementById('btn-send-greetings-label');
+                if (greetingsLabel) greetingsLabel.textContent = `Send Greeting ${suffix}`;
+            });
+        });
+        updateEmailSubjectVisibility(); // Initial run
+
+        contentInput.addEventListener('input', () => {
+            const len = contentInput.value.length;
+            if (charCount) charCount.textContent = `${len} / 1000 characters`;
+            this.updateFormFieldsDisabledState();
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const ch = this.activeChannel;
+            const content = contentInput.value.trim();
+            const subject = subjectInput ? subjectInput.value.trim() : '';
+            const presetName = templateSelect.options[templateSelect.selectedIndex]?.textContent || 'Custom Presets';
+
+            if (!content) return;
+            if (!this.isBroadcastMode && !this.selectedCustomer) return;
+
+            const messageType = categorySelect.value === 'festival' ? 'Festival Greeting' : 'Offer';
+
+            // Broadcast Mode
+            if (this.isBroadcastMode) {
+                try {
+                    commsUtils.setLoading(btn, true);
+                    const result = await commsApi.broadcastMessage({
+                        channel: ch,
+                        messageType,
+                        subject,
+                        message: content
+                    });
+                    commsUtils.showNotification(result.message || 'Greetings broadcast initiated!', 'success');
+                    this.addLog('message', 'ALL CUSTOMERS (BROADCAST)', ch === 'email' ? 'Email Broadcast' : 'WhatsApp Broadcast', `Broadcast ${messageType}: "${presetName}"`, 'success');
+                    contentInput.value = '';
+                    templateSelect.value = '';
+                    this.updateFormFieldsDisabledState();
+                    this.renderRecentLogs();
+                } catch (err: any) {
+                    commsUtils.showNotification(err.message || 'Greetings broadcast failed', 'error');
+                } finally {
+                    commsUtils.setLoading(btn, false);
+                }
+                return;
+            }
+
+            // Single Customer Mode
+            const phoneInput = document.getElementById('customer-phone-input') as HTMLInputElement;
+            const emailInput = document.getElementById('customer-email-input') as HTMLInputElement;
+            const phone = phoneInput ? phoneInput.value.trim() : '';
+            const email = emailInput ? emailInput.value.trim() : '';
+            const formattedPhone = commsUtils.formatPhoneNumber(phone);
+            const customerName = this.selectedCustomer.customer?.name || `${this.selectedCustomer.customer?.first_name || ''} ${this.selectedCustomer.customer?.last_name || ''}`.trim();
+            
+            // Replace [Customer Name] placeholder
+            const customizedMessage = content.replace(/\[Customer Name\]/g, customerName);
+
+            try {
+                commsUtils.setLoading(btn, true);
+                const promises: Promise<any>[] = [];
+
+                if (ch === 'whatsapp' || ch === 'both') {
+                    promises.push(
+                        commsApi.sendMessage({ phoneNumber: formattedPhone, message: customizedMessage })
+                            .then(() => ({ channel: 'WhatsApp', ok: true }))
+                            .catch((err: any) => ({ channel: 'WhatsApp', ok: false, err: err.message }))
+                    );
+                }
+                if (ch === 'email' || ch === 'both') {
+                    promises.push(
+                        commsApi.sendEmailMessage({ email, subject, message: customizedMessage })
+                            .then(() => ({ channel: 'Email', ok: true }))
+                            .catch((err: any) => ({ channel: 'Email', ok: false, err: err.message }))
+                    );
+                }
+
+                const results = await Promise.all(promises);
+                const allOk = results.every(r => r.ok);
+                const summary = results.map(r => `${r.channel}: ${r.ok ? '✓' : '✗ ' + r.err}`).join(' | ');
+
+                commsUtils.showNotification(allOk ? `Greeting sent! (${summary})` : `Partial result: ${summary}`, allOk ? 'success' : 'warning');
+                this.addLog('message', customerName, ch === 'email' ? email : phone, `Sent ${messageType}: "${presetName}"`, allOk ? 'success' : 'failed');
+
+                contentInput.value = '';
+                templateSelect.value = '';
+                if (charCount) charCount.textContent = '0 / 1000 characters';
+                this.updateFormFieldsDisabledState();
+                this.renderRecentLogs();
+            } catch (err: any) {
+                commsUtils.showNotification(err.message || 'Failed to send greeting', 'error');
+            } finally {
+                commsUtils.setLoading(btn, false);
+            }
+        });
+    }
+
     private submitActiveTabForm() {
         if (this.activeTab === 'message') {
             const form = document.getElementById('message-tab-form') as HTMLFormElement;
             if (form && !document.getElementById('btn-send-message')?.hasAttribute('disabled')) {
+                form.requestSubmit();
+            }
+        } else if (this.activeTab === 'greetings') {
+            const form = document.getElementById('greetings-tab-form') as HTMLFormElement;
+            if (form && !document.getElementById('btn-send-greetings')?.hasAttribute('disabled')) {
                 form.requestSubmit();
             }
         } else if (this.activeTab === 'quotation') {

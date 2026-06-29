@@ -6,7 +6,7 @@ import mongoose, { Document, Schema, Model } from "mongoose";
 export interface ICommunication extends Document {
     recipient: string; // Phone number or email
     type: "WhatsApp" | "Email" | "SMS";
-    messageType: "Invoice" | "Quotation" | "Manual Reminder" | "Automated Reminder" | "Document" | "Custom Message";
+    messageType: "Invoice" | "Quotation" | "Manual Reminder" | "Automated Reminder" | "Document" | "Custom Message" | "Festival Greeting" | "Offer";
     referenceId?: string; // Invoice ID, Quotation ID, etc.
     content?: string; // Message content or parameters
     documentUrl?: string; // Attachment/PDF URL
@@ -39,7 +39,7 @@ const communicationSchema = new Schema<ICommunication>(
         messageType: {
             type: String,
             required: true,
-            enum: ["Invoice", "Quotation", "Manual Reminder", "Automated Reminder", "Document", "Custom Message"],
+            enum: ["Invoice", "Quotation", "Manual Reminder", "Automated Reminder", "Document", "Custom Message", "Festival Greeting", "Offer"],
             index: true
         },
         referenceId: {

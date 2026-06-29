@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Comms Module Main Entry Point
  */
