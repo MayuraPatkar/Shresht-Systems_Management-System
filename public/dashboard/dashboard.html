@@ -13,74 +13,214 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
             overflow: hidden;
-            /* Prevent body scroll */
         }
 
         .fade-in {
-            animation: fadeIn 0.3s ease-in;
+            animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .sidebar {
-            width: 280px;
-            height: 100vh;
+            width: 240px;
+            height: 100%;
             overflow-y: auto;
-            /* Enable sidebar scroll */
             overflow-x: hidden;
+            border-right: 1px solid #e2e8f0;
         }
 
-        /* Card hover effects */
-        .stat-card {
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Main content scrolling */
         main {
-            height: 100vh;
+            height: 100%;
             overflow-y: auto;
             overflow-x: hidden;
+            scrollbar-width: none !important; /* Firefox */
+            -ms-overflow-style: none !important; /* IE/Edge */
+        }
+
+        main::-webkit-scrollbar {
+            display: none !important; /* Chrome/Safari/Opera */
+            width: 0 !important;
+            height: 0 !important;
         }
 
         /* Custom scrollbar styling */
-        *::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+        *::-webkit-scrollbar { width: 6px; height: 6px; }
+        *::-webkit-scrollbar-track { background: transparent; }
+        *::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        *::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Tooltip style */
+        .tooltip-container {
+            position: relative;
+        }
+        .tooltip-text {
+            visibility: hidden;
+            background-color: #0f172a;
+            color: #ffffff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 6px 10px;
+            position: absolute;
+            z-index: 50;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.15s ease-in-out;
+            font-size: 10px;
+            font-weight: 500;
+            white-space: nowrap;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .tooltip-container:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
         }
 
-        *::-webkit-scrollbar-track {
+        /* Slide drawer */
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(15, 23, 42, 0.3);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease-in-out;
+        }
+        .drawer-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .drawer-content {
+            position: fixed;
+            top: 0;
+            right: -450px;
+            width: 420px;
+            height: 100%;
+            background-color: #ffffff;
+            z-index: 110;
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.08);
+            transition: right 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            border-left: 1px solid #e2e8f0;
+        }
+        .drawer-content.active {
+            right: 0;
+        }
+
+        /* Sparkline canvas styling */
+        .sparkline {
+            display: inline-block;
+            width: 100px;
+            height: 30px;
+        }
+
+        /* Mobile bottom nav */
+        .mobile-bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background-color: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            z-index: 40;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        /* ── Global Search ─────────────────────────────────────────────── */
+        #global-search-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 480px;
+        }
+
+        #global-search-input {
+            width: 100%;
+            height: 40px;
+            padding: 0 12px 0 40px;
+            border-radius: 10px;
+            border: 1.5px solid #e2e8f0;
+            background: #f8fafc;
+            font-size: 13.5px;
+            color: #1e293b;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        }
+        #global-search-input::placeholder { color: #94a3b8; }
+        #global-search-input:focus {
+            border-color: #3b82f6;
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 13px;
+            pointer-events: none;
+            transition: color 0.15s ease;
+        }
+        #global-search-input:focus ~ .search-icon,
+        #global-search-wrapper:focus-within .search-icon {
+            color: #3b82f6;
+        }
+
+        .search-kbd {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 2px;
+            pointer-events: none;
+        }
+        .search-kbd kbd {
             background: #f1f5f9;
+            border: 1px solid #e2e8f0;
             border-radius: 4px;
+            padding: 1px 5px;
+            font-size: 10px;
+            color: #94a3b8;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            letter-spacing: 0.01em;
         }
+        #global-search-input:focus ~ .search-kbd { display: none; }
+        #global-search-wrapper:focus-within .search-kbd { display: none; }
 
-        *::-webkit-scrollbar-thumb {
-            background: #2563eb;
-            border-radius: 4px;
+        #global-search-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            box-shadow: 0 16px 40px -8px rgba(15,23,42,0.14), 0 4px 16px -4px rgba(15,23,42,0.08);
+            z-index: 200;
+            max-height: 420px;
+            overflow-y: auto;
+            padding: 4px 0 6px;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
         }
-
-        *::-webkit-scrollbar-thumb:hover {
-            background: #1d4ed8;
-        }
-
-        .content-section {
-            min-height: calc(100vh - 11rem);
-        }
+        #global-search-dropdown::-webkit-scrollbar { width: 5px; }
+        #global-search-dropdown::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
     </style>
 </head>
 
@@ -88,29 +228,72 @@
 
     <!-- Unified Header -->
     <header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-30 h-24 flex items-center px-4">
-        <div class="flex items-center justify-between w-full">
-            <div class="flex items-center gap-3">
+        <div class="flex items-center w-full gap-4">
+
+            <!-- Left: Logo + Title -->
+            <div class="flex items-center gap-3 flex-shrink-0" style="min-width:200px;">
                 <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
                 <h1 class="text-xl font-bold text-gray-800">Dashboard</h1>
             </div>
+
+            <!-- Center: Global Search -->
+            <div class="flex-1 flex justify-center">
+                <div id="global-search-wrapper">
+                    <input
+                        id="global-search-input"
+                        type="search"
+                        autocomplete="off"
+                        spellcheck="false"
+                        placeholder="Search customers, invoices, stock&hellip;"
+                        aria-label="Global search"
+                        aria-autocomplete="list"
+                        aria-controls="global-search-dropdown"
+                    >
+                    <i class="fas fa-search search-icon"></i>
+                    <div class="search-kbd">
+                        <kbd>Ctrl</kbd><kbd>K</kbd>
+                    </div>
+                    <!-- Dropdown -->
+                    <div id="global-search-dropdown" class="hidden" role="listbox" aria-label="Search results"></div>
+                </div>
+            </div>
+
+            <!-- Right: User Profile / Role Badge -->
+            <div class="flex items-center gap-2 pr-2 flex-shrink-0" style="min-width:100px;justify-content:flex-end;">
+                <i id="header-user-role-icon" class="fas fa-user-shield text-slate-400 text-sm"></i>
+                <span id="header-user-role" class="text-sm font-bold uppercase tracking-wider bg-slate-50 text-slate-700 px-2.5 py-1 rounded-md border border-slate-200">Admin</span>
+            </div>
+
         </div>
     </header>
 
-    <!-- Sidebar -->
-    <aside class="sidebar fixed top-0 left-0 bg-white h-screen flex flex-col border-r border-gray-200 pt-24"
-        style="width: 280px;">
+    <!-- Layout Wrapper -->
+    <div class="flex pt-24 h-screen w-full overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar bg-white h-full flex flex-col border-r border-gray-200 flex-shrink-0"
+            style="width: 240px;">
         <!-- Navigation Links -->
         <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
             <div class="flex flex-col gap-2">
-                <a href="#"
+                <a href="/dashboard" id="dashboard"
                     class="flex items-center gap-5 p-6 text-xl text-blue-600 bg-blue-50 rounded-lg font-semibold">
                     <i class="fas fa-th-large w-8 text-center"></i>
                     <span>Dashboard</span>
+                </a>
+                <a href="/customer" id="customer"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-users w-8 text-center"></i>
+                    <span>Customers</span>
                 </a>
                 <a href="../quotation/quotation.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-file-alt w-8 text-center"></i>
                     <span>Quotation</span>
+                </a>
+                <a href="/supplier" id="supplier"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-truck w-8 text-center"></i>
+                    <span>Suppliers</span>
                 </a>
                 <a href="../purchaseOrder/purchaseOrder.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
@@ -131,6 +314,16 @@
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-wrench w-8 text-center"></i>
                     <span>Service</span>
+                </a>
+                <a href="../purchase/purchase.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold" id="purchaseOnly">
+                    <i class="fas fa-shopping-bag w-8 text-center"></i>
+                    <span>Purchases</span>
+                </a>
+                <a href="../payment/payment.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-money-bill-wave w-8 text-center"></i>
+                    <span>Payments</span>
                 </a>
                 <a href="../stock/stock.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
@@ -161,293 +354,220 @@
         </nav>
     </aside>
 
-    <!-- Main Content -->
-    <main class="ml-[280px] pt-24 mt-6 p-8 no-select">
-
-        <!-- Date & Time Banner -->
-        <section class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-lg shadow-md p-6 mb-6 fade-in">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-8">
-                    <div class="flex items-center gap-3">
-                        <i class="fas fa-calendar-alt text-white text-2xl"></i>
-                        <span id="current-date" class="text-white text-lg font-semibold"></span>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <i class="fas fa-clock text-white text-2xl"></i>
-                        <span id="current-time" class="text-white text-3xl font-bold tracking-wide"></span>
+        <!-- Main Content -->
+        <main class="flex-1 h-full overflow-hidden px-6 py-6 bg-slate-50/50 no-select pb-24 md:pb-8 flex flex-col">
+            <div class="max-w-6xl w-full mx-auto flex-1 flex flex-col min-h-0 space-y-6 fade-in">
+                
+                <!-- Morning Brief Header -->
+                <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400">Welcome Back!</h2>
+                        <h1 class="text-lg font-bold text-slate-800 tracking-tight mt-1 flex items-center gap-2">
+                            Here's your business overview
+                        </h1>
+                        <p class="text-sm text-slate-600 font-medium mt-1.5" id="morning-brief-text">
+                            Loading workspace brief...
+                        </p>
                     </div>
                 </div>
-                <div class="text-white text-right">
-                    <p class="text-xl font-bold">Welcome Back!</p>
-                    <p class="text-blue-100">Here's your business overview</p>
-                </div>
-            </div>
-        </section>
 
-        <!-- Quick Actions Panel -->
-        <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 mb-6 fade-in">
-            <div class="flex items-center gap-3 mb-4">
-                <i class="fas fa-bolt text-yellow-600 text-2xl"></i>
-                <h2 class="text-xl font-semibold text-gray-800">Quick Actions</h2>
-            </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                <a href="../quotation/quotation.html?new=1"
-                    class="flex flex-col items-center gap-2 p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200">
-                    <i class="fas fa-file-alt text-blue-600 text-3xl"></i>
-                    <span class="text-sm font-medium text-gray-700">New Quotation</span>
-                </a>
-                <a href="../invoice/invoice.html?new=1"
-                    class="flex flex-col items-center gap-2 p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors border border-green-200">
-                    <i class="fas fa-file-invoice text-green-600 text-3xl"></i>
-                    <span class="text-sm font-medium text-gray-700">New Invoice</span>
-                </a>
-                <a href="../ewaybill/eWayBill.html?new=1"
-                    class="flex flex-col items-center gap-2 p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors border border-purple-200">
-                    <i class="fas fa-truck text-purple-600 text-3xl"></i>
-                    <span class="text-sm font-medium text-gray-700">New E-Way Bill</span>
-                </a>
-                <a href="../purchaseOrder/purchaseOrder.html?new=1"
-                    class="flex flex-col items-center gap-2 p-4 bg-red-50 hover:bg-red-100 rounded-lg transition-colors border border-red-200">
-                    <i class="fas fa-shopping-cart text-red-600 text-3xl"></i>
-                    <span class="text-sm font-medium text-gray-700">New Purchase Bill</span>
-                </a>
-                <a href="../stock/stock.html?new=1"
-                    class="flex flex-col items-center gap-2 p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors border border-orange-200">
-                    <i class="fas fa-box text-orange-600 text-3xl"></i>
-                    <span class="text-sm font-medium text-gray-700">Add Stock</span>
-                </a>
-            </div>
-        </section>
-
-        <!-- Statistics Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-
-            <!-- Total Quotations Card -->
-            <div class="stat-card bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500 fade-in">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="bg-blue-100 p-3 rounded-lg">
-                        <i class="fas fa-file-invoice text-blue-600 text-2xl"></i>
-                    </div>
-                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Quotations</span>
-                </div>
-                <h2 id="quotation-count" class="text-3xl font-bold text-gray-800 mb-1">0</h2>
-                <p class="text-gray-600 text-sm font-medium">Total Quotation Given</p>
-            </div>
-
-            <!-- Total Projects Card -->
-            <div class="stat-card bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500 fade-in">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="bg-purple-100 p-3 rounded-lg">
-                        <i class="fas fa-project-diagram text-purple-600 text-2xl"></i>
-                    </div>
-                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Projects</span>
-                </div>
-                <h2 id="project-count" class="text-3xl font-bold text-gray-800 mb-1">0</h2>
-                <p class="text-gray-600 text-sm font-medium">Total Projects</p>
-            </div>
-
-            <!-- Earned This Month Card -->
-            <div class="stat-card bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500 fade-in">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="bg-green-100 p-3 rounded-lg">
-                        <i class="fas fa-rupee-sign text-green-600 text-2xl"></i>
-                    </div>
-                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Earned</span>
-                </div>
-                <h2 id="earned-count" class="text-3xl font-bold text-gray-800 mb-1">0</h2>
-                <p class="text-gray-600 text-sm font-medium">Total Earned This Month</p>
-            </div>
-
-            <!-- Unpaid Projects Card -->
-            <div class="stat-card bg-white rounded-lg shadow-md p-6 border-l-4 border-red-500 fade-in">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="bg-red-100 p-3 rounded-lg">
-                        <i class="fas fa-exclamation-circle text-red-600 text-2xl"></i>
-                    </div>
-                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Unpaid</span>
-                </div>
-                <h2 id="unpaid-count" class="text-3xl font-bold text-gray-800 mb-1">0</h2>
-                <p class="text-gray-600 text-sm font-medium">Total Unpaid Projects</p>
-            </div>
-
-            <!-- Expenditure Card -->
-            <div class="stat-card bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-500 fade-in">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="bg-orange-100 p-3 rounded-lg">
-                        <i class="fas fa-wallet text-orange-600 text-2xl"></i>
-                    </div>
-                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Expenses</span>
-                </div>
-                <h2 id="expenditure-count" class="text-3xl font-bold text-gray-800 mb-1">0</h2>
-                <p class="text-gray-600 text-sm font-medium">Total Expenditure This Month</p>
-            </div>
-
-            <!-- Services Remaining Card -->
-            <div class="stat-card bg-white rounded-lg shadow-md p-6 border-l-4 border-teal-500 fade-in">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="bg-teal-100 p-3 rounded-lg">
-                        <i class="fas fa-tools text-teal-600 text-2xl"></i>
-                    </div>
-                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Services</span>
-                </div>
-                <h2 id="remaining-services-count" class="text-3xl font-bold text-gray-800 mb-1">0</h2>
-                <p class="text-gray-600 text-sm font-medium">Service Remaining</p>
-            </div>
-
-        </div>
-
-        <!-- Two Column Layout for Recent Activity and Stock Alerts -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-
-            <!-- Recent Activity Section -->
-            <section class="bg-white rounded-lg shadow-md border border-gray-200 fade-in">
-                <div class="p-6 border-b border-gray-200">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <i class="fas fa-history text-indigo-600 text-2xl"></i>
-                            <h2 class="text-xl font-semibold text-gray-800">Recent Activity</h2>
+                <!-- Top Row: 3 Hero Metric Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    
+                    <!-- Net Cashflow -->
+                    <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm tooltip-container flex flex-col justify-between min-h-[120px]">
+                        <span class="tooltip-text">Revenue this month minus cash outflows</span>
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Net Cashflow</span>
+                            <span id="net-cashflow-badge" class="text-xs font-bold text-red-650 bg-red-50 border border-red-100 px-2 py-0.5 rounded">Loss</span>
                         </div>
-                        <button id="refresh-activity-btn" class="text-blue-600 hover:text-blue-700">
-                            <i class="fas fa-sync-alt"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="p-6">
-                    <div id="recent-activity" class="space-y-4 max-h-96 overflow-y-auto">
-                        <!-- Activity items will be loaded dynamically -->
-                        <div class="text-center text-gray-500 py-8">
-                            <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
-                            <p>Loading recent activity...</p>
+                        <div class="mt-3 flex items-baseline justify-between">
+                            <h2 id="net-cashflow-value" class="text-2xl font-bold text-red-650 tracking-tight">₹0</h2>
+                            <canvas id="cashflow-sparkline" class="sparkline"></canvas>
+                        </div>
+                        <div class="text-[11px] text-slate-500 font-medium mt-2" id="net-cashflow-details">
+                            <span>Rev: ₹0 | Exp: ₹0</span>
                         </div>
                     </div>
-                </div>
-            </section>
 
-            <!-- Stock Alerts Section -->
-            <section class="bg-white rounded-lg shadow-md border border-gray-200 fade-in">
-                <div class="p-6 border-b border-gray-200">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
-                            <h2 class="text-xl font-semibold text-gray-800">Stock Alerts</h2>
+                    <!-- Low Stock Health -->
+                    <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm tooltip-container flex flex-col justify-between min-h-[120px]">
+                        <span class="tooltip-text">Critical and warning level items in inventory</span>
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Low Stock Health</span>
+                            <span id="stock-health-badge" class="text-xs font-bold text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded">0 Alert Items</span>
                         </div>
-                        <a href="../stock/stock.html" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                            View All →
-                        </a>
-                    </div>
-                </div>
-                <div class="p-6">
-                    <div id="stock-alerts" class="space-y-3 max-h-96 overflow-y-auto">
-                        <!-- Stock alerts will be loaded dynamically -->
-                        <div class="text-center text-gray-500 py-8">
-                            <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
-                            <p>Loading stock alerts...</p>
+                        <div class="mt-3">
+                            <h2 class="text-2xl font-bold text-slate-800 tracking-tight" id="stock-health-summary">0 Critical / 0 Low</h2>
+                            <!-- Custom progress bar -->
+                            <div id="stock-health-bar" class="w-full bg-slate-100 rounded-full h-1.5 mt-3 overflow-hidden flex">
+                                <div id="critical-stock-bar" class="bg-red-500 h-full" style="width: 0%;"></div>
+                                <div id="warning-stock-bar" class="bg-amber-500 h-full" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                        <div class="text-[11px] text-slate-500 font-medium mt-2 flex justify-between">
+                            <span id="stock-health-status">Requires restock</span>
+                            <a href="../stock/stock.html" class="text-blue-600 hover:underline">Manage Stock</a>
                         </div>
                     </div>
-                </div>
-            </section>
 
-        </div>
+                    <!-- Active Pipeline Value -->
+                    <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm tooltip-container flex flex-col justify-between min-h-[120px]">
+                        <span class="tooltip-text">Pending quotations and active projects value</span>
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Active Pipeline</span>
+                            <span class="text-xs font-bold text-blue-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded" id="pipeline-count-badge">0 Projects</span>
+                        </div>
+                        <div class="mt-3 flex items-baseline justify-between">
+                            <h2 id="pipeline-value" class="text-2xl font-bold text-slate-800 tracking-tight">₹0</h2>
+                            <canvas id="pipeline-sparkline" class="sparkline"></canvas>
+                        </div>
+                        <div class="text-[11px] text-slate-500 font-medium mt-2" id="pipeline-details">
+                            <span>0 Projects | 0 Proposals Given</span>
+                        </div>
+                    </div>
 
-        <!-- Pending Tasks Section -->
-        <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 mb-6 fade-in">
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-3">
-                    <i class="fas fa-tasks text-purple-600 text-2xl"></i>
-                    <h2 class="text-xl font-semibold text-gray-800">Pending Tasks & Reminders</h2>
                 </div>
-                <button id="refresh-tasks-btn" class="text-blue-600 hover:text-blue-700">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
+
+                <!-- Main Section Grid (Primary Actions & Snapshot) -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
+                    
+                    <!-- Left Columns (Primary Actions & Snapshot) -->
+                    <div class="lg:col-span-2 flex flex-col min-h-0 space-y-6">
+                        
+                        <!-- Actions Grid -->
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Quick Operations</h2>
+                                
+                                <!-- More Actions Overflow -->
+                                <div class="relative inline-block text-left">
+                                    <button type="button" id="more-actions-btn" class="inline-flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm cursor-pointer">
+                                        More Actions <i class="fas fa-chevron-down text-[10px]"></i>
+                                    </button>
+                                    <div id="more-actions-dropdown" class="hidden absolute right-0 mt-1.5 w-48 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-50">
+                                        <a href="../customer/customer.html?new=1" class="flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50"><i class="fas fa-users text-blue-500 w-4 text-center"></i> New Customer</a>
+                                        <a href="../supplier/supplier.html?new=1" class="flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50"><i class="fas fa-truck text-indigo-500 w-4 text-center"></i> New Supplier</a>
+                                        <a href="../purchaseOrder/purchaseOrder.html?new=1" class="flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50"><i class="fas fa-shopping-cart text-rose-500 w-4 text-center"></i> New Purchase Order</a>
+                                        <a href="../ewaybill/eWayBill.html?new=1" class="flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50"><i class="fas fa-route text-purple-500 w-4 text-center"></i> New E-Way Bill</a>
+                                        <a href="../purchase/purchase.html?new=1" class="flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50" id="purchaseOnly"><i class="fas fa-shopping-bag text-red-500 w-4 text-center"></i> New Purchase Bill</a>
+                                        <a href="../service/service.html?new=1" class="flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50"><i class="fas fa-wrench text-cyan-500 w-4 text-center"></i> New Service</a>
+                                        <a href="/payment?new=1" class="flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50"><i class="fas fa-money-bill-wave text-emerald-500 w-4 text-center"></i> New Payment</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <a href="../invoice/invoice.html?new=1" class="bg-white border border-slate-200 hover:border-blue-500 hover:shadow-md transition-all rounded-xl p-4 flex items-center gap-4 group cursor-pointer shadow-sm">
+                                    <div class="w-12 h-12 rounded-xl bg-blue-50 group-hover:bg-blue-100 flex items-center justify-center text-blue-600 transition-colors">
+                                        <i class="fas fa-file-invoice-dollar text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-sm font-bold text-slate-800 group-hover:text-blue-600">New Invoice</h3>
+                                        <p class="text-[11px] text-slate-400 font-medium mt-0.5">Billing & GST</p>
+                                    </div>
+                                </a>
+                                <a href="/quotation/form" class="bg-white border border-slate-200 hover:border-teal-500 hover:shadow-md transition-all rounded-xl p-4 flex items-center gap-4 group cursor-pointer shadow-sm">
+                                    <div class="w-12 h-12 rounded-xl bg-teal-50 group-hover:bg-teal-100 flex items-center justify-center text-teal-600 transition-colors">
+                                        <i class="fas fa-file-alt text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-sm font-bold text-slate-800 group-hover:text-teal-600">New Quotation</h3>
+                                        <p class="text-[11px] text-slate-400 font-medium mt-0.5">Solar & CCTV Proposals</p>
+                                    </div>
+                                </a>
+                                <a href="../stock/stock.html?new=1" class="bg-white border border-slate-200 hover:border-orange-500 hover:shadow-md transition-all rounded-xl p-4 flex items-center gap-4 group cursor-pointer shadow-sm">
+                                    <div class="w-12 h-12 rounded-xl bg-orange-50 group-hover:bg-orange-100 flex items-center justify-center text-orange-600 transition-colors">
+                                        <i class="fas fa-box text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-sm font-bold text-slate-800 group-hover:text-orange-600">Add Stock</h3>
+                                        <p class="text-[11px] text-slate-400 font-medium mt-0.5">Inbound Items</p>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Recent Activity Timeline -->
+                        <div class="flex-1 flex flex-col min-h-0">
+                            <div class="flex items-center justify-between mb-3 flex-shrink-0">
+                                <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Recent Activity Timeline</h2>
+                            </div>
+                            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex-1 min-h-0 flex flex-col">
+                                <div id="recent-activity" class="space-y-4 overflow-y-auto pr-1 flex-1">
+                                    <div class="flex flex-col items-center justify-center h-full py-12 text-slate-400 gap-3">
+                                        <i class="fas fa-spinner fa-spin text-2xl text-blue-500"></i>
+                                        <span class="text-xs font-semibold">Loading recent activity...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Right Column (Attention Required Alerts) -->
+                    <div class="space-y-6">
+                        
+
+                        <!-- Secondary Stats / Workspace Metadata -->
+                        <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Performance & Scope</h2>
+                            <hr class="border-slate-100 mb-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Conversion Rate</span>
+                                    <span id="conversion-rate" class="text-lg font-bold text-slate-750 block mt-0.5">0%</span>
+                                    <span class="text-[9px] text-slate-400 block">Quotation → Project</span>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Total Customers</span>
+                                    <span id="customer-count" class="text-lg font-bold text-slate-750 block mt-0.5">0</span>
+                                    <span class="text-[9px] text-slate-400 block" id="customer-types-subtext">0 B2B | 0 B2C</span>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Active Projects</span>
+                                    <span id="project-count" class="text-lg font-bold text-slate-750 block mt-0.5">0</span>
+                                    <span class="text-[9px] text-slate-400 block">Total Pipeline</span>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Services</span>
+                                    <span id="remaining-services-count" class="text-lg font-bold text-slate-750 block mt-0.5">0</span>
+                                    <span class="text-[9px] text-slate-400 block">Remaining Today</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div id="pending-tasks" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <!-- Tasks will be loaded dynamically -->
-                <div class="col-span-3 text-center text-gray-500 py-8">
-                    <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
-                    <p>Loading pending tasks...</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Performance Metrics -->
-        <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
-            <div class="flex items-center gap-3 mb-6">
-                <i class="fas fa-chart-line text-green-600 text-2xl"></i>
-                <h2 class="text-xl font-semibold text-gray-800">This Month vs Last Month</h2>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <!-- Revenue Comparison -->
-                <div class="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-sm font-medium text-gray-700">Revenue</span>
-                        <i class="fas fa-rupee-sign text-green-600"></i>
-                    </div>
-                    <p id="revenue-current" class="text-2xl font-bold text-gray-800 mb-1">₹0</p>
-                    <div class="flex items-center gap-2">
-                        <span id="revenue-trend" class="text-sm font-semibold text-green-600">
-                            <i class="fas fa-arrow-up"></i> 0%
-                        </span>
-                        <span class="text-xs text-gray-600">vs last month</span>
-                    </div>
-                </div>
-
-                <!-- Projects Comparison -->
-                <div class="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-sm font-medium text-gray-700">Projects</span>
-                        <i class="fas fa-project-diagram text-blue-600"></i>
-                    </div>
-                    <p id="projects-current" class="text-2xl font-bold text-gray-800 mb-1">0</p>
-                    <div class="flex items-center gap-2">
-                        <span id="projects-trend" class="text-sm font-semibold text-blue-600">
-                            <i class="fas fa-arrow-up"></i> 0%
-                        </span>
-                        <span class="text-xs text-gray-600">vs last month</span>
-                    </div>
-                </div>
-
-                <!-- Quotations Comparison -->
-                <div class="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-sm font-medium text-gray-700">Quotations</span>
-                        <i class="fas fa-file-alt text-purple-600"></i>
-                    </div>
-                    <p id="quotations-current" class="text-2xl font-bold text-gray-800 mb-1">0</p>
-                    <div class="flex items-center gap-2">
-                        <span id="quotations-trend" class="text-sm font-semibold text-purple-600">
-                            <i class="fas fa-arrow-up"></i> 0%
-                        </span>
-                        <span class="text-xs text-gray-600">vs last month</span>
-                    </div>
-                </div>
-
-                <!-- Conversion Rate -->
-                <div class="p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border border-orange-200">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-sm font-medium text-gray-700">Conversion</span>
-                        <i class="fas fa-percentage text-orange-600"></i>
-                    </div>
-                    <p id="conversion-rate" class="text-2xl font-bold text-gray-800 mb-1">0%</p>
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs text-gray-600">Quotation → Project</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-    </main>
+        </main>
+    </div>
 
     <!-- Scripts -->
     <!-- Shared utilities -->
-    <script src="../js/shared/utils.js"></script>
-    <script src="../js/shared/calculations.js"></script>
-    <script src="../js/shared/ipc.js"></script>
+    <script src="../../dist/public/ts/shared/core/utils.js"></script>
+    <script src="../../dist/public/ts/shared/documents/calculations.js"></script>
+    <script src="../../dist/public/ts/shared/core/ipc.js"></script>
 
     <!-- Shared scripts -->
-    <script src="../js/shared/globalScript.js"></script>
+    <script src="../../dist/public/ts/shared/core/globalScript.js"></script>
+    <script src="../../dist/public/ts/shared/core/globalSearch.js"></script>
 
-    <!-- Module-specific scripts -->
-    <script src="./dashboard.js"></script>
+    <!-- Ctrl+K shortcut to focus global search -->
+    <script>
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                var inp = document.getElementById('global-search-input');
+                if (inp) { inp.focus(); inp.select(); }
+            }
+        });
+    </script>
+
+    <!-- Dashboard module scripts (compiled from TypeScript) -->
+    <script src="../../dist/public/dashboard/src/types/dashboard.types.js"></script>
+    <script src="../../dist/public/dashboard/src/services/dashboardApi.js"></script>
+    <script src="../../dist/public/dashboard/src/utils/dashboardUtils.js"></script>
+    <script src="../../dist/public/dashboard/src/components/dashboardUI.js"></script>
+    <script src="../../dist/public/dashboard/src/main.js"></script>
 </body>
 
 </html>

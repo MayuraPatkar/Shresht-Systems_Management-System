@@ -13,6 +13,80 @@
     <link rel="stylesheet" href="../css/shared/cardTableStyles.css">
     <link rel="stylesheet" href="../css/eWayBill.css">
     <title>E-Way Bill</title>
+    <style>
+        /* Status Filter Tabs Styling */
+        .filter-tab {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: #64748b; /* slate-500 */
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+            gap: 0.25rem;
+            outline: none;
+            border-radius: 0.5rem; /* rounded-lg */
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .filter-tab:hover:not(.active) {
+            color: #334155; /* slate-700 */
+            background: #f1f5f9; /* slate-100 */
+        }
+
+        .filter-tab.active {
+            color: #2563eb; /* blue-600 */
+            background: #eff6ff; /* blue-50 */
+        }
+
+        /* Scrollable table body with fixed table header (scrollbar starts below header) */
+        .hidden.md\:block.overflow-y-auto {
+            overflow-y: hidden !important;
+        }
+
+        .hidden.md\:block.overflow-y-auto table {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .hidden.md\:block.overflow-y-auto thead {
+            display: block;
+            flex-shrink: 0;
+            overflow-y: auto;
+            scrollbar-gutter: stable;
+        }
+
+        .hidden.md\:block.overflow-y-auto tbody {
+            display: block;
+            overflow-y: auto;
+            flex-grow: 1;
+            scrollbar-gutter: stable;
+        }
+
+        .hidden.md\:block.overflow-y-auto tr {
+            display: flex;
+            width: 100%;
+        }
+
+        .hidden.md\:block.overflow-y-auto th,
+        .hidden.md\:block.overflow-y-auto td {
+            min-width: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .col-date { flex: 1.0; justify-content: flex-start; text-align: left; }
+        .col-ewaybill-no { flex: 1.5; justify-content: flex-start; text-align: left; }
+        .col-invoice-id { flex: 1.2; justify-content: flex-start; text-align: left; }
+        .col-customer { flex: 1.8; justify-content: flex-start; text-align: left; min-width: 0; }
+        .col-deleted-date { flex: 1.2; justify-content: flex-start; text-align: left; }
+        .col-status { flex: 1.2; justify-content: center; text-align: center; }
+        .col-total { flex: 1.2; justify-content: flex-end; text-align: right; }
+        .col-actions { flex: 1.5; justify-content: flex-end; text-align: right; }
+    </style>
 </head>
 
 <body class="bg-gray-100">
@@ -24,34 +98,48 @@
                 <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
                 <h1 class="text-xl font-bold text-gray-800">E-Way Bill</h1>
             </div>
-            <div class="flex items-center gap-4 flex-1 max-w-xl mx-8">
-                <div class="relative flex-1">
-                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" id="search-input" placeholder="Search e-way bills..."
-                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                </div>
-                <button id="filter-btn" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300">
-                    <i class="fas fa-filter"></i>
-                </button>
-            </div>
+
             <div class="flex items-center gap-3">
                 <button id="new-waybill-btn"
-                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
+                    class="bg-blue-600 text-white px-4 h-10 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium text-sm transition-all duration-150 active:scale-95 cursor-pointer shadow-sm">
                     <i class="fas fa-plus"></i>
                     New E-Way Bill
                 </button>
+                <button id="bulk-restore-btn"
+                    class="hidden bg-emerald-600 hover:bg-emerald-700 text-white px-4 h-10 rounded-lg items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
+                    title="Restore All Filtered">
+                    <i class="fas fa-trash-restore"></i>
+                    <span>Restore All Filtered</span>
+                </button>
+                <button id="bulk-delete-btn"
+                    class="hidden bg-rose-600 hover:bg-rose-700 text-white px-4 h-10 rounded-lg items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
+                    title="Delete All Filtered">
+                    <i class="fas fa-trash-alt"></i>
+                    <span>Delete All Filtered</span>
+                </button>
+                <button id="showDeletedBtn"
+                    class="bg-gray-200 text-gray-700 w-10 h-10 rounded-lg flex items-center justify-center hover:bg-gray-300 transition-all cursor-pointer shadow-sm animate-fade-in"
+                    title="View Trash">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
                 <button id="view-preview"
-                    class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 flex items-center gap-2 font-medium"
+                    class="bg-purple-600 text-white px-4 h-10 rounded-lg hover:bg-purple-700 flex items-center gap-2 font-medium text-sm transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
                     style="display: none;">
                     <i class="fas fa-eye"></i>
                     View Preview
                 </button>
                 <button id="home-btn"
-                    class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium">
+                    class="bg-gray-600 text-white px-4 h-10 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium text-sm transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    style="display: none;">
                     <i class="fas fa-home"></i>
                     Home
                 </button>
-                <button id="shortcuts-btn" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300"
+                <button id="refresh-btn"
+                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    title="Refresh List">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button id="shortcuts-btn" class="bg-gray-200 text-gray-700 w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-300 transition-all cursor-pointer"
                     title="Keyboard Shortcuts (?)">
                     <i class="fas fa-keyboard"></i>
                 </button>
@@ -59,19 +147,31 @@
         </div>
     </header>
 
-    <!-- Sidebar -->
-    <aside class="sidebar fixed top-0 left-0 bg-white h-screen flex flex-col border-r border-gray-200 pt-24 no-select">
+    <!-- Layout Wrapper -->
+    <div class="flex pt-24 h-screen w-full overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar bg-white h-full flex flex-col border-r border-gray-200 no-select flex-shrink-0">
         <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
             <div class="flex flex-col gap-2">
-                <a href="#"
+                <a href="/dashboard" id="dashboard"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-th-large w-8 text-center"></i>
                     <span>Dashboard</span>
+                </a>
+                <a href="/customer" id="customer"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-users w-8 text-center"></i>
+                    <span>Customers</span>
                 </a>
                 <a href="../quotation/quotation.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-file-alt w-8 text-center"></i>
                     <span>Quotation</span>
+                </a>
+                <a href="/supplier" id="supplier"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-truck w-8 text-center"></i>
+                    <span>Suppliers</span>
                 </a>
                 <a href="../purchaseOrder/purchaseOrder.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
@@ -92,6 +192,16 @@
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
                     <i class="fas fa-wrench w-8 text-center"></i>
                     <span>Service</span>
+                </a>
+                <a href="../purchase/purchase.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold" id="purchaseOnly">
+                    <i class="fas fa-shopping-bag w-8 text-center"></i>
+                    <span>Purchases</span>
+                </a>
+                <a href="../payment/payment.html"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-money-bill-wave w-8 text-center"></i>
+                    <span>Payments</span>
                 </a>
                 <a href="../stock/stock.html"
                     class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
@@ -122,513 +232,173 @@
         </nav>
     </aside>
 
-    <!-- Main Content -->
-    <main class="ml-[280px] pt-24 mt-6 p-8">
+        <!-- Main Content -->
+        <main class="flex-grow overflow-hidden flex flex-col h-[calc(100vh-6rem)]">
 
         <!-- Home View - Way Bills List -->
-        <div id="home">
-            <div class="records grid grid-cols-1 gap-4">
-                <!-- content will be loaded dynamically -->
-            </div>
-        </div>
-
-        <!-- New/Edit Way Bill Form -->
-        <div id="new">
-            <form id="waybill-form" class="max-w-5xl mx-auto">
-
-                <!-- Step 1: Import from Invoice -->
-                <div class="steps active" id="step-1">
-                    <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
-                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-                            <i class="fas fa-file-import text-blue-600 text-2xl"></i>
-                            <h2 class="text-2xl font-semibold text-gray-800">Import Data from Invoice</h2>
-                        </div>
-                        <div class="space-y-4">
-                            <div>
-                                <label for="invoice-id" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-hashtag text-gray-500 mr-1"></i>Invoice ID<span
-                                        class="text-red-500">*</span>
-                                </label>
-                                <input type="text" id="invoice-id" placeholder="Enter invoice ID to import data"
-                                    required
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 2: E-Way Bill Details -->
-                <div class="steps" id="step-2">
-                    <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
-                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-                            <i class="fas fa-file-alt text-green-600 text-2xl"></i>
-                            <h2 class="text-2xl font-semibold text-gray-800">E-Way Bill Details</h2>
-                        </div>
-                        <div class="space-y-4">
-                            <div>
-                                <label for="ewaybill-no" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-barcode text-gray-500 mr-1"></i>E-Way Bill Number<span
-                                        class="text-red-500">*</span>
-                                </label>
-                                <input type="text" id="ewaybill-no"
-                                    placeholder="Enter e-way bill number (from government portal)" required
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                            </div>
-                            <div>
-                                <label for="ewaybill-status" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-info-circle text-gray-500 mr-1"></i>Status
-                                </label>
-                                <select id="ewaybill-status"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white">
-                                    <option value="Draft" selected>Draft</option>
-                                    <option value="Generated">Generated</option>
-                                    <option value="Cancelled">Cancelled</option>
-                                    <option value="Expired">Expired</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="waybill-date" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-calendar-alt text-gray-500 mr-1"></i>E-Way Bill Date
-                                </label>
-                                <input type="date" id="waybill-date"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 3: Address Details -->
-                <div class="steps" id="step-3">
-                    <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
-                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-                            <i class="fas fa-map-marked-alt text-purple-600 text-2xl"></i>
-                            <h2 class="text-2xl font-semibold text-gray-800">Address Details</h2>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label for="from-address" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-warehouse text-gray-500 mr-1"></i>From Address <span
-                                        class="text-red-500">*</span>
-                                </label>
-                                <textarea id="from-address" required rows="4"
-                                    placeholder="Enter dispatch/origin address"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"></textarea>
-                            </div>
-                            <div>
-                                <label for="to-address" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>To Address <span
-                                        class="text-red-500">*</span>
-                                </label>
-                                <textarea id="to-address" required rows="4"
-                                    placeholder="Enter destination/delivery address"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"></textarea>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 4: Transportation Details -->
-                <div class="steps" id="step-4">
-                    <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
-                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-                            <i class="fas fa-truck text-orange-600 text-2xl"></i>
-                            <h2 class="text-2xl font-semibold text-gray-800">Transportation Details</h2>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label for="transport-mode" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-road text-gray-500 mr-1"></i>Transportation Mode <span
-                                        class="text-red-500">*</span>
-                                </label>
-                                <select id="transport-mode" required
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white">
-                                    <option value="Road" selected>Road</option>
-                                    <option value="Rail">Rail</option>
-                                    <option value="Air">Air</option>
-                                    <option value="Ship">Ship</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="vehicle-number" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-id-card text-gray-500 mr-1"></i>Vehicle Number
-                                </label>
-                                <input type="text" id="vehicle-number" placeholder="Enter vehicle number"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
-                            </div>
-                            <div>
-                                <label for="transporter-id" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-id-badge text-gray-500 mr-1"></i>Transporter ID
-                                </label>
-                                <input type="text" id="transporter-id" placeholder="Enter transporter GSTIN/ID"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
-                            </div>
-                            <div>
-                                <label for="transporter-name" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-user text-gray-500 mr-1"></i>Transporter Name
-                                </label>
-                                <input type="text" id="transporter-name" placeholder="Enter transporter name"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
-                            </div>
-                            <div>
-                                <label for="distance-km" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-tachometer-alt text-gray-500 mr-1"></i>Distance (km)
-                                </label>
-                                <input type="number" id="distance-km" placeholder="Enter approximate distance" min="0"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 5: Item List -->
-                <div class="steps" id="step-5">
-                    <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
-                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-                            <i class="fas fa-list text-teal-600 text-2xl"></i>
-                            <h2 class="text-2xl font-semibold text-gray-800">Item List</h2>
-                        </div>
-
-                        <!-- Column Headers -->
-                        <div class="items-header">
-                            <div class="header-drag"></div>
-                            <div class="header-number">#</div>
-                            <div class="header-field description">Description</div>
-                            <div class="header-field hsn">HSN/SAC</div>
-                            <div class="header-field qty">Qty</div>
-                            <div class="header-field rate">Unit Price</div>
-                            <div class="header-field rate">GST Rate (%)</div>
-                            <div class="header-action"></div>
-                        </div>
-
-                        <!-- Items Container for Cards -->
-                        <div id="items-container"></div>
-
-                        <div class="overflow-x-auto">
-                            <table id="items-table" class="w-full border border-gray-300 rounded-lg">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th
-                                            class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                            S. No</th>
-                                        <th
-                                            class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                            Description</th>
-                                        <th
-                                            class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                            HSN/SAC</th>
-                                        <th
-                                            class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                            Qty</th>
-                                        <th
-                                            class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                            Unit Price</th>
-                                        <th
-                                            class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                            GST Rate (%)</th>
-                                        <th
-                                            class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                            Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Items will be dynamically added here -->
-                                </tbody>
-                            </table>
-                        </div>
-                        <button type="button" id="add-item-btn"
-                            class="mt-4 bg-teal-600 text-white px-6 py-3 rounded-lg hover:bg-teal-700 flex items-center gap-2 font-medium">
-                            <i class="fas fa-plus"></i>
-                            Add Item
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Step 6: Preview -->
-                <div class="steps" id="step-6">
-                    <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200 fade-in">
-                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-                            <i class="fas fa-eye text-indigo-600 text-2xl"></i>
-                            <h2 class="text-2xl font-semibold text-gray-800">Preview</h2>
-                        </div>
-                        <div id="preview-content" class="mb-6">
-                            <!-- Preview will be dynamically generated -->
-                        </div>
-                        <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-200 justify-center">
-                            <button type="button" id="save-btn"
-                                class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 flex items-center gap-2 font-medium">
-                                <i class="fas fa-save"></i>
-                                Save
+        <!-- Home Section -->
+        <div id="home" class="flex-1 flex flex-col min-h-0">
+            <!-- Filter Tabs & E-Way Bill List -->
+            <section class="bg-white shadow-sm border border-slate-200 overflow-hidden flex-1 flex flex-col min-h-0">
+                <div class="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 bg-slate-50/50 flex-shrink-0">
+                    <div class="flex items-center gap-1">
+                        <!-- Status Tabs -->
+                        <div class="flex items-center gap-1.5 bg-slate-100/80 p-1 rounded-xl" id="status-tabs-container">
+                            <button class="list-tab filter-tab active" data-status="all">
+                                All
+                            </button>
+                            <button class="list-tab filter-tab" data-status="Draft">
+                                <i class="fas fa-file-alt mr-1"></i>Draft
+                            </button>
+                            <button class="list-tab filter-tab" data-status="Generated">
+                                <i class="fas fa-check-circle mr-1"></i>Generated
+                            </button>
+                            <button class="list-tab filter-tab" data-status="Cancelled">
+                                <i class="fas fa-times-circle mr-1"></i>Cancelled
+                            </button>
+                            <button class="list-tab filter-tab" data-status="Expired">
+                                <i class="fas fa-hourglass-end mr-1"></i>Expired
+                            </button>
+                            <button class="list-tab filter-tab" data-status="archived">
+                                <i class="fas fa-archive mr-1"></i>Archived
                             </button>
                         </div>
                     </div>
-                </div>
-
-                <!-- Navigation -->
-                <div class="bg-white rounded-lg shadow-md p-6 mt-6 border border-gray-200">
-                    <div class="flex items-center justify-between">
-                        <button type="button" id="prev-btn" disabled
-                            class="bg-gray-300 text-gray-600 px-6 py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-400 flex items-center gap-2">
-                            <i class="fas fa-arrow-left"></i>
-                            Previous
-                        </button>
-                        <div class="flex items-center gap-2">
-                            <i class="fas fa-stream text-blue-600"></i>
-                            <span id="step-indicator" class="text-lg font-semibold text-gray-700">Step 1 of 6</span>
+                    <!-- Search & Filter wrapper next to status filter -->
+                    <div class="flex items-center gap-3 max-w-md w-full" id="search-wrapper">
+                        <div class="relative flex-1">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" id="search-input" placeholder="Search by name, phone or email... (Ctrl+F)"
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white">
                         </div>
-                        <button type="button" id="next-btn"
-                            class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 flex items-center gap-2">
-                            Next
-                            <i class="fas fa-arrow-right"></i>
+                        <button id="filter-btn" class="bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 px-3 py-2 rounded-lg transition-all duration-150 flex items-center justify-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500/20 active:scale-95 cursor-pointer">
+                            <i class="fas fa-filter text-sm"></i>
                         </button>
                     </div>
                 </div>
-            </form>
+
+                <!-- Active Filters Info Bar -->
+                <div id="active-filters-info-bar" class="px-6 py-2.5 bg-slate-50 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 hidden text-xs transition-all duration-200 flex-shrink-0">
+                    <div class="flex flex-wrap items-center gap-1.5" id="active-filters-badges">
+                        <span class="font-bold text-slate-500 mr-1 flex items-center gap-1">
+                            <i class="fas fa-filter text-[10px]"></i> Active Filters:
+                        </span>
+                    </div>
+                    <button id="clear-all-filters-shortcut" class="text-blue-600 hover:text-blue-800 font-bold hover:underline flex items-center gap-1 cursor-pointer transition-all duration-150">
+                        <i class="fas fa-times-circle"></i> Clear All
+                    </button>
+                </div>
+
+                <div class="hidden md:block overflow-x-auto overflow-y-auto flex-1 min-h-0">
+                    <table class="w-full text-sm border-collapse select-none">
+                        <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
+                            <tr id="table-header-row" class="text-slate-700 border-b border-slate-200">
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider col-date">Date</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider col-ewaybill-no">E-Way Bill No</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider col-invoice-id">Invoice ID</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider col-customer">Customer</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider col-status">Status</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold tracking-wider col-total">Total Value</th>
+                            </tr>
+                        </thead>
+                        <tbody class="records text-xs" id="ewaybill-tbody">
+                            <tr>
+                                <td colspan="8" class="w-full px-4 py-12 flex flex-col items-center justify-center text-slate-400">
+                                    <i class="fas fa-spinner fa-spin text-3xl mb-2 text-blue-500"></i>
+                                    <p>Loading e-way bills...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile stacked layout (displayed only on mobile) -->
+                <div id="ewaybill-cards-mobile" class="block md:hidden space-y-3 p-4 bg-slate-50 overflow-y-auto flex-1 min-h-0">
+                    <!-- Cards will be populated dynamically by JavaScript -->
+                </div>
+            </section>
         </div>
 
-        <!-- View Way Bill Section -->
-        <div id="view" class="no-select">
-            <div id="project-details-view" class="w-full max-w-6xl mx-auto px-4 space-y-6">
 
-                <!-- E-Way Bill Details Card -->
-                <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
-                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                        <i class="fas fa-file-alt text-blue-600 text-xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">E-Way Bill Details</h2>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">E-Way Bill Number</span>
-                            <span class="text-gray-900 font-semibold" id="view-ewaybill-no">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Invoice ID</span>
-                            <span class="text-gray-900 font-semibold" id="view-invoice-id">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Status</span>
-                            <span class="text-gray-900 font-semibold" id="view-ewaybill-status">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Date</span>
-                            <span class="text-gray-900 font-semibold" id="view-waybill-date">-</span>
-                        </div>
-                    </div>
-                </section>
+    </main>
+    </div>
 
-                <!-- Address Details Card -->
-                <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
-                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                        <i class="fas fa-map-marked-alt text-purple-600 text-xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Address Details</h2>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">From Address</span>
-                            <span class="text-gray-900 font-semibold whitespace-pre-line"
-                                id="view-from-address">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">To Address</span>
-                            <span class="text-gray-900 font-semibold whitespace-pre-line" id="view-to-address">-</span>
-                        </div>
-                    </div>
-                </section>
+    <!-- Hidden input filters to store active states -->
+    <input type="hidden" id="date-filter" value="all">
+    <input type="hidden" id="status-filter" value="all">
+    <input type="hidden" id="sort-filter" value="date-desc">
 
-                <!-- Transportation Details Card -->
-                <section class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
-                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                        <i class="fas fa-truck text-orange-600 text-xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Transportation Details</h2>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Transport Mode</span>
-                            <span class="text-gray-900 font-semibold" id="view-transport-mode">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Vehicle Number</span>
-                            <span class="text-gray-900 font-semibold" id="view-vehicle-number">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Transporter ID</span>
-                            <span class="text-gray-900 font-semibold" id="view-transporter-id">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Transporter Name</span>
-                            <span class="text-gray-900 font-semibold" id="view-transporter-name">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Distance</span>
-                            <span class="text-gray-900 font-semibold" id="view-distance-km">-</span>
-                        </div>
-                    </div>
-                </section>
+    <!-- Filter Popover -->
+    <div id="filter-popover" class="fixed bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-40 hidden" style="width: 280px;">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold text-gray-800">Filter & Sort</h3>
+            <button id="clear-filters-btn" class="text-xs text-blue-600 hover:text-blue-800 font-semibold cursor-pointer">Clear All</button>
+        </div>
 
-                <!-- Item List Card -->
-                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
-                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                        <i class="fas fa-list text-teal-600 text-xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Item List</h2>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table id="view-items-table" class="w-full border border-gray-300 rounded-lg">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Sl. No</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b min-w-[250px]">
-                                        Description</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        HSN/SAC</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Qty</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Unit Price</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        GST Rate</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
-                                        Taxable Value</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Items will be dynamically filled -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Totals Card -->
-                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
-                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                        <i class="fas fa-calculator text-blue-600 text-xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Totals</h2>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Total Taxable Value</span>
-                            <span class="text-gray-900 font-bold text-lg" id="view-total-taxable">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">CGST</span>
-                            <span class="text-gray-900 font-bold text-lg" id="view-cgst">-</span>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <span class="block text-sm font-medium text-gray-600 mb-1">SGST</span>
-                            <span class="text-gray-900 font-bold text-lg" id="view-sgst">-</span>
-                        </div>
-                        <div class="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
-                            <span class="block text-sm font-medium text-blue-600 mb-1">Total Invoice Value</span>
-                            <span class="text-blue-900 font-bold text-xl" id="view-total-invoice">-</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Preview & Actions Card -->
-                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200 fade-in">
-                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
-                        <i class="fas fa-file-alt text-indigo-600 text-xl"></i>
-                        <h2 class="text-xl font-semibold text-gray-800">Document Preview</h2>
-                    </div>
-                    <div id="view-preview-content" class="mb-6">
-                        <!-- Preview content will be generated here -->
-                    </div>
-                    <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-200 justify-center">
-                        <button type="button" id="printProject"
-                            class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
-                            <i class="fas fa-print"></i>
-                            Print
-                        </button>
-                        <button type="button" id="saveProjectPDF"
-                            class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 flex items-center gap-2 font-medium">
-                            <i class="fas fa-file-pdf"></i>
-                            Save as PDF
-                        </button>
-                    </div>
-                </div>
+        <!-- Date Range Section -->
+        <div class="mb-4">
+            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Date Range</label>
+            <div id="dateFilterDropdown" class="flex flex-col gap-1">
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md bg-gray-100 font-semibold" data-date-filter="all">All Dates</a>
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-date-filter="today">Today</a>
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-date-filter="week">This Week</a>
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-date-filter="month">This Month</a>
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-date-filter="custom">Custom Range</a>
             </div>
         </div>
 
-    </main>
-
-    <!-- Filter Popover -->
-    <div id="filter-popover" class="fixed bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-40 hidden"
-        style="width: 280px;">
-        <h3 class="font-semibold text-gray-800 mb-3">Filter & Sort</h3>
-        <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
-            <select id="date-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                <option value="all">All Dates</option>
-                <option value="today">Today</option>
-                <option value="week">This Week</option>
-                <option value="month">This Month</option>
-                <option value="custom">Custom Range</option>
-            </select>
-        </div>
-        <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
-            <select id="sort-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                <option value="date-desc">Latest First</option>
-                <option value="date-asc">Oldest First</option>
-                <option value="status-asc">Status A-Z</option>
-            </select>
-        </div>
-        <div class="flex gap-2">
-            <button id="clear-filters-btn"
-                class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium text-sm">
-                Clear
-            </button>
-            <button id="apply-filters-btn"
-                class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm">
-                Apply
-            </button>
+        <!-- Sort By Section -->
+        <div class="mb-2">
+            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Sort By</label>
+            <div id="sortFilterDropdown" class="flex flex-col gap-1">
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md bg-gray-100 font-semibold" data-sort-filter="date-desc">Latest First</a>
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-sort-filter="date-asc">Oldest First</a>
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-sort-filter="status-asc">Status A-Z</a>
+            </div>
         </div>
     </div>
 
     <!-- Keyboard Shortcuts Modal -->
-    <div id="shortcuts-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
-        <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shortcuts-panel">
-            <div class="bg-blue-600 text-white px-6 py-4 rounded-t-lg flex items-center justify-between">
+    <div id="shortcuts-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-[999] flex items-center justify-center hidden opacity-0 transition-opacity duration-200" role="dialog" aria-modal="true" aria-label="Keyboard Shortcuts">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-2xl max-w-xl w-full mx-4 max-h-[85vh] overflow-hidden isolate shortcuts-panel flex flex-col">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-white/95 backdrop-blur-md z-10">
                 <div class="flex items-center gap-3">
-                    <i class="fas fa-keyboard text-2xl"></i>
-                    <h2 class="text-xl font-semibold">Keyboard Shortcuts</h2>
+                    <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+                        <i class="fas fa-keyboard text-lg"></i>
+                    </div>
+                    <h2 class="text-base font-extrabold text-slate-800 tracking-tight">Keyboard Shortcuts Help</h2>
                 </div>
-                <button id="close-shortcuts" class="text-white hover:text-gray-200" aria-label="Close shortcuts modal">
-                    <i class="fas fa-times text-xl"></i>
+                <button id="close-shortcuts" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-200" aria-label="Close shortcuts help modal">
+                    <i class="fas fa-times text-sm"></i>
                 </button>
             </div>
-            <div id="shortcuts-content" class="p-6 space-y-6"></div>
+            <div id="shortcuts-content" class="p-6 space-y-5 overflow-y-auto flex-1"></div>
         </div>
     </div>
 
     <!-- Scripts -->
     <!-- Shared utilities -->
-    <script src="../js/shared/utils.js"></script>
-    <script src="../js/shared/calculations.js"></script>
-    <script src="../js/shared/filterUtils.js"></script>
-    <script src="../js/shared/ipc.js"></script>
-    <script src="../js/shared/keyboardNavigation.js"></script>
-    <script src="../js/shared/documentManager.js"></script>
-    <script src="../js/shared/sectionRenderers.js"></script>
-    <script src="../js/shared/documentBuilder.js"></script>
-    <script src="../js/shared/itemReorder.js"></script>
+    <script src="../../dist/public/ts/shared/core/utils.js"></script>
+    <script src="../../dist/public/ts/shared/documents/calculations.js"></script>
+    <script src="../../dist/public/ts/shared/filters/filterUtils.js"></script>
+    <script src="../../dist/public/ts/shared/core/ipc.js"></script>
+    <script src="../../dist/public/ts/shared/core/keyboardNavigation.js"></script>
+    <script src="../../dist/public/ts/shared/documents/documentManager.js"></script>
+    <script src="../../dist/public/ts/shared/documents/sectionRenderers.js"></script>
+    <script src="../../dist/public/ts/shared/documents/documentBuilder.js"></script>
+    <script src="../../dist/public/ts/shared/documents/itemReorder.js"></script>
 
     <!-- Company config -->
-    <script src="../js/shared/companyConfig.js"></script>
+    <script src="../../dist/public/ts/shared/config/companyConfig.js"></script>
 
     <!-- Shared scripts -->
-    <script src="../js/shared/globalScript.js"></script>
+    <script src="../../dist/public/ts/shared/core/globalScript.js"></script>
 
     <!-- Module-specific scripts -->
-    <script src="/ewaybill/ewaybill_form.js"></script>
-    <script src="/ewaybill/ewaybill_home.js"></script>
-    <script src="/ewaybill/ewaybill_view.js"></script>
+    <script src="../../dist/public/ewaybill/src/types/ewaybill.types.js"></script>
+    <script src="../../dist/public/ewaybill/src/services/ewaybillApi.js"></script>
+    <script src="../../dist/public/ewaybill/src/components/ewaybillView.js"></script>
+    <script src="../../dist/public/ewaybill/src/main.js"></script>
 </body>
 
 </html>

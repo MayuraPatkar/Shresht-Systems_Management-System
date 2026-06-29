@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/tailwind.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <title>Vouchers</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        .hidden.md\:block.overflow-y-auto {
+            overflow-y: hidden !important;
+        }
+
+        .hidden.md\:block.overflow-y-auto table {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .hidden.md\:block.overflow-y-auto thead {
+            display: block;
+            flex-shrink: 0;
+            scrollbar-gutter: stable;
+        }
+
+        .hidden.md\:block.overflow-y-auto tbody {
+            display: block;
+            overflow-y: auto;
+            flex-grow: 1;
+            scrollbar-gutter: stable;
+        }
+
+        .hidden.md\:block.overflow-y-auto tr {
+            display: flex;
+            width: 100%;
+        }
+
+        .hidden.md\:block.overflow-y-auto th,
+        .hidden.md\:block.overflow-y-auto td {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        th:nth-child(1), td:nth-child(1) { flex: 1.0; }
+        th:nth-child(2), td:nth-child(2) { flex: 1.2; }
+        th:nth-child(3), td:nth-child(3) { flex: 1.2; }
+        th:nth-child(4), td:nth-child(4) { flex: 1.5; }
+        th:nth-child(5), td:nth-child(5) { flex: 1.0; }
+        th:nth-child(6), td:nth-child(6) { flex: 1.2; }
+        th:nth-child(7), td:nth-child(7) { flex: 1.5; }
+
+        input,
+        textarea,
+        select,
+        [contenteditable="true"] {
+            user-select: text !important;
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .sidebar {
+            width: 240px;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        main {
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        *::-webkit-scrollbar { width: 8px; height: 8px; }
+        *::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        *::-webkit-scrollbar-thumb { background: #2563eb; border-radius: 4px; background-clip: padding-box; border: 2px solid transparent; }
+        *::-webkit-scrollbar-thumb:hover { background: #1d4ed8; }
+
+        .stat-card {
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        .voucher-row {
+            transition: all 0.15s ease;
+            cursor: pointer;
+        }
+
+        .voucher-row:hover {
+            background: #f0f7ff;
+        }
+
+        .voucher-row:focus {
+            outline: 2px solid #2563eb;
+            outline-offset: -2px;
+            background: #eff6ff;
+        }
+
+        .badge-cash { background: #fef3c7; color: #d97706; }
+        .badge-upi { background: #e0e7ff; color: #4f46e5; }
+        .badge-bank { background: #dbeafe; color: #2563eb; }
+        .badge-cheque { background: #f3e8ff; color: #7c3aed; }
+
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .filter-tab {
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 0.5rem;
+        }
+
+        .filter-tab.active {
+            color: #2563eb;
+            background: #eff6ff;
+        }
+
+        .filter-tab:hover:not(.active) {
+            background: #f3f4f6;
+        }
+
+        button,
+        [role="button"] {
+            cursor: pointer !important;
+        }
+
+        /* Voucher preview Styles in New Modal */
+        .voucher-preview-container {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background-color: #fff;
+            padding: 20px;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #1e293b;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+
+    <!-- Fixed Header -->
+    <header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-30 h-24 flex items-center px-4">
+        <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-3">
+                <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
+                <h1 class="text-xl font-bold text-gray-800">Vouchers</h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <button id="home-btn"
+                    class="hidden bg-gray-600 text-white px-4 h-10 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium text-sm transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    title="Home (Ctrl+H)">
+                    <i class="fas fa-home"></i>
+                    Home
+                </button>
+                <button id="new-voucher-btn"
+                    class="bg-blue-600 text-white px-4 h-10 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium text-sm transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    title="New Voucher (Ctrl+N)">
+                    <i class="fas fa-plus"></i>
+                    New Voucher
+                </button>
+                <button id="refresh-btn"
+                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    title="Refresh Vouchers (Ctrl+R)">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button id="shortcuts-btn"
+                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    title="Keyboard Shortcuts (?)">
+                    <i class="fas fa-keyboard"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Layout Wrapper -->
+    <div class="flex pt-24 h-screen w-full overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar bg-white h-full flex flex-col border-r border-gray-200 flex-shrink-0 no-select">
+            <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
+                <!-- Sidebar contents populated dynamically by globalScript.ts -->
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-grow overflow-hidden flex flex-col h-[calc(100vh-6rem)]">
+
+            <!-- Home Section -->
+            <div id="home" class="flex-1 flex flex-col min-h-0 overflow-hidden">
+
+                <!-- Filter Tabs & Vouchers List -->
+                <section class="bg-white shadow-sm border border-slate-200 overflow-hidden flex-1 flex flex-col min-h-0">
+                    <div class="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 bg-slate-50/50 flex-shrink-0">
+                        <div class="flex items-center gap-1">
+                            <!-- Left: Payee Type Filters -->
+                            <div class="flex items-center gap-1.5 bg-slate-100/80 p-1 rounded-xl" id="party-type-filters">
+                                <button class="list-tab filter-tab active" data-party-type="">All</button>
+                                <button class="list-tab filter-tab" data-party-type="Customer">Customer</button>
+                                <button class="list-tab filter-tab" data-party-type="Supplier">Supplier</button>
+                                <button class="list-tab filter-tab" data-party-type="Other">Other</button>
+                            </div>
+                        </div>
+                        <!-- Search & Filter wrapper -->
+                        <div class="flex items-center gap-3 max-w-md w-full" id="search-wrapper">
+                            <div class="relative flex-1">
+                                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                <input type="text" id="search-input" placeholder="Search vouchers... (Ctrl+F)" autocomplete="off"
+                                    class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white">
+                                <!-- Search Suggestions List -->
+                                <ul id="search-suggestions" class="hidden absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-64 overflow-y-auto z-50">
+                                    <!-- Rendered dynamically -->
+                                </ul>
+                            </div>
+                            <button id="filter-btn" class="bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 px-3 py-2 rounded-lg transition-all duration-150 flex items-center justify-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500/20 active:scale-95 cursor-pointer" title="Open Filters (Ctrl+Shift+F)">
+                                <i class="fas fa-filter text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Active Filters Info Bar -->
+                    <div id="filter-chips-container" class="px-6 py-2.5 bg-slate-50 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 hidden text-xs transition-all duration-200 flex-shrink-0">
+                        <div class="flex flex-wrap items-center gap-1.5" id="chips-list">
+                            <span class="font-bold text-slate-500 mr-1 flex items-center gap-1">
+                                <i class="fas fa-filter text-[10px]"></i> Active Filters:
+                            </span>
+                        </div>
+                        <button id="clear-all-chips" class="text-blue-600 hover:text-blue-800 font-bold hover:underline flex items-center gap-1 cursor-pointer transition-all duration-150">
+                            <i class="fas fa-times-circle"></i> Clear All
+                        </button>
+                    </div>
+
+                    <div class="hidden md:block overflow-x-auto overflow-y-auto flex-1 min-h-0">
+                        <table class="w-full text-sm border-collapse">
+                            <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
+                                <tr class="text-slate-700 border-b border-slate-200">
+                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Date</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Voucher No</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Payee Type</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Payee Name</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Method</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Amount</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Paid Towards</th>
+                                </tr>
+                            </thead>
+                            <tbody id="voucher-tbody">
+                                <tr>
+                                    <td colspan="7" class="w-full px-4 py-12 flex flex-col items-center justify-center text-slate-400">
+                                        <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
+                                        <p>Loading vouchers...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Mobile layout -->
+                    <div id="voucher-cards-mobile" class="block md:hidden space-y-3 p-4 bg-slate-50 overflow-y-auto flex-1 min-h-0">
+                        <!-- Cards populated dynamically by JS -->
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- New Voucher / Preview Overlay Modal -->
+    <div id="voucher-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
+        <div class="modal-overlay absolute inset-0" id="voucher-modal-overlay"></div>
+        <div class="absolute inset-y-0 right-0 w-full max-w-5xl bg-gray-50 shadow-2xl flex flex-col h-full z-10">
+            <!-- Modal Header -->
+            <div class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white">
+                        <i class="fas fa-file-invoice-dollar text-lg"></i>
+                    </div>
+                    <div>
+                        <h2 id="voucher-modal-title" class="text-xl font-bold text-slate-800">New Payment Voucher</h2>
+                        <p class="text-xs text-slate-500">Create cash/bank payout voucher documentation</p>
+                    </div>
+                </div>
+                <button id="close-voucher-modal-btn" class="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content Grid (Form Left, Live Preview Right) -->
+            <div class="flex-grow flex min-h-0 overflow-hidden">
+                <!-- Left: Form Input -->
+                <div class="w-1/2 border-r border-slate-200 overflow-y-auto p-6 bg-white flex flex-col">
+                    <form id="voucher-form" class="space-y-4 flex-grow">
+                        <!-- Date & Auto Number Preview -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="v-form-date" class="block text-xs font-semibold text-slate-600 mb-1">Voucher Date <span class="text-red-500">*</span></label>
+                                <input type="date" id="v-form-date" name="date" required
+                                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label for="v-form-no" class="block text-xs font-semibold text-slate-600 mb-1">Voucher Number</label>
+                                <input type="text" id="v-form-no" readonly
+                                    class="w-full px-3 py-2 border border-slate-200 bg-slate-50 text-slate-500 rounded-lg text-sm"
+                                    placeholder="Generating...">
+                            </div>
+                        </div>
+
+                        <!-- Payee Type & Payee Name autocomplete input -->
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="col-span-1">
+                                <label for="v-form-party-type" class="block text-xs font-semibold text-slate-600 mb-1">Payee Type <span class="text-red-500">*</span></label>
+                                <select id="v-form-party-type" name="partyType" required
+                                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                                    <option value="Customer" selected>Customer</option>
+                                    <option value="Supplier">Supplier</option>
+                                    <option value="Other">Other (Manual)</option>
+                                </select>
+                            </div>
+                            <div class="col-span-2 relative z-30" id="v-party-search-container">
+                                <label for="v-form-party-name" class="block text-xs font-semibold text-slate-600 mb-1"><i class="fas fa-search text-gray-500 mr-1"></i>Search Recipient <span class="text-red-500">*</span></label>
+                                <input type="text" id="v-form-party-name" name="partyName" required autocomplete="off"
+                                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                    placeholder="Search by name, phone, email, or GSTIN...">
+                                <input type="hidden" id="v-form-party-id" name="partyId">
+                                <ul id="v-party-suggestions" class="suggestions hidden absolute top-full left-0 mt-1 z-50 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto"></ul>
+                            </div>
+                        </div>
+
+                        <div id="v-party-profile-card-container" class="mt-2 hidden"></div>
+
+                        <!-- Amount & Amount in Words row -->
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="col-span-1">
+                                <label for="v-form-amount" class="block text-xs font-semibold text-slate-600 mb-1">Amount (₹) <span class="text-red-500">*</span></label>
+                                <input type="number" id="v-form-amount" name="amount" step="0.01" min="0.01" required
+                                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                    placeholder="0.00">
+                            </div>
+                            <div class="col-span-2">
+                                <label for="v-form-words" class="block text-xs font-semibold text-slate-600 mb-1">Amount In Words</label>
+                                <input type="text" id="v-form-words" readonly
+                                    class="w-full px-3 py-2 border border-slate-200 bg-slate-50 text-slate-500 rounded-lg text-sm italic"
+                                    placeholder="Rupees Zero Only">
+                            </div>
+                        </div>
+
+                        <!-- Payment Method -->
+                        <div>
+                            <label for="v-form-method" class="block text-xs font-semibold text-slate-600 mb-1">Payment Method <span class="text-red-500">*</span></label>
+                            <select id="v-form-method" name="paymentMethod" required
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                                <option value="Cash" selected>Cash</option>
+                                <option value="UPI">UPI (Online GPay/PhonePe)</option>
+                                <option value="Bank Transfer">Bank Transfer (NEFT/IMPS)</option>
+                                <option value="Cheque">Cheque</option>
+                            </select>
+                        </div>
+
+                        <!-- Conditional inputs wrapper based on paymentMethod selected -->
+                        <div id="v-method-conditional-fields" class="space-y-3">
+                            <!-- Cheque fields (Hidden by default) -->
+                            <div id="v-field-cheque" class="hidden grid grid-cols-3 gap-3 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                                <div class="col-span-1">
+                                    <label for="v-form-cheque-no" class="block text-[11px] font-semibold text-slate-600 mb-1">Cheque No <span class="text-red-500">*</span></label>
+                                    <input type="text" id="v-form-cheque-no" class="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs bg-white focus:outline-none focus:border-blue-500">
+                                </div>
+                                <div class="col-span-1">
+                                    <label for="v-form-cheque-bank" class="block text-[11px] font-semibold text-slate-600 mb-1">Bank Name <span class="text-red-500">*</span></label>
+                                    <input type="text" id="v-form-cheque-bank" class="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs bg-white focus:outline-none focus:border-blue-500" placeholder="e.g. HDFC Bank">
+                                </div>
+                                <div class="col-span-1">
+                                    <label for="v-form-cheque-date" class="block text-[11px] font-semibold text-slate-600 mb-1">Cheque Date <span class="text-red-500">*</span></label>
+                                    <input type="date" id="v-form-cheque-date" class="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs bg-white focus:outline-none focus:border-blue-500">
+                                </div>
+                            </div>
+                            <!-- Bank Transfer fields (Hidden by default) -->
+                            <div id="v-field-bank" class="hidden grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                                <div>
+                                    <label for="v-form-bank-name" class="block text-[11px] font-semibold text-slate-600 mb-1">Bank Name <span class="text-red-500">*</span></label>
+                                    <input type="text" id="v-form-bank-name" class="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs bg-white focus:outline-none focus:border-blue-500" placeholder="e.g. ICICI Bank">
+                                </div>
+                                <div>
+                                    <label for="v-form-bank-ref" class="block text-[11px] font-semibold text-slate-600 mb-1">Transaction Ref / UTR <span class="text-red-500">*</span></label>
+                                    <input type="text" id="v-form-bank-ref" class="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs bg-white focus:outline-none focus:border-blue-500" placeholder="e.g. UTR1234567890">
+                                </div>
+                            </div>
+                            <!-- UPI fields (Hidden by default) -->
+                            <div id="v-field-upi" class="hidden bg-slate-50 p-3 rounded-lg border border-slate-200">
+                                <label for="v-form-upi-ref" class="block text-[11px] font-semibold text-slate-600 mb-1">UPI Ref No (UPI Transaction ID) <span class="text-red-500">*</span></label>
+                                <input type="text" id="v-form-upi-ref" class="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs bg-white focus:outline-none focus:border-blue-500" placeholder="e.g. UPI Ref Number">
+                            </div>
+                        </div>
+
+                        <!-- Paid Towards / Purpose -->
+                        <div>
+                            <label for="v-form-purpose" class="block text-xs font-semibold text-slate-600 mb-1">Paid Towards / Purpose of Payment <span class="text-red-500">*</span></label>
+                            <textarea id="v-form-purpose" name="paidTowards" required rows="2"
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 focus:outline-none resize-none"
+                                placeholder="Details e.g. Office Rent, Hardware Purchase, Transport charges, etc."></textarea>
+                        </div>
+                    </form>
+
+                    <!-- Save Action Row -->
+                    <div class="pt-4 border-t border-slate-200 mt-auto flex items-center justify-end gap-2 flex-shrink-0">
+                        <button type="button" id="v-form-cancel-btn" class="px-5 py-2 rounded-lg border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-100 transition-colors cursor-pointer">Cancel</button>
+                        <button type="button" id="v-form-submit-btn" class="px-6 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors shadow flex items-center gap-1.5 cursor-pointer">
+                            <i class="fas fa-check"></i> Create Voucher
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right: Document Live Preview & Document controls -->
+                <div class="w-1/2 bg-slate-100 p-6 flex flex-col overflow-y-auto">
+                    <div class="flex items-center justify-between mb-4 flex-shrink-0">
+                        <div class="text-slate-600 text-xs font-bold uppercase tracking-wider">Document Preview</div>
+                        <div class="flex items-center gap-1.5" id="v-preview-actions">
+                            <button id="v-btn-print" disabled class="px-3 py-1.5 text-xs bg-white text-slate-700 border border-slate-300 rounded-md font-semibold hover:bg-slate-50 flex items-center gap-1 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                <i class="fas fa-print"></i> Print
+                            </button>
+                            <button id="v-btn-pdf" disabled class="px-3 py-1.5 text-xs bg-white text-slate-700 border border-slate-300 rounded-md font-semibold hover:bg-slate-50 flex items-center gap-1 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                <i class="fas fa-file-pdf text-red-500"></i> PDF
+                            </button>
+                            <button id="v-btn-whatsapp" disabled class="px-3 py-1.5 text-xs bg-white text-slate-700 border border-slate-300 rounded-md font-semibold hover:bg-slate-50 flex items-center gap-1 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                <i class="fab fa-whatsapp text-emerald-500"></i> WhatsApp
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Live Document Box (styled to look like physical printed voucher paper) -->
+                    <div id="v-preview-doc-wrapper" class="flex-grow bg-white border border-slate-300 rounded-lg shadow-sm p-8 min-h-[500px]">
+                        <!-- Rendered by live script compiler -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keyboard Shortcuts Modal -->
+    <div id="shortcuts-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="modal-overlay absolute inset-0" id="shortcuts-overlay"></div>
+        <div class="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-md w-full relative p-6 z-10">
+            <h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">Keyboard Shortcuts</h3>
+            <div class="space-y-2 text-sm text-slate-600">
+                <div class="flex justify-between"><span>Ctrl + N</span><kbd class="px-2 py-0.5 bg-slate-100 border rounded font-semibold text-xs">New Voucher</kbd></div>
+                <div class="flex justify-between"><span>Ctrl + R</span><kbd class="px-2 py-0.5 bg-slate-100 border rounded font-semibold text-xs">Refresh List</kbd></div>
+                <div class="flex justify-between"><span>Ctrl + F</span><kbd class="px-2 py-0.5 bg-slate-100 border rounded font-semibold text-xs">Search Input</kbd></div>
+                <div class="flex justify-between"><span>Esc</span><kbd class="px-2 py-0.5 bg-slate-100 border rounded font-semibold text-xs">Close Modal</kbd></div>
+            </div>
+            <button id="close-shortcuts-btn" class="mt-6 w-full py-2 bg-slate-150 text-slate-800 rounded-lg hover:bg-slate-200 transition font-bold">Got it</button>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast"
+        class="fixed bottom-6 right-6 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg hidden z-50 flex items-center gap-2">
+        <i class="fas fa-check-circle"></i>
+        <span id="toast-message">Success!</span>
+    </div>
+
+    <!-- Filter Popover -->
+    <div id="filter-popover" class="fixed bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-40 hidden" style="width: 280px;">
+        <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+            <h3 class="font-semibold text-gray-800 text-sm flex items-center gap-1.5">
+                <i class="fas fa-filter text-blue-600"></i>Filter & Sort
+            </h3>
+            <button id="reset-filters" class="text-xs text-blue-600 hover:text-blue-800 font-semibold cursor-pointer">Clear All</button>
+        </div>
+
+        <div class="space-y-4 max-h-[400px] overflow-y-auto pr-1">
+            <!-- Date Range Section -->
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Date Range</label>
+                <div id="dateFilterDropdown" class="flex flex-col gap-1">
+                    <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md bg-gray-100 font-semibold" data-date-filter="all">All Dates</a>
+                    <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-date-filter="today">Today</a>
+                    <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-date-filter="week">This Week</a>
+                    <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-date-filter="month">This Month</a>
+                    <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-date-filter="quarter">This Quarter</a>
+                    <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-date-filter="year">This Year</a>
+                    <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-date-filter="custom">Custom Range</a>
+                </div>
+            </div>
+
+            <!-- Custom date range selectors -->
+            <div id="custom-date-inputs" class="hidden space-y-2 bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase">Start Date</label>
+                    <input type="date" id="start-date-filter" class="w-full px-2 py-1 border rounded text-xs bg-white focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase">End Date</label>
+                    <input type="date" id="end-date-filter" class="w-full px-2 py-1 border rounded text-xs bg-white focus:outline-none">
+                </div>
+            </div>
+
+            <!-- Payee Type Section -->
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Payee Type</label>
+                <div id="partyTypeFilterDropdown" class="flex flex-col gap-1">
+                    <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md bg-gray-100 font-semibold" data-party-type-filter="">All Payee Types</a>
+                    <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-party-type-filter="Customer">Customer</a>
+                    <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-party-type-filter="Supplier">Supplier</a>
+                    <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-party-type-filter="Other">Other</a>
+                </div>
+            </div>
+
+            <!-- Payment Method Section -->
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Payment Method</label>
+                <div id="modeFilterDropdown" class="flex flex-col gap-1">
+                    <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md bg-gray-100 font-semibold" data-mode-filter="">All Methods</a>
+                    <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-mode-filter="Cash">Cash</a>
+                    <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-mode-filter="UPI">UPI</a>
+                    <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-mode-filter="Bank Transfer">Bank Transfer</a>
+                    <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-mode-filter="Cheque">Cheque</a>
+                </div>
+            </div>
+
+            <!-- Amount Range Section -->
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Amount Range</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="number" id="amount-min-filter" placeholder="Min (₹)"
+                        class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                    <input type="number" id="amount-max-filter" placeholder="Max (₹)"
+                        class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden input filters to store active states -->
+    <input type="hidden" id="date-filter" value="all">
+    <input type="hidden" id="party-type-filter" value="">
+    <input type="hidden" id="mode-filter" value="">
+
+    <!-- Scripts -->
+    <script src="../../dist/public/ts/shared/core/utils.js"></script>
+    <script src="../../dist/public/ts/shared/config/companyConfig.js"></script>
+    <script src="../../dist/public/ts/shared/core/ipc.js"></script>
+    <script src="../../dist/public/ts/shared/core/globalScript.js"></script>
+    <script src="../../dist/public/ts/shared/core/validation.js"></script>
+    <script src="../../dist/public/ts/shared/filters/filterUtils.js"></script>
+    <script src="../../dist/public/voucher/src/types/voucher.types.js"></script>
+    <script src="../../dist/public/voucher/src/services/voucherApi.js"></script>
+    <script src="../../dist/public/voucher/src/main.js"></script>
+</body>
+
+</html>

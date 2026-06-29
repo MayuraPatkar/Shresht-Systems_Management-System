@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Management</title>
+    <link rel="stylesheet" href="../css/tailwind.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 240px;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        main {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .customer-card {
+            transition: all 0.3s ease;
+        }
+
+        .customer-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px !important;
+            height: 8px !important;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9 !important;
+            border-radius: 4px !important;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #2563eb !important;
+            border-radius: 4px !important;
+            background-clip: padding-box !important;
+            border: 2px solid transparent !important;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #1d4ed8 !important;
+        }
+
+        /* Make text unselectable globally except for inputs */
+        body {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        input,
+        textarea,
+        select,
+        [contenteditable="true"] {
+            user-select: text !important;
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+        }
+
+        button,
+        [role="button"] {
+            cursor: pointer !important;
+        }
+
+        /* Modern Premium Modal Improvements */
+        .modal-overlay {
+            background: rgba(15, 23, 42, 0.3);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .modal-card-premium {
+            border-radius: 12px;
+            box-shadow:
+                0 20px 40px -10px rgba(0, 0, 0, 0.12),
+                0 0 0 1px rgba(15, 23, 42, 0.05) !important;
+            border: 1px solid rgba(226, 232, 240, 0.8) !important;
+            animation: premiumModalShow 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes premiumModalShow {
+            from {
+                opacity: 0;
+                transform: scale(0.985);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Modern input styling */
+        .form-input-premium {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            color: #0f172a;
+            padding: 0.5rem 0.75rem;
+            transition: all 0.15s ease-in-out;
+        }
+
+        .form-input-premium::placeholder {
+            color: #94a3b8;
+        }
+
+        .form-input-premium:hover {
+            border-color: #cbd5e1;
+        }
+
+        .form-input-premium:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background-color: #ffffff;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.12);
+        }
+
+        .form-section-header {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #0f172a;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 0.375rem;
+            letter-spacing: 0.025em;
+        }
+
+        /* Integrated Custom Scrollbar for Modal Content */
+        .modal-scroll-container {
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+
+        .modal-scroll-container::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .modal-scroll-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .modal-scroll-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+            background-clip: padding-box;
+        }
+
+        .modal-scroll-container::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Premium Customer Card Styling */
+        .customer-card-premium {
+            border-radius: 16px;
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            background: #ffffff;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            padding: 1.25rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .customer-card-premium:hover {
+            transform: translateY(-3px);
+            box-shadow:
+                0 12px 30px rgba(15, 23, 42, 0.08),
+                0 0 0 1px rgba(37, 99, 235, 0.15);
+            border-color: rgba(37, 99, 235, 0.25);
+        }
+
+        .customer-card-premium:active {
+            transform: translateY(-1px);
+        }
+
+        .customer-card-premium.archived {
+            opacity: 0.65;
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            filter: grayscale(40%);
+        }
+
+        .customer-card-premium.archived:hover {
+            opacity: 0.9;
+            transform: none;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+            border-color: #94a3b8;
+            filter: none;
+        }
+
+        /* Status Filter Tabs Styling */
+        .filter-tab {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: #64748b; /* slate-500 */
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+            border-bottom: 2px solid transparent;
+            gap: 0.25rem;
+            outline: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .filter-tab:hover:not(.active) {
+            color: #334155; /* slate-700 */
+            background: #f8fafc; /* slate-50 */
+        }
+
+        .filter-tab.active {
+            color: #2563eb; /* blue-600 */
+            background: #eff6ff; /* blue-50 */
+            border-bottom-color: #2563eb;
+        }
+
+        /* Scrollable table body with fixed table header (scrollbar starts below header) */
+        .hidden.md\:block.overflow-y-auto {
+            overflow-y: hidden !important;
+        }
+
+        .hidden.md\:block.overflow-y-auto table {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .hidden.md\:block.overflow-y-auto thead {
+            display: block;
+            flex-shrink: 0;
+            scrollbar-gutter: stable;
+        }
+
+        .hidden.md\:block.overflow-y-auto tbody {
+            display: block;
+            overflow-y: auto;
+            flex-grow: 1;
+            scrollbar-gutter: stable;
+        }
+
+        .hidden.md\:block.overflow-y-auto tr {
+            display: flex;
+            width: 100%;
+        }
+
+        .hidden.md\:block.overflow-y-auto th,
+        .hidden.md\:block.overflow-y-auto td {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .hidden.md\:block.overflow-y-auto th:nth-child(1), .hidden.md\:block.overflow-y-auto td:nth-child(1) { flex: 1.2; }
+        .hidden.md\:block.overflow-y-auto th:nth-child(2), .hidden.md\:block.overflow-y-auto td:nth-child(2) { flex: 1.8; }
+        .hidden.md\:block.overflow-y-auto th:nth-child(3), .hidden.md\:block.overflow-y-auto td:nth-child(3) { flex: 1.8; }
+        .hidden.md\:block.overflow-y-auto th:nth-child(4), .hidden.md\:block.overflow-y-auto td:nth-child(4) { flex: 1.8; }
+        .hidden.md\:block.overflow-y-auto th:nth-child(5), .hidden.md\:block.overflow-y-auto td:nth-child(5) { flex: 1.2; }
+        .hidden.md\:block.overflow-y-auto th:nth-child(6), .hidden.md\:block.overflow-y-auto td:nth-child(6) { flex: 1.0; }
+        .hidden.md\:block.overflow-y-auto th:nth-child(7), .hidden.md\:block.overflow-y-auto td:nth-child(7) { flex: 1.5; }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+
+    <!-- Unified Header -->
+    <header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-30 h-24 flex items-center px-4">
+        <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-3">
+                <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
+                <h1 class="text-xl font-bold text-gray-800">Customer Management</h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <button id="add-customer-btn"
+                    class="bg-blue-600 text-white px-4 h-10 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium text-sm transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    title="Add Customer (Ctrl+N)">
+                    <i class="fas fa-plus"></i>
+                    Add Customer
+                </button>
+                <button id="bulk-restore-btn"
+                    class="hidden bg-emerald-600 hover:bg-emerald-700 text-white px-4 h-10 rounded-lg items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
+                    title="Restore All Filtered">
+                    <i class="fas fa-trash-restore"></i>
+                    <span>Restore All Filtered</span>
+                </button>
+                <button id="bulk-delete-btn"
+                    class="hidden bg-rose-600 hover:bg-rose-700 text-white px-4 h-10 rounded-lg items-center gap-2 font-semibold transition-all duration-150 active:scale-95 cursor-pointer shadow-sm text-sm"
+                    title="Delete All Filtered">
+                    <i class="fas fa-trash-alt"></i>
+                    <span>Delete All Filtered</span>
+                </button>
+                <button id="showDeletedBtn"
+                    class="bg-gray-200 text-gray-700 w-10 h-10 rounded-lg flex items-center justify-center hover:bg-gray-300 transition-all cursor-pointer shadow-sm animate-fade-in"
+                    title="View Trash">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+                <button id="refresh-btn"
+                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    title="Refresh List (Ctrl+R)">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button id="shortcuts-btn"
+                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    title="Keyboard Shortcuts (?)">
+                    <i class="fas fa-keyboard"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Layout Wrapper -->
+    <div class="flex pt-24 h-screen w-full overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar bg-white h-full flex flex-col border-r border-gray-200 no-select flex-shrink-0"
+            style="width: 240px;">
+        <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
+            <div class="flex flex-col gap-2">
+                <a href="/dashboard" id="dashboard"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-th-large w-8 text-center"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/customer" id="customer"
+                    class="flex items-center gap-5 p-6 text-xl text-blue-600 bg-blue-50 rounded-lg font-semibold">
+                    <i class="fas fa-users w-8 text-center"></i>
+                    <span>Customers</span>
+                </a>
+                <a href="/quotation" id="quotation"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-file-alt w-8 text-center"></i>
+                    <span>Quotation</span>
+                </a>
+                <a href="/supplier" id="supplier"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-truck w-8 text-center"></i>
+                    <span>Suppliers</span>
+                </a>
+                <a href="/purchaseorder" id="postOrder"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-shopping-cart w-8 text-center"></i>
+                    <span>Purchase Order</span>
+                </a>
+                <a href="/invoice" id="invoice"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-file-invoice-dollar w-8 text-center"></i>
+                    <span>Invoice</span>
+                </a>
+                <a href="/ewaybill" id="wayBill"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-route w-8 text-center"></i>
+                    <span>E-Way Bill</span>
+                </a>
+                <a href="/service" id="service"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-wrench w-8 text-center"></i>
+                    <span>Service</span>
+                </a>
+                <a href="/purchase" id="purchaseOnly"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-shopping-bag w-8 text-center"></i>
+                    <span>Purchases</span>
+                </a>
+                <a href="/payment" id="payment"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-money-bill-wave w-8 text-center"></i>
+                    <span>Payments</span>
+                </a>
+                <a href="/stock" id="stock"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-box w-8 text-center"></i>
+                    <span>Stock</span>
+                </a>
+                <a href="/comms" id="comms"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-comments w-8 text-center"></i>
+                    <span>Comms</span>
+                </a>
+                <a href="/reports" id="reports"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-chart-bar w-8 text-center"></i>
+                    <span>Reports</span>
+                </a>
+                <a href="/calculations" id="calculations"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-calculator w-8 text-center"></i>
+                    <span>Calculations</span>
+                </a>
+                <a href="/settings" id="settings"
+                    class="flex items-center gap-5 p-6 text-xl text-gray-600 rounded-lg hover:bg-gray-100 font-semibold">
+                    <i class="fas fa-cog w-8 text-center"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+        <!-- Main Content -->
+        <main class="flex-grow overflow-hidden flex flex-col h-[calc(100vh-6rem)]">
+
+        <!-- Customer Table Container -->
+        <div class="bg-white shadow-sm overflow-hidden flex-1 flex flex-col min-h-0">
+            <!-- Table Controls/Tabs Header -->
+            <div class="px-6 py-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 flex-shrink-0">
+                <div class="flex items-center justify-between md:justify-start gap-2 overflow-x-auto no-scrollbar scroll-smooth">
+                    <div class="flex items-center gap-1.5 bg-slate-100/80 p-1 rounded-xl">
+                        <button class="list-tab filter-tab active" data-status="">
+                            All
+                        </button>
+                        <button class="list-tab filter-tab" data-status="active">
+                            <i class="fas fa-check-circle mr-1"></i>Active
+                        </button>
+                        <button class="list-tab filter-tab" data-status="inactive">
+                            <i class="fas fa-times-circle mr-1"></i>Inactive
+                        </button>
+                        <button class="list-tab filter-tab" data-status="archived">
+                            <i class="fas fa-archive mr-1"></i>Archived
+                        </button>
+                    </div>
+                </div>
+                <!-- Search & Filter wrapper next to status filter -->
+                <div class="flex items-center gap-3 max-w-md w-full" id="search-wrapper">
+                    <div class="relative flex-1">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" id="customer-search" placeholder="Search by name, phone or email... (Ctrl+F)"
+                            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white">
+                    </div>
+                    <button id="filter-btn" class="bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 px-3 py-2 rounded-lg transition-all duration-150 flex items-center justify-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500/20 active:scale-95 cursor-pointer" title="Open Filters (Ctrl+Shift+F)">
+                        <i class="fas fa-filter text-sm"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Active Filters Info Bar -->
+            <div id="active-filters-info-bar" class="px-6 py-2.5 bg-slate-50 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 hidden text-xs transition-all duration-200 flex-shrink-0">
+                <div class="flex flex-wrap items-center gap-1.5" id="active-filters-badges">
+                    <span class="font-bold text-slate-500 mr-1 flex items-center gap-1">
+                        <i class="fas fa-filter text-[10px]"></i> Active Filters:
+                    </span>
+                </div>
+                <button id="clear-all-filters-shortcut" class="text-blue-600 hover:text-blue-800 font-bold hover:underline flex items-center gap-1 cursor-pointer transition-all duration-150">
+                    <i class="fas fa-times-circle"></i> Clear All
+                </button>
+            </div>
+
+            <!-- Desktop Table View -->
+            <div class="hidden md:block overflow-x-auto overflow-y-auto flex-1 min-h-0">
+                <table class="w-full text-sm border-collapse">
+                    <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
+                        <tr id="table-header-row" class="text-slate-700 border-b border-slate-200">
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Customer ID</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Name</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Contact Info</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Location</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Type</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="records text-xs" id="customer-list">
+                        <!-- Loading State -->
+                        <tr>
+                            <td colspan="7" class="w-full px-4 py-20 flex flex-col items-center justify-center text-gray-500">
+                                <i class="fas fa-spinner fa-spin text-4xl mb-4 text-blue-600"></i>
+                                <p class="text-xl">Loading customers...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile stacked layout (displayed only on mobile) -->
+            <div id="customer-cards-mobile" class="block md:hidden space-y-3 p-4 bg-slate-50 overflow-y-auto flex-1 min-h-0">
+                <!-- Cards will be populated dynamically by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Empty State (Hidden) -->
+        <div id="empty-state" class="hidden flex flex-col items-center justify-center min-h-[250px] text-gray-500 fade-in select-none">
+            <div class="text-purple-500 text-6xl mb-4">
+                <i class="fas fa-users"></i>
+            </div>
+            <p class="text-2xl font-bold text-gray-800">No Customers Found</p>
+            <p class="mt-2 text-gray-650">Try adjusting your search or filters</p>
+        </div>
+    </main>
+    </div>
+
+    <!-- Add/Edit Customer Modal -->
+    <div id="customer-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-slate-900/30 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white modal-card-premium w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden">
+                <!-- Modal Header -->
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0">
+                    <h2 id="modal-title" class="text-base font-semibold text-slate-900">Add New Customer</h2>
+                    <button id="close-modal"
+                        class="w-9 h-9 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all duration-150 focus:outline-none"
+                        aria-label="Close modal">
+                        <i class="fas fa-times text-base"></i>
+                    </button>
+                </div>
+                
+                <form id="customer-form" class="flex flex-col flex-1 min-h-0">
+                    <!-- Scrollable Form Container -->
+                    <div class="modal-scroll-container p-6 pr-8 space-y-5 flex-1">
+                        <input type="hidden" id="customer-id">
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                            <!-- Basic Info Section -->
+                            <div class="space-y-4">
+                                <h3 class="form-section-header">Basic Information</h3>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-[11px] font-medium text-slate-550 mb-1">First Name <span class="text-red-500">*</span></label>
+                                        <input type="text" name="customer.first_name" required
+                                            class="w-full px-3 py-2 form-input-premium">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-medium text-slate-550 mb-1">Last Name</label>
+                                        <input type="text" name="customer.last_name"
+                                            class="w-full px-3 py-2 form-input-premium">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-medium text-slate-550 mb-1">Phone Number <span class="text-red-500">*</span></label>
+                                    <input type="tel" name="customer.phone" required pattern="[0-9]{10}" maxlength="10"
+                                        title="Please enter a 10-digit phone number"
+                                        class="w-full px-3 py-2 form-input-premium">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-medium text-slate-550 mb-1">Email Address</label>
+                                    <input type="email" name="customer.email" class="w-full px-3 py-2 form-input-premium">
+                                </div>
+                            </div>
+
+                            <!-- Categorization & Status Section -->
+                            <div class="space-y-4">
+                                <h3 class="form-section-header">Categorization</h3>
+                                <div>
+                                    <label class="block text-[11px] font-medium text-slate-550 mb-1">Customer Type</label>
+                                    <select name="customer_type" class="w-full px-3 py-2 form-input-premium bg-white">
+                                        <option value="Individual">Individual</option>
+                                        <option value="Commercial">Commercial</option>
+                                        <option value="Government">Government</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-medium text-slate-550 mb-1">Alternate Phone</label>
+                                    <input type="tel" name="customer.alternate_phone" pattern="[0-9]{10}" maxlength="10"
+                                        title="Please enter a 10-digit phone number"
+                                        class="w-full px-3 py-2 form-input-premium">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-medium text-slate-550 mb-1">GST Number</label>
+                                    <input type="text" name="gstin" id="gstin-input" pattern="^[0-9a-zA-Z]{15}$"
+                                        maxlength="15" title="Please enter a valid 15-digit GSTIN (e.g. 29ABCDE1234F1Z5)"
+                                        class="w-full px-3 py-2 form-input-premium">
+                                </div>
+                                <input type="hidden" name="is_active" value="true">
+                            </div>
+
+                            <!-- Address Section -->
+                            <div class="md:col-span-2 space-y-4">
+                                <h3 class="form-section-header">Address Information</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-[11px] font-medium text-slate-550 mb-1">Address Line 1 <span class="text-red-500">*</span></label>
+                                        <input type="text" name="billing_address.line1"
+                                            class="w-full px-3 py-2 form-input-premium" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-medium text-slate-550 mb-1">Address Line 2</label>
+                                        <input type="text" name="billing_address.line2"
+                                            class="w-full px-3 py-2 form-input-premium">
+                                    </div>
+                                    <div class="grid grid-cols-5 gap-3 md:col-span-2">
+                                        <div class="col-span-2">
+                                            <label class="block text-[11px] font-medium text-slate-550 mb-1">City <span class="text-red-500">*</span></label>
+                                            <input type="text" name="billing_address.city"
+                                                class="w-full px-3 py-2 form-input-premium" required>
+                                        </div>
+                                        <div class="col-span-2">
+                                            <label class="block text-[11px] font-medium text-slate-550 mb-1">State <span class="text-red-500">*</span></label>
+                                            <select name="billing_address.state"
+                                                class="w-full px-3 py-2 form-input-premium bg-white" required>
+                                                <option value="Andhra Pradesh">Andhra Pradesh</option>
+                                                <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                                                <option value="Assam">Assam</option>
+                                                <option value="Bihar">Bihar</option>
+                                                <option value="Chhattisgarh">Chhattisgarh</option>
+                                                <option value="Goa">Goa</option>
+                                                <option value="Gujarat">Gujarat</option>
+                                                <option value="Haryana">Haryana</option>
+                                                <option value="Himachal Pradesh">Himachal Pradesh</option>
+                                                <option value="Jharkhand">Jharkhand</option>
+                                                <option value="Karnataka" selected>Karnataka</option>
+                                                <option value="Kerala">Kerala</option>
+                                                <option value="Madhya Pradesh">Madhya Pradesh</option>
+                                                <option value="Maharashtra">Maharashtra</option>
+                                                <option value="Manipur">Manipur</option>
+                                                <option value="Meghalaya">Meghalaya</option>
+                                                <option value="Mizoram">Mizoram</option>
+                                                <option value="Nagaland">Nagaland</option>
+                                                <option value="Odisha">Odisha</option>
+                                                <option value="Punjab">Punjab</option>
+                                                <option value="Rajasthan">Rajasthan</option>
+                                                <option value="Sikkim">Sikkim</option>
+                                                <option value="Tamil Nadu">Tamil Nadu</option>
+                                                <option value="Telangana">Telangana</option>
+                                                <option value="Tripura">Tripura</option>
+                                                <option value="Uttar Pradesh">Uttar Pradesh</option>
+                                                <option value="Uttarakhand">Uttarakhand</option>
+                                                <option value="West Bengal">West Bengal</option>
+                                                <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+                                                <option value="Chandigarh">Chandigarh</option>
+                                                <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar Haveli and Daman and Diu</option>
+                                                <option value="Delhi">Delhi</option>
+                                                <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                                                <option value="Ladakh">Ladakh</option>
+                                                <option value="Lakshadweep">Lakshadweep</option>
+                                                <option value="Puducherry">Puducherry</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-span-1">
+                                            <label class="block text-[11px] font-medium text-slate-550 mb-1">Pincode <span class="text-red-500">*</span></label>
+                                            <input type="text" name="billing_address.pincode" pattern="[0-9]{6}"
+                                                maxlength="6" title="Please enter a 6-digit pincode"
+                                                class="w-full px-3 py-2 form-input-premium" required>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Notes Section -->
+                            <div class="md:col-span-2 space-y-4">
+                                <h3 class="form-section-header">Notes / Additional Information</h3>
+                                <div>
+                                    <label class="block text-[11px] font-medium text-slate-550 mb-1">Notes / Remarks</label>
+                                    <textarea name="remarks" rows="3"
+                                        class="w-full px-3 py-2 form-input-premium resize-none"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Footer -->
+                    <div class="px-6 py-3 border-t border-slate-100 flex justify-end gap-2.5 bg-white flex-shrink-0">
+                        <button type="button" id="cancel-btn"
+                            class="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 font-medium hover:bg-slate-50 hover:text-slate-800 transition-all duration-150 focus:outline-none">Cancel</button>
+                        <button type="submit"
+                            class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 shadow-sm hover:shadow transition-all duration-150 focus:outline-none">Save Customer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden input filters to store active states -->
+    <input type="hidden" id="type-filter" value="">
+    <input type="hidden" id="status-filter" value="">
+
+    <!-- Filter Popover -->
+    <div id="filter-popover" class="fixed bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-40 hidden" style="width: 280px;">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold text-gray-800">Filter Customers</h3>
+            <button id="reset-filters" class="text-xs text-blue-600 hover:text-blue-800 font-semibold cursor-pointer">Clear All</button>
+        </div>
+
+        <!-- Customer Type Section -->
+        <div class="mb-2">
+            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Customer Type</label>
+            <div id="typeFilterDropdown" class="flex flex-col gap-1">
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md bg-gray-100 font-semibold" data-type-filter="">All Types</a>
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-type-filter="Commercial">Commercial</a>
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-type-filter="Individual">Individual</a>
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-type-filter="Government">Government</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../../dist/public/ts/shared/core/utils.js"></script>
+    <script src="../../dist/public/ts/shared/core/ipc.js"></script>
+    <script src="../../dist/public/ts/shared/core/globalScript.js"></script>
+    <script src="../../dist/public/ts/shared/core/validation.js"></script>
+    <!-- Customer module scripts (compiled from TypeScript) -->
+    <script src="../../dist/public/customer/src/types/customer.types.js"></script>
+    <script src="../../dist/public/customer/src/services/customerApi.js"></script>
+    <script src="../../dist/public/customer/src/components/customerTable.js"></script>
+    <script src="../../dist/public/customer/src/components/customerForms.js"></script>
+    <script src="../../dist/public/customer/src/main.js"></script>
+    <script src="../../dist/public/customer/src/utils/keyboardShortcuts.js"></script>
+</body>
+
+</html>

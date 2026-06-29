@@ -1,546 +1,359 @@
 [
   {
-    "_id": {
-      "$oid": "6952528070f7ec7156666ca4"
+    "schema_version": 1,
+    "invoice_no": "INV-SOL-1001",
+    "project_name": "5KW Rooftop Solar Installation",
+    "invoice_date": "2026-05-01T00:00:00.000Z",
+    "due_date": "2026-05-10T00:00:00.000Z",
+    "status": "SENT",
+    "invoice_status": "Issued",
+    "customer_snapshot": {
+      "name": "Rahul Enterprises",
+      "phone": "9876543210",
+      "email": "rahul@enterprise.com",
+      "gstin": "29ABCDE1234F1Z5",
+      "billing_address": {
+        "line1": "12 MG Road",
+        "city": "Bangalore",
+        "state": "Karnataka",
+        "pincode": "560001",
+        "country": "India"
+      }
     },
-    "quotation_id": "QUO25110500",
-    "invoice_id": "INV25110500",
-    "project_name": "3kW Rooftop Solar System",
-    "invoice_date": {
-      "$date": "2025-11-05T00:00:00.000Z"
-    },
-    "po_number": "PO-RSharma-001",
-    "po_date": "2025-11-01T00:00:00Z",
-    "Waybill_id": "WB-2526-001",
-    "customer_name": "Ravi Sharma",
-    "customer_address": "123, MG Road, Bangalore, 560001",
-    "customer_phone": "9876543210",
-    "customer_email": "ravi.sharma@example.com",
-    "consignee_name": "Ravi Sharma",
-    "consignee_address": "123, MG Road, Bangalore, 560001",
     "items_original": [
       {
-        "description": "Solar Panel 550W Mono PERC",
-        "HSN_SAC": "8541",
-        "quantity": 6,
-        "unit_price": 13500,
-        "rate": 12,
-        "_id": {
-          "$oid": "695252d33280bb94c60324e5"
-        }
-      },
-      {
-        "description": "3kW Grid-Tie Inverter",
-        "HSN_SAC": "8504",
-        "quantity": 1,
-        "unit_price": 22000,
-        "rate": 12,
-        "_id": {
-          "$oid": "695252d33280bb94c60324e6"
-        }
+        "description": "5KW Solar Panel",
+        "hsn_sac": "85414011",
+        "unit": "Nos",
+        "quantity": 10,
+        "unit_price": 15000,
+        "taxable_value": 150000,
+        "gst_rate": 18,
+        "discount_percent": 5,
+        "total": 168150
       }
     ],
-    "items_duplicate": [
-      {
-        "description": "Solar Panel 550W Mono PERC",
-        "HSN_SAC": "8541",
-        "quantity": 6,
-        "unit_price": 13500,
-        "rate": 12
-      },
-      {
-        "description": "3kW Grid-Tie Inverter",
-        "HSN_SAC": "8504",
-        "quantity": 1,
-        "unit_price": 22000,
-        "rate": 12
-      }
-    ],
-    "non_items_original": [
-      {
-        "description": "Installation & Commissioning",
-        "price": 15000,
-        "rate": 18,
-        "_id": {
-          "$oid": "695252d33280bb94c60324e7"
-        }
-      }
-    ],
-    "non_items_duplicate": [
-      {
-        "description": "Installation & Commissioning",
-        "price": 15000,
-        "rate": 18
-      }
-    ],
-    "total_amount_original": 133060,
-    "total_amount_duplicate": 133060,
-    "total_tax_original": 15060,
-    "total_tax_duplicate": 15060,
-    "total_paid_amount": 133460,
-    "payments": [
-      {
-        "payment_date": "2025-11-01T00:00:00Z",
-        "paid_amount": 66730,
-        "payment_mode": "Bank Transfer",
-        "extra_details": "NEFT: SBIN0001234 - 50% Advance"
-      },
-      {
-        "payment_date": "2025-11-05T00:00:00Z",
-        "paid_amount": 66730,
-        "payment_mode": "UPI",
-        "extra_details": "UPI ID: ravi.sharma@okbank - Final Payment"
-      }
-    ],
-    "payment_status": "Paid",
-    "createdAt": {
-      "$date": "2025-12-29T10:07:15.215Z"
+    "discount": 5,
+    "totals_original": {
+      "taxable_value": 150000,
+      "cgst": 13500,
+      "sgst": 13500,
+      "total_tax": 27000,
+      "round_off": 0,
+      "grand_total": 177000
     },
-    "updatedAt": {
-      "$date": "2025-12-29T10:07:15.215Z"
-    },
-    "__v": 1,
-    "dc_date": null,
-    "dc_number": "",
-    "margin": 0,
-    "service_month": 0,
-    "service_stage": 0
+    "remarks": "Solar installation completed",
+    "deletion": {
+      "is_deleted": false
+    }
   },
   {
-    "_id": {
-      "$oid": "6952528070f7ec7156666ca5"
+    "schema_version": 1,
+    "invoice_no": "INV-SEC-1002",
+    "project_name": "CCTV Security Setup",
+    "invoice_date": "2026-05-02T00:00:00.000Z",
+    "status": "SENT",
+    "invoice_status": "Issued",
+    "customer_snapshot": {
+      "name": "Safe Homes",
+      "phone": "9988776655",
+      "email": "contact@safehomes.com"
     },
-    "quotation_id": "QUO25110501",
-    "invoice_id": "INV25110501",
-    "project_name": "Office Security Camera Setup",
-    "invoice_date": {
-      "$date": "2025-11-05T00:00:00.000Z"
-    },
-    "Waybill_id": "WB-2526-002",
-    "customer_name": "Priya Fernandes",
-    "customer_address": "45, Colaba, Mumbai, 400005",
-    "customer_phone": "9988776655",
-    "customer_email": "priya.f@example.com",
-    "consignee_name": "Priya Fernandes",
-    "consignee_address": "45, Colaba, Mumbai, 400005",
     "items_original": [
       {
-        "description": "Wi-Fi Smart Camera 2MP",
-        "HSN_SAC": "8525",
-        "quantity": 4,
-        "unit_price": 2400,
-        "rate": 18,
-        "_id": {
-          "$oid": "695252cf3280bb94c60324be"
-        }
+        "description": "4MP CCTV Camera",
+        "hsn_sac": "85258020",
+        "unit": "Nos",
+        "quantity": 8,
+        "unit_price": 3500,
+        "taxable_value": 28000,
+        "gst_rate": 18,
+        "discount_percent": 0,
+        "total": 33040
       },
       {
-        "description": "8-Channel NVR",
-        "HSN_SAC": "8521",
+        "description": "DVR 8 Channel",
+        "hsn_sac": "85219090",
+        "unit": "Nos",
         "quantity": 1,
-        "unit_price": 6000,
-        "rate": 18,
-        "_id": {
-          "$oid": "695252cf3280bb94c60324bf"
-        }
-      },
-      {
-        "description": "1TB Surveillance HDD",
-        "HSN_SAC": "8471",
-        "quantity": 1,
-        "unit_price": 3200,
-        "rate": 18,
-        "_id": {
-          "$oid": "695252cf3280bb94c60324c0"
-        }
+        "unit_price": 8500,
+        "taxable_value": 8500,
+        "gst_rate": 18,
+        "discount_percent": 0,
+        "total": 10030
       }
     ],
-    "items_duplicate": [
-      {
-        "description": "Wi-Fi Smart Camera 2MP",
-        "HSN_SAC": "8525",
-        "quantity": 4,
-        "unit_price": 2400,
-        "rate": 18
-      },
-      {
-        "description": "8-Channel NVR",
-        "HSN_SAC": "8521",
-        "quantity": 1,
-        "unit_price": 6000,
-        "rate": 18
-      },
-      {
-        "description": "1TB Surveillance HDD",
-        "HSN_SAC": "8471",
-        "quantity": 1,
-        "unit_price": 3200,
-        "rate": 18
-      }
-    ],
-    "non_items_original": [
-      {
-        "description": "Installation & Configuration",
-        "price": 5000,
-        "rate": 18,
-        "_id": {
-          "$oid": "695252cf3280bb94c60324c1"
-        }
-      }
-    ],
-    "non_items_duplicate": [
-      {
-        "description": "Installation & Configuration",
-        "price": 5000,
-        "rate": 18
-      }
-    ],
-    "total_amount_original": 28084,
-    "total_amount_duplicate": 28084,
-    "total_tax_original": 4284,
-    "total_tax_duplicate": 4284,
-    "total_paid_amount": 14042,
-    "payments": [
-      {
-        "payment_date": "2025-11-04T00:00:00Z",
-        "paid_amount": 14042,
-        "payment_mode": "Bank Transfer",
-        "extra_details": "IMPS: 50% Advance"
-      }
-    ],
-    "payment_status": "Partial",
-    "createdAt": {
-      "$date": "2025-12-29T10:07:11.150Z"
+    "discount": 0,
+    "totals_original": {
+      "taxable_value": 36500,
+      "cgst": 3285,
+      "sgst": 3285,
+      "total_tax": 6570,
+      "grand_total": 43070
     },
-    "updatedAt": {
-      "$date": "2025-12-29T10:07:11.150Z"
-    },
-    "__v": 1,
-    "dc_date": null,
-    "dc_number": "",
-    "margin": 0,
-    "po_date": null,
-    "po_number": "",
-    "service_month": 0,
-    "service_stage": 0
+    "deletion": {
+      "is_deleted": false
+    }
   },
   {
-    "_id": {
-      "$oid": "6952528070f7ec7156666ca6"
+    "schema_version": 1,
+    "invoice_no": "INV-HOME-1003",
+    "project_name": "Kitchen Appliance Supply",
+    "invoice_date": "2026-05-03T00:00:00.000Z",
+    "status": "DRAFT",
+    "invoice_status": "Draft",
+    "customer_snapshot": {
+      "name": "Ananya Stores",
+      "phone": "9012345678",
+      "email": "ananya@stores.com"
     },
-    "quotation_id": "QUO25120100",
-    "invoice_id": "INV25120100",
-    "project_name": "Farmhouse Solar & Security",
-    "invoice_date": {
-      "$date": "2025-12-01T00:00:00.000Z"
-    },
-    "Waybill_id": "WB-2526-003",
-    "customer_name": "Arjun Reddy",
-    "customer_address": "22, Jubilee Hills, Hyderabad, 500033",
-    "customer_phone": "9123456789",
-    "customer_email": "arjun.reddy@example.com",
-    "consignee_name": "Arjun Reddy",
-    "consignee_address": "22, Jubilee Hills, Hyderabad, 500033",
     "items_original": [
       {
-        "description": "Solar Panel 550W Mono PERC",
-        "HSN_SAC": "8541",
-        "quantity": 4,
-        "unit_price": 13500,
-        "rate": 12,
-        "_id": {
-          "$oid": "695252ca3280bb94c603248f"
-        }
-      },
-      {
-        "description": "150Ah Solar Battery",
-        "HSN_SAC": "8507",
-        "quantity": 2,
-        "unit_price": 14000,
-        "rate": 18,
-        "_id": {
-          "$oid": "695252ca3280bb94c6032490"
-        }
-      },
-      {
-        "description": "Wi-Fi Smart Camera 2MP",
-        "HSN_SAC": "8525",
+        "description": "Microwave Oven",
+        "hsn_sac": "85166000",
+        "unit": "Nos",
         "quantity": 3,
-        "unit_price": 2400,
-        "rate": 18,
-        "_id": {
-          "$oid": "695252ca3280bb94c6032491"
-        }
+        "unit_price": 12000,
+        "taxable_value": 36000,
+        "gst_rate": 18,
+        "discount_percent": 10,
+        "total": 38232
       }
     ],
-    "items_duplicate": [
+    "discount": 10,
+    "totals_original": {
+      "taxable_value": 36000,
+      "cgst": 2916,
+      "sgst": 2916,
+      "total_tax": 5832,
+      "grand_total": 41832
+    },
+    "deletion": {
+      "is_deleted": false
+    }
+  },
+  {
+    "schema_version": 1,
+    "invoice_no": "INV-SOL-1004",
+    "project_name": "Solar Battery Backup",
+    "invoice_date": "2026-05-04T00:00:00.000Z",
+    "status": "SENT",
+    "invoice_status": "Issued",
+    "items_original": [
       {
-        "description": "Solar Panel 550W Mono PERC",
-        "HSN_SAC": "8541",
+        "description": "Lithium Solar Battery",
+        "hsn_sac": "85076000",
+        "unit": "Nos",
         "quantity": 4,
-        "unit_price": 13500,
-        "rate": 12
-      },
+        "unit_price": 22000,
+        "taxable_value": 88000,
+        "gst_rate": 18,
+        "discount_percent": 2,
+        "total": 101638
+      }
+    ],
+    "discount": 2,
+    "totals_original": {
+      "taxable_value": 88000,
+      "cgst": 7920,
+      "sgst": 7920,
+      "total_tax": 15840,
+      "grand_total": 103840
+    },
+    "deletion": {
+      "is_deleted": false
+    }
+  },
+  {
+    "schema_version": 1,
+    "invoice_no": "INV-SEC-1005",
+    "project_name": "Biometric Access Control",
+    "invoice_date": "2026-05-05T00:00:00.000Z",
+    "status": "CANCELLED",
+    "invoice_status": "Cancelled",
+    "items_original": [
       {
-        "description": "150Ah Solar Battery",
-        "HSN_SAC": "8507",
+        "description": "Fingerprint Scanner",
+        "hsn_sac": "84716090",
+        "unit": "Nos",
+        "quantity": 5,
+        "unit_price": 4500,
+        "taxable_value": 22500,
+        "gst_rate": 18,
+        "discount_percent": 0,
+        "total": 26550
+      }
+    ],
+    "discount": 0,
+    "totals_original": {
+      "taxable_value": 22500,
+      "cgst": 2025,
+      "sgst": 2025,
+      "total_tax": 4050,
+      "grand_total": 26550
+    },
+    "deletion": {
+      "is_deleted": false
+    }
+  },
+  {
+    "schema_version": 1,
+    "invoice_no": "INV-HOME-1006",
+    "project_name": "Smart TV Supply",
+    "invoice_date": "2026-05-06T00:00:00.000Z",
+    "status": "SENT",
+    "invoice_status": "Issued",
+    "items_original": [
+      {
+        "description": "55 Inch Smart TV",
+        "hsn_sac": "85287217",
+        "unit": "Nos",
         "quantity": 2,
-        "unit_price": 14000,
-        "rate": 18
-      },
-      {
-        "description": "Wi-Fi Smart Camera 2MP",
-        "HSN_SAC": "8525",
-        "quantity": 3,
-        "unit_price": 2400,
-        "rate": 18
+        "unit_price": 48000,
+        "taxable_value": 96000,
+        "gst_rate": 18,
+        "discount_percent": 5,
+        "total": 107616
       }
     ],
-    "non_items_original": [
-      {
-        "description": "System Integration Service",
-        "price": 10000,
-        "rate": 18,
-        "_id": {
-          "$oid": "695252ca3280bb94c6032492"
-        }
-      }
-    ],
-    "non_items_duplicate": [
-      {
-        "description": "System Integration Service",
-        "price": 10000,
-        "rate": 18
-      }
-    ],
-    "total_amount_original": 113816,
-    "total_amount_duplicate": 113816,
-    "total_tax_original": 14616,
-    "total_tax_duplicate": 14616,
-    "total_paid_amount": 0,
-    "payments": [],
-    "payment_status": "Unpaid",
-    "createdAt": {
-      "$date": "2025-12-29T10:07:06.501Z"
+    "discount": 5,
+    "totals_original": {
+      "taxable_value": 96000,
+      "cgst": 8640,
+      "sgst": 8640,
+      "total_tax": 17280,
+      "grand_total": 113280
     },
-    "updatedAt": {
-      "$date": "2025-12-29T10:07:06.501Z"
-    },
-    "__v": 1,
-    "dc_date": null,
-    "dc_number": "",
-    "margin": 0,
-    "po_date": null,
-    "po_number": "",
-    "service_month": 0,
-    "service_stage": 0
+    "deletion": {
+      "is_deleted": false
+    }
   },
   {
-    "_id": {
-      "$oid": "6952528070f7ec7156666ca7"
-    },
-    "quotation_id": "QUO25120101",
-    "invoice_id": "INV25120101",
-    "project_name": "10kW Commercial Solar Plant",
-    "invoice_date": {
-      "$date": "2025-12-01T00:00:00.000Z"
-    },
-    "po_number": "ME-PO-10045",
-    "po_date": "2025-11-02T00:00:00Z",
-    "Waybill_id": "WB-2526-004",
-    "customer_name": "Mehta Enterprises",
-    "customer_address": "77, GIDC, Vapi, Gujarat, 396195",
-    "customer_phone": "9898989898",
-    "customer_email": "accounts@mehtaent.com",
-    "consignee_name": "Mehta Enterprises",
-    "consignee_address": "77, GIDC, Vapi, Gujarat, 396195",
+    "schema_version": 1,
+    "invoice_no": "INV-SOL-1007",
+    "project_name": "Commercial Solar Grid Setup",
+    "invoice_date": "2026-05-07T00:00:00.000Z",
+    "status": "OVERDUE",
+    "invoice_status": "Expired",
     "items_original": [
       {
-        "description": "Solar Panel 550W Mono PERC",
-        "HSN_SAC": "8541",
-        "quantity": 18,
-        "unit_price": 13200,
-        "rate": 12,
-        "_id": {
-          "$oid": "695252c03280bb94c6032463"
-        }
-      },
-      {
-        "description": "10kW Grid-Tie Inverter",
-        "HSN_SAC": "8504",
-        "quantity": 1,
-        "unit_price": 75000,
-        "rate": 12,
-        "_id": {
-          "$oid": "695252c03280bb94c6032464"
-        }
+        "description": "Inverter 10KW",
+        "hsn_sac": "85044090",
+        "unit": "Nos",
+        "quantity": 2,
+        "unit_price": 65000,
+        "taxable_value": 130000,
+        "gst_rate": 18,
+        "discount_percent": 3,
+        "total": 148538
       }
     ],
-    "items_duplicate": [
-      {
-        "description": "Solar Panel 550W Mono PERC",
-        "HSN_SAC": "8541",
-        "quantity": 18,
-        "unit_price": 13200,
-        "rate": 12
-      },
-      {
-        "description": "10kW Grid-Tie Inverter",
-        "HSN_SAC": "8504",
-        "quantity": 1,
-        "unit_price": 75000,
-        "rate": 12
-      }
-    ],
-    "non_items_original": [
-      {
-        "description": "Installation & Liasioning",
-        "price": 53000,
-        "rate": 18,
-        "_id": {
-          "$oid": "695252c03280bb94c6032465"
-        }
-      }
-    ],
-    "non_items_duplicate": [
-      {
-        "description": "Installation & Liasioning",
-        "price": 53000,
-        "rate": 18
-      }
-    ],
-    "total_amount_original": 412652,
-    "total_amount_duplicate": 412652,
-    "total_tax_original": 47052,
-    "total_tax_duplicate": 47052,
-    "total_paid_amount": 412652,
-    "payments": [
-      {
-        "payment_date": "2025-11-03T00:00:00Z",
-        "paid_amount": 206326,
-        "payment_mode": "Bank Transfer",
-        "extra_details": "RTGS: HDFC0000123 - 50% Advance"
-      },
-      {
-        "payment_date": "2025-11-08T00:00:00Z",
-        "paid_amount": 206326,
-        "payment_mode": "Bank Transfer",
-        "extra_details": "RTGS: HDFC0000123 - 50% Final"
-      }
-    ],
-    "payment_status": "Paid",
-    "createdAt": {
-      "$date": "2025-12-29T10:06:56.601Z"
+    "discount": 3,
+    "totals_original": {
+      "taxable_value": 130000,
+      "cgst": 11700,
+      "sgst": 11700,
+      "total_tax": 23400,
+      "grand_total": 153400
     },
-    "updatedAt": {
-      "$date": "2025-12-29T10:06:56.601Z"
-    },
-    "__v": 2,
-    "dc_date": null,
-    "dc_number": "",
-    "margin": 0,
-    "service_month": 0,
-    "service_stage": 0
+    "deletion": {
+      "is_deleted": false
+    }
   },
   {
-    "_id": {
-      "$oid": "6952528070f7ec7156666ca8"
-    },
-    "quotation_id": "QUO25120500",
-    "invoice_id": "INV25120500",
-    "project_name": "Home CCTV System Upgrade",
-    "invoice_date": {
-      "$date": "2025-12-05T00:00:00.000Z"
-    },
-    "Waybill_id": "WB-2526-005",
-    "customer_name": "Sunita Rao",
-    "customer_address": "8, Anna Nagar, Chennai, 600040",
-    "customer_phone": "9765432109",
-    "customer_email": "sunitarao@example.com",
-    "consignee_name": "Sunita Rao",
-    "consignee_address": "8, Anna Nagar, Chennai, 600040",
+    "schema_version": 1,
+    "invoice_no": "INV-SEC-1008",
+    "project_name": "Office Security Alarm System",
+    "invoice_date": "2026-05-08T00:00:00.000Z",
+    "status": "SENT",
+    "invoice_status": "Issued",
     "items_original": [
       {
-        "description": "4MP ColorVu Dome Camera",
-        "HSN_SAC": "8525",
-        "quantity": 4,
-        "unit_price": 4200,
-        "rate": 18
-      },
-      {
-        "description": "8-Channel DVR",
-        "HSN_SAC": "8521",
-        "quantity": 1,
-        "unit_price": 5500,
-        "rate": 18
+        "description": "Wireless Alarm Kit",
+        "hsn_sac": "85311000",
+        "unit": "Nos",
+        "quantity": 6,
+        "unit_price": 7000,
+        "taxable_value": 42000,
+        "gst_rate": 18,
+        "discount_percent": 0,
+        "total": 49560
       }
     ],
-    "items_duplicate": [
-      {
-        "description": "4MP ColorVu Dome Camera",
-        "HSN_SAC": "8525",
-        "quantity": 4,
-        "unit_price": 4200,
-        "rate": 18,
-        "_id": {
-          "$oid": "695252ad3280bb94c603240b"
-        }
-      },
-      {
-        "description": "8-Channel DVR",
-        "HSN_SAC": "8521",
-        "quantity": 1,
-        "unit_price": 5500,
-        "rate": 18,
-        "_id": {
-          "$oid": "695252ad3280bb94c603240c"
-        }
-      }
-    ],
-    "non_items_original": [
-      {
-        "description": "Installation Service",
-        "price": 3500,
-        "rate": 18
-      }
-    ],
-    "non_items_duplicate": [
-      {
-        "description": "Installation Service",
-        "price": 3500,
-        "rate": 18,
-        "_id": {
-          "$oid": "695252ad3280bb94c603240d"
-        }
-      }
-    ],
-    "total_amount_original": 30444,
-    "total_amount_duplicate": 30444,
-    "total_tax_original": 4644,
-    "total_tax_duplicate": 4644,
-    "total_paid_amount": 10000,
-    "payments": [
-      {
-        "payment_date": "2025-11-05T00:00:00Z",
-        "paid_amount": 10000,
-        "payment_mode": "GPay",
-        "extra_details": "Advance for materials"
-      }
-    ],
-    "payment_status": "Partial",
-    "createdAt": {
-      "$date": "2025-12-29T10:06:37.740Z"
+    "discount": 0,
+    "totals_original": {
+      "taxable_value": 42000,
+      "cgst": 3780,
+      "sgst": 3780,
+      "total_tax": 7560,
+      "grand_total": 49560
     },
-    "updatedAt": {
-      "$date": "2025-12-29T10:06:37.740Z"
+    "deletion": {
+      "is_deleted": false
+    }
+  },
+  {
+    "schema_version": 1,
+    "invoice_no": "INV-HOME-1009",
+    "project_name": "Air Conditioner Supply",
+    "invoice_date": "2026-05-09T00:00:00.000Z",
+    "status": "DRAFT",
+    "invoice_status": "Draft",
+    "items_original": [
+      {
+        "description": "1.5 Ton Split AC",
+        "hsn_sac": "84151010",
+        "unit": "Nos",
+        "quantity": 4,
+        "unit_price": 38000,
+        "taxable_value": 152000,
+        "gst_rate": 28,
+        "discount_percent": 7,
+        "total": 181184
+      }
+    ],
+    "discount": 7,
+    "totals_original": {
+      "taxable_value": 152000,
+      "cgst": 21280,
+      "sgst": 21280,
+      "total_tax": 42560,
+      "grand_total": 194560
     },
-    "__v": 1,
-    "dc_date": null,
-    "dc_number": "",
-    "margin": 0,
-    "po_date": null,
-    "po_number": "",
-    "service_month": 0,
-    "service_stage": 0
+    "deletion": {
+      "is_deleted": false
+    }
+  },
+  {
+    "schema_version": 1,
+    "invoice_no": "INV-HOME-1010",
+    "project_name": "Washing Machine Delivery",
+    "invoice_date": "2026-05-10T00:00:00.000Z",
+    "status": "SENT",
+    "invoice_status": "Issued",
+    "items_original": [
+      {
+        "description": "Front Load Washing Machine",
+        "hsn_sac": "84501100",
+        "unit": "Nos",
+        "quantity": 2,
+        "unit_price": 32000,
+        "taxable_value": 64000,
+        "gst_rate": 18,
+        "discount_percent": 4,
+        "total": 72550
+      }
+    ],
+    "discount": 4,
+    "totals_original": {
+      "taxable_value": 64000,
+      "cgst": 5760,
+      "sgst": 5760,
+      "total_tax": 11520,
+      "grand_total": 75520
+    },
+    "deletion": {
+      "is_deleted": false
+    }
   }
 ]
