@@ -74,9 +74,14 @@
                     <p class="text-xs text-slate-500 font-medium">Search, filter, and review corporate members</p>
                 </div>
             </div>
-            <button id="refresh-btn" class="bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 w-10 h-10 rounded-lg shadow-sm flex items-center justify-center">
-                <i class="fas fa-sync-alt"></i>
-            </button>
+            <div class="flex items-center gap-2">
+                <button id="btn-add-employee" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm flex items-center gap-2 transition-colors cursor-pointer">
+                    <i class="fas fa-plus"></i> Add Employee
+                </button>
+                <button id="refresh-btn" class="bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 w-10 h-10 rounded-lg shadow-sm flex items-center justify-center">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
         </div>
     </header>
     
@@ -89,9 +94,6 @@
             <!-- Table Action Controls -->
             <div class="px-6 py-4 bg-white border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 flex-shrink-0">
                 <div class="flex items-center gap-3">
-                    <button id="btn-add-employee" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm flex items-center gap-2 transition-colors cursor-pointer">
-                        <i class="fas fa-plus"></i> Add Employee
-                    </button>
                 </div>
                 <!-- Search bar -->
                 <div class="flex items-center gap-3 max-w-md w-full">
@@ -170,14 +172,66 @@
                             </div>
                             
                             <div class="space-y-4">
-                                <h3 class="form-section-header">Financials & Address</h3>
+                                <h3 class="form-section-header">Financials</h3>
                                 <div>
                                     <label class="block text-[11px] font-semibold text-slate-600 mb-1">Base Salary (Monthly INR) <span class="text-red-500">*</span></label>
                                     <input type="number" id="form-salary" required placeholder="e.g. 30000" class="form-input-premium">
                                 </div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-4 mt-4">
+                            <h3 class="form-section-header">Address Details</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Residential Address <span class="text-red-500">*</span></label>
-                                    <textarea id="form-address" rows="3" required placeholder="Enter address details" class="form-input-premium resize-none"></textarea>
+                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Address Line 1 <span class="text-red-500">*</span></label>
+                                    <input type="text" id="form-line1" required placeholder="House/Flat No, Building, Street" class="form-input-premium">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Address Line 2</label>
+                                    <input type="text" id="form-line2" placeholder="Landmark, Locality" class="form-input-premium">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">City <span class="text-red-500">*</span></label>
+                                    <input type="text" id="form-city" required placeholder="City" class="form-input-premium">
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">State <span class="text-red-500">*</span></label>
+                                        <input type="text" id="form-state" required value="Karnataka" class="form-input-premium">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Pincode <span class="text-red-500">*</span></label>
+                                        <input type="text" id="form-pincode" required placeholder="Pincode" class="form-input-premium">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-4 mt-4">
+                            <h3 class="form-section-header">Bank Details</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Account Holder Name</label>
+                                    <input type="text" id="form-bank-holder" placeholder="Account Holder Name" class="form-input-premium">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Bank Name</label>
+                                    <input type="text" id="form-bank-name" placeholder="e.g. State Bank of India" class="form-input-premium">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Account Number</label>
+                                    <input type="text" id="form-bank-account" placeholder="Account Number" class="form-input-premium">
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">IFSC Code</label>
+                                        <input type="text" id="form-bank-ifsc" placeholder="IFSC Code" class="form-input-premium">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Branch Name</label>
+                                        <input type="text" id="form-bank-branch" placeholder="Branch Name" class="form-input-premium">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -226,6 +280,12 @@
             }
         }
 
+        function formatAddress(address) {
+            if (!address) return '';
+            if (typeof address === 'string') return address;
+            return [address.line1, address.line2, address.city, address.state, address.pincode].filter(Boolean).join(', ');
+        }
+
         function renderEmployeesTable(list) {
             const tbody = document.getElementById('employee-list-tbody');
             const emptyState = document.getElementById('empty-state');
@@ -246,7 +306,7 @@
                         <div class="text-slate-800 font-medium">${emp.email}</div>
                         <div class="text-slate-400 mt-0.5">${emp.phone}</div>
                     </td>
-                    <td class="px-6 py-4 text-slate-500 max-w-xs truncate">${emp.address}</td>
+                    <td class="px-6 py-4 text-slate-500 max-w-xs truncate">${formatAddress(emp.address)}</td>
                     <td class="px-6 py-4 text-right font-bold text-slate-800">₹${Number(emp.salary).toLocaleString('en-IN')}</td>
                     <td class="px-6 py-4 text-center">
                         <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${emp.is_active !== false ? 'bg-green-50 text-green-700 border border-green-150' : 'bg-slate-100 text-slate-600'}">
@@ -276,14 +336,29 @@
             const name = document.getElementById('form-name').value.trim();
             const email = document.getElementById('form-email').value.trim();
             const phone = document.getElementById('form-phone').value.trim();
-            const address = document.getElementById('form-address').value.trim();
             const salary = Number(document.getElementById('form-salary').value.trim());
+            
+            const address = {
+                line1: document.getElementById('form-line1').value.trim(),
+                line2: document.getElementById('form-line2').value.trim(),
+                city: document.getElementById('form-city').value.trim(),
+                state: document.getElementById('form-state').value.trim(),
+                pincode: document.getElementById('form-pincode').value.trim()
+            };
+
+            const bank_details = {
+                account_holder_name: document.getElementById('form-bank-holder').value.trim(),
+                bank_name: document.getElementById('form-bank-name').value.trim(),
+                account_number: document.getElementById('form-bank-account').value.trim(),
+                ifsc_code: document.getElementById('form-bank-ifsc').value.trim(),
+                branch: document.getElementById('form-bank-branch').value.trim()
+            };
 
             try {
                 const res = await fetch('/employee/addEmp', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, phone, address, salary })
+                    body: JSON.stringify({ name, email, phone, address, salary, bank_details })
                 });
 
                 if (res.ok) {
@@ -311,7 +386,7 @@
         }
 
         function viewDetails(id) {
-            window.location.href = `/employee-details?id=${id}`;
+            window.location.href = `/employee/details?id=${id}`;
         }
     </script>
 </body>

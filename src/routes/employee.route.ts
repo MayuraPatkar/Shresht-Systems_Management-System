@@ -18,14 +18,14 @@ router.post('/addEmp', async (req: Request, res: Response) => {
             return res.status(501).json({ message: 'Employee feature not yet implemented.' });
         }
 
-        const { name, address, phone, email, salary } = req.body;
+        const { name, address, phone, email, salary, bank_details } = req.body;
 
-        if (!name || !address || isNaN(phone) || isNaN(salary)) {
+        if (!name || !address || !address.line1 || !address.city || isNaN(phone) || isNaN(salary)) {
             return res.status(400).json({ message: 'Invalid input. Please provide all required fields correctly.' });
         }
 
         const emp_id = await generateEmpId();
-        const newEmployee = new Employee({ emp_id, name, address, phone, email, join_date: new Date(), salary });
+        const newEmployee = new Employee({ emp_id, name, address, phone, email, join_date: new Date(), salary, bank_details });
         await newEmployee.save();
 
         res.status(201).json({ message: 'Employee added successfully', employee: newEmployee });
@@ -66,7 +66,7 @@ router.post('/markAttendance', async (req: Request, res: Response) => {
 
         const { emp_id, present, start_time, end_time } = req.body;
 
-        if (!emp_id || !start_time || !end_time) {
+        if (emp_id === undefined || (present && (!start_time || !end_time))) {
             return res.status(400).json({ message: 'Invalid input. Please provide all required fields correctly.' });
         }
 
@@ -74,8 +74,8 @@ router.post('/markAttendance', async (req: Request, res: Response) => {
             date: new Date(),  // Today's date
             emp_id,
             present,
-            start_time: parseTimeOnly(start_time),
-            end_time: parseTimeOnly(end_time),
+            start_time: present ? parseTimeOnly(start_time) : undefined,
+            end_time: present ? parseTimeOnly(end_time) : undefined,
         });
 
         await attendance.save();

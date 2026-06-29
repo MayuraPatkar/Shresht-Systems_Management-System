@@ -115,6 +115,33 @@
                                     ...
                                 </div>
                             </div>
+                            <div class="space-y-2">
+                                <h3 class="text-xs font-bold uppercase text-slate-500">Bank Details</h3>
+                                <div class="bg-slate-50 p-4 rounded-lg border border-slate-150 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-medium text-slate-705">
+                                    <div>
+                                        <span class="text-slate-400 font-bold block mb-1">Account Holder Name</span>
+                                        <span id="bank-holder-text" class="text-slate-800 font-semibold">...</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-400 font-bold block mb-1">Bank Name</span>
+                                        <span id="bank-name-text" class="text-slate-800 font-semibold">...</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-400 font-bold block mb-1">Account Number</span>
+                                        <span id="bank-account-text" class="text-slate-800 font-semibold">...</span>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <span class="text-slate-400 font-bold block mb-1">IFSC Code</span>
+                                            <span id="bank-ifsc-text" class="text-slate-800 font-semibold">...</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-slate-400 font-bold block mb-1">Branch Name</span>
+                                            <span id="bank-branch-text" class="text-slate-800 font-semibold">...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Attendance Tab -->
@@ -226,6 +253,12 @@
             }
         }
 
+        function formatAddress(address) {
+            if (!address) return '';
+            if (typeof address === 'string') return address;
+            return [address.line1, address.line2, address.city, address.state, address.pincode].filter(Boolean).join(', ');
+        }
+
         function renderEmployeeProfile() {
             const name = employeeObj.name;
             const empId = `EMP-${employeeObj.emp_id}`;
@@ -245,7 +278,15 @@
             // Overview Tab
             document.getElementById('overview-salary').textContent = `₹${Number(employeeObj.salary).toLocaleString('en-IN')}`;
             document.getElementById('overview-email').textContent = employeeObj.email;
-            document.getElementById('overview-address').textContent = employeeObj.address;
+            document.getElementById('overview-address').textContent = formatAddress(employeeObj.address);
+            
+            // Bank Details
+            const bank = employeeObj.bank_details || {};
+            document.getElementById('bank-holder-text').textContent = bank.account_holder_name || 'Not Recorded';
+            document.getElementById('bank-name-text').textContent = bank.bank_name || 'Not Recorded';
+            document.getElementById('bank-account-text').textContent = bank.account_number || 'Not Recorded';
+            document.getElementById('bank-ifsc-text').textContent = bank.ifsc_code || 'Not Recorded';
+            document.getElementById('bank-branch-text').textContent = bank.branch || 'Not Recorded';
         }
 
         function renderAttendanceTab() {
