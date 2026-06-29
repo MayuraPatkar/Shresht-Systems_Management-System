@@ -2,7 +2,7 @@
 
 A comprehensive desktop management system for Shresht Systems, built with Electron, Express, and MongoDB. This professional application streamlines business processes including quotations, invoices, purchase orders, waybills, service management, stock tracking, reports, analytics, and communications.
 
-**Version:** 3.6.0  
+**Version:** 4.0.0  
 **Website:** https://shreshtsystems.com
 
 ---
@@ -25,34 +25,38 @@ A comprehensive desktop management system for Shresht Systems, built with Electr
 ## Features
 
 ### Core Modules
-- **Quotation Management:** Create, edit, view, and export quotations with professional templates
-- **Invoice Management:** Generate, update, and track invoices with payment status and stock deduction
-- **Purchase Orders:** Manage supplier orders and track inventory
-- **Waybills:** Create and manage waybills for shipments and deliveries
-- **Service Management:** Track services, maintenance with automatic stock deduction for parts used
-- **Stock Management:** Monitor inventory levels, stock movements, and low stock alerts
+- **Quotation Management:** Create, edit, view, and export quotations with professional templates. Fully migrates converted quotations with active links to corresponding invoices.
+- **Invoice Management:** Generate, update, and track invoices with payment status and stock deduction. Includes smart payment calculation & tracking.
+- **Purchase Orders:** Manage supplier orders, track inventory, and link purchase documents seamlessly.
+- **Waybills:** Create and manage waybills for shipments and deliveries.
+- **Service Management:** Track services, maintenance with automatic stock deduction for parts used.
+- **Stock Management:** Monitor inventory levels, stock movements, and low stock alerts.
 
-### Reports Module (NEW)
-- **Stock Report:** Track all stock in/out movements with date filters and item search
-- **Monthly GST Report:** Invoice-based tax summaries with HSN/SAC breakdown
-- **Data Worksheet:** Solar installation calculator with energy savings estimates (migrated from Calculations)
-- **Print/PDF Export:** All reports support print and PDF generation
+### Reports Module
+- **Stock Report:** Track all stock in/out movements with date filters and item search.
+- **Monthly GST Report:** Invoice-based tax summaries with HSN/SAC breakdown.
+- **Data Worksheet:** Solar installation calculator with energy savings estimates (migrated from Calculations).
+- **Print/PDF Export:** All reports support print and PDF generation.
 
 ### Administrative Features
-- **Employee Management:** Add, view, and manage employee profiles and attendance
-- **Analytics Dashboard:** Visualize business metrics, sales trends, and project statuses
-- **Communication:** Send payment reminders and documents via WhatsApp integration
-- **Settings:** Admin credentials, company info, backup/restore, and data export/import
+- **Employee Management:** Add, view, and manage employee profiles and attendance.
+- **Analytics Dashboard:** Visualize business metrics, sales trends, and project statuses.
+- **Communication:** Send payment reminders and documents via WhatsApp integration.
+- **Settings:** Admin credentials, company info, backup/restore, and data export/import.
 
 ### Technical Features
-- **Professional Logging:** Winston-based logging with daily rotation
-- **Database Backups:** Automated MongoDB backups with timestamp
-- **Input Validation:** Comprehensive validation using express-validator
-- **Rate Limiting:** Protection against abuse with configurable limits
-- **Security Headers:** Helmet.js for secure HTTP headers
-- **Error Handling:** Centralized error handling middleware
-- **Auto Updates:** GitHub-based automatic updates via electron-updater
-- **Stock Movement Tracking:** Automatic logging of all stock changes for audit trails
+- **Unit Testing Suite (NEW):** Robust backend test suite powered by Vitest (`npm test`).
+- **Dynamic Data Migrations (NEW):** Batch migrations (V2) with smart dependency-resolving logic for status updates (e.g. converting quotation statuses, tracking purchase orders to received purchases, and compiling payment progress).
+- **Human-Readable ID Resolutions (NEW):** Automatic resolution of raw MongoDB ObjectIDs to their user-facing document numbers on payment records and logs.
+- **UI & Grid Alignment Enhancements (NEW):** Optimized layouts for customer, supplier, and payment registers (such as displaying primary street address line1 instead of city/state).
+- **Professional Logging:** Winston-based logging with daily rotation.
+- **Database Backups:** Automated MongoDB backups with timestamp.
+- **Input Validation:** Comprehensive validation using express-validator.
+- **Rate Limiting:** Protection against abuse with configurable limits.
+- **Security Headers:** Helmet.js for secure HTTP headers.
+- **Error Handling:** Centralized error handling middleware.
+- **Auto Updates:** GitHub-based automatic updates via electron-updater.
+- **Stock Movement Tracking:** Automatic logging of all stock changes for audit trails.
 
 ---
 
@@ -62,94 +66,82 @@ A comprehensive desktop management system for Shresht Systems, built with Electr
 Shresht-Systems_Management-System/
 ├── src/                           # Application source code
 │   ├── config/                    # Configuration
-│   │   ├── config.js              # Environment config loader
-│   │   └── database.js            # MongoDB connection
+│   │   ├── config.ts              # Environment config loader
+│   │   └── database.ts            # MongoDB connection
 │   │
-│   ├── models/                    # Mongoose models (separated)
-│   │   ├── index.js               # Model exports
-│   │   ├── Admin.js               # User/Admin model
-│   │   ├── Counter.js             # Auto-increment counters
-│   │   ├── Invoice.js             # Invoice model
-│   │   ├── Quotation.js           # Quotation model
-│   │   ├── Purchase.js            # Purchase order model
-│   │   ├── WayBill.js             # Waybill model
-│   │   ├── Service.js             # Service model
-│   │   ├── Stock.js               # Stock/inventory model
-│   │   ├── StockMovement.js       # Stock movement tracking (NEW)
-│   │   ├── Report.js              # Cached reports model (NEW)
-│   │   ├── Employee.js            # Employee model
-│   │   ├── AttendanceBook.js      # Attendance model
-│   │   └── Settings.js            # Settings model
+│   ├── models/                    # Mongoose models (.model.ts files)
+│   │   ├── index.ts               # Model exports
+│   │   ├── User.model.ts          # User/Admin model
+│   │   ├── Counter.model.ts       # Auto-increment counters
+│   │   ├── Customer.model.ts      # Customer model
+│   │   ├── Supplier.model.ts      # Supplier model
+│   │   ├── Invoice.model.ts       # Invoice model
+│   │   ├── Quotation.model.ts     # Quotation model
+│   │   ├── Purchase.model.ts      # Purchase model
+│   │   ├── PurchaseOrder.model.ts # Purchase order model
+│   │   ├── EWayBill.model.ts      # Waybill model
+│   │   ├── Service.model.ts       # Service model
+│   │   ├── Stock.model.ts         # Stock/inventory model
+│   │   ├── StockMovement.model.ts # Stock movement tracking
+│   │   ├── Report.model.ts        # Cached reports model
+│   │   ├── Payment.model.ts       # Payment model
+│   │   ├── Voucher.model.ts       # Voucher model
+│   │   ├── Communication.model.ts # WhatsApp/comms log model
+│   │   └── Settings.model.ts      # Settings model
 │   │
 │   ├── routes/                    # Express route handlers
-│   │   ├── auth.js                # Authentication routes
-│   │   ├── invoice.js             # Invoice CRUD + stock deduction
-│   │   ├── quotation.js           # Quotation operations
-│   │   ├── purchaseOrder.js       # Purchase order routes
-│   │   ├── wayBill.js             # Waybill routes
-│   │   ├── service.js             # Service routes + stock deduction
-│   │   ├── stock.js               # Stock management + movement logging
-│   │   ├── reports.js             # Reports API (NEW)
-│   │   ├── employee.js            # Employee routes
-│   │   ├── analytics.js           # Analytics endpoints
-│   │   ├── comms.js               # Communication routes
-│   │   ├── settings.js            # Settings routes
-│   │   └── views.js               # View rendering routes
+│   │   ├── auth.route.ts          # Authentication routes
+│   │   ├── customer.route.ts      # Customer operations
+│   │   ├── supplier.route.ts      # Supplier operations
+│   │   ├── invoice.route.ts       # Invoice CRUD + stock deduction
+│   │   ├── quotation.route.ts     # Quotation operations
+│   │   ├── purchase.route.ts      # Purchase operations
+│   │   ├── purchaseOrder.route.ts # Purchase order routes
+│   │   ├── eWayBill.route.ts      # Waybill routes
+│   │   ├── service.route.ts       # Service routes + stock deduction
+│   │   ├── stock.route.ts         # Stock management + movement logging
+│   │   ├── payment.route.ts       # Payment operations & resolution
+│   │   ├── voucher.route.ts       # Accounting voucher routes
+│   │   ├── reports.route.ts       # Reports API
+│   │   ├── employee.route.ts      # Employee routes
+│   │   ├── analytics.route.ts     # Analytics endpoints
+│   │   ├── search.route.ts        # Global search route
+│   │   ├── comms.route.ts         # Communication routes
+│   │   ├── settings.route.ts      # Settings routes
+│   │   └── views.route.ts         # View rendering routes
 │   │
 │   ├── middleware/                # Express middleware
-│   │   ├── errorHandler.js        # Centralized error handling
-│   │   ├── rateLimiter.js         # Rate limiting (3 limiters)
-│   │   └── validators.js          # Input validation rules (12+)
+│   │   ├── errorHandler.ts        # Centralized error handling
+│   │   ├── rateLimiter.ts         # Rate limiting (3 limiters)
+│   │   └── validators.ts          # Input validation rules (12+)
 │   │
 │   └── utils/                     # Utility functions
-│       ├── logger.js              # Winston logger with rotation
-│       ├── backup.js              # MongoDB backup utility
-│       ├── backupScheduler.js     # Automated backup scheduler
-│       ├── idGenerator.js         # Sequential ID generator
-│       ├── initDatabase.js        # Database initialization
-│       ├── hashPasswords.js       # Password hashing utility
-│       ├── alertHandler.js        # Electron alert dialogs
-│       ├── printHandler.js        # Legacy print handler
-│       └── quotationPrintHandler.js # Native Electron print/PDF
+│       ├── logger.ts              # Winston logger with rotation
+│       ├── backup.ts              # MongoDB backup utility
+│       ├── backupScheduler.ts     # Automated backup scheduler
+       ├── idGenerator.ts         # Sequential ID generator
+│       ├── initDatabase.ts        # Database initialization
+│       ├── hashPasswords.ts       # Password hashing utility
+│       ├── alertHandler.ts        # Electron alert dialogs
+│       ├── printHandler.ts        # Legacy print handler
+│       └── quotationPrintHandler.ts # Native Electron print/PDF
 │
 ├── public/                        # Frontend assets
-│   ├── js/shared/                 # Shared utilities (IMPORTANT)
-│   │   ├── globalScript.js        # Navigation, session management
-│   │   ├── documentBuilder.js     # Document generation engine
-│   │   ├── documentManager.js     # CRUD operations helper
-│   │   ├── sectionRenderers.js    # HTML section generators
-│   │   ├── calculations.js        # GST/total calculations
-│   │   ├── utils.js               # Formatting utilities
-│   │   ├── ipc.js                 # IPC wrapper functions
-│   │   └── companyConfig.js       # Dynamic company data
-│   │
-│   ├── css/                       # Stylesheets
-│   │   ├── tailwind.css           # Compiled Tailwind CSS
-│   │   ├── input.css              # Tailwind source
-│   │   ├── reports.css            # Reports module styles (NEW)
-│   │   └── shared/                # Shared component styles
-│   │       ├── documentStyles.css
-│   │       ├── cardTableStyles.css
-│   │       └── formStyle.css
-│   │
-│   ├── quotation/                 # Quotation module
-│   │   ├── quotation.html
-│   │   ├── quotation_home.js
-│   │   ├── quotation_form.js
-│   │   └── quotation_view.js
-│   │
+│   ├── customer/                  # Customer module
+│   ├── supplier/                  # Supplier module
 │   ├── invoice/                   # Invoice module
 │   ├── purchaseOrder/             # Purchase order module
-│   ├── waybill/                   # Waybill module
+│   ├── ewaybill/                  # Waybill module
 │   ├── service/                   # Service module
 │   ├── stock/                     # Stock module
-│   ├── reports/                   # Reports module (NEW)
-│   │   ├── reports.html           # Reports dashboard
-│   │   ├── reports.js             # Main controller
-│   │   ├── stockReport.js         # Stock movement report
-│   │   ├── gstReport.js           # GST summary report
-│   │   └── dataWorksheetReport.js # Solar calculator
+│   ├── payment/                   # Payment module
+│   │   ├── payment.html           # Main view template
+│   │   └── src/                   # Main module sources
+│   │       ├── main.ts            # Entry and table render logic
+│   │       └── components/
+│   │           └── details.ts     # Expanded reference info view
 │   │
+│   ├── reports/                   # Reports module
 │   ├── dashboard/                 # Main dashboard
 │   ├── comms/                     # Communication module
 │   ├── calculations/              # Calculation tools
@@ -158,12 +150,15 @@ Shresht-Systems_Management-System/
 │   ├── assets/                    # Images & icons
 │   └── index.html                 # Login page
 │
-├── main.js                        # Electron main process
-├── server.js                      # Express server entry point
-├── preload.js                     # Electron preload (IPC bridge)
+├── src/main.ts                    # Electron main process
+├── src/server.ts                  # Express server entry point
+├── src/preload.ts                 # Electron preload (IPC bridge)
 ├── .env                           # Environment variables
 ├── package.json                   # Dependencies & scripts
 ├── tailwind.config.js             # Tailwind configuration
+├── tsconfig.json                  # Compiler configuration for server
+├── tsconfig.public.json           # Compiler configuration for frontend
+├── vitest.config.ts               # Testing environment config
 │
 ├── backups/                       # Database backups
 ├── logs/                          # Application logs
@@ -568,9 +563,13 @@ We welcome contributions! Here's how to get involved:
    - Update documentation as needed
 
 5. **Test your changes:**
+   Run the backend unit test suite using Vitest:
    ```bash
-   npm start
-   # Test all affected features
+   npm test
+   ```
+   Or launch the application in development mode:
+   ```bash
+   npm run dev
    ```
 
 6. **Commit with clear messages:**
