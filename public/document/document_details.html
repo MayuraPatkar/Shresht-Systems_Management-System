@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Details</title>
+    <link rel="stylesheet" href="/css/tailwind.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="/css/shared/documentStyles.css">
+    <link rel="stylesheet" href="/css/shared/quotationStyles.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        .sidebar {
+            width: 240px;
+            height: 100%;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        main {
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        *::-webkit-scrollbar { width: 8px; height: 8px; }
+        *::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        *::-webkit-scrollbar-thumb { background: #2563eb; border-radius: 4px; background-clip: padding-box; border: 2px solid transparent; }
+        *::-webkit-scrollbar-thumb:hover { background: #1d4ed8; }
+
+        input,
+        textarea,
+        select,
+        [contenteditable="true"] {
+            user-select: text !important;
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* paper layout */
+        .paper-view-container {
+            background-color: #ffffff;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            width: 210mm;
+            min-height: 297mm;
+            padding: 25mm 20mm;
+            margin: 20px auto;
+            position: relative;
+        }
+
+        .paper-body-content {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #1e293b;
+            min-height: 120mm;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+
+    <!-- Fixed Header -->
+    <header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-30 h-24 flex items-center px-4">
+        <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-3">
+                <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
+                <div>
+                    <h1 class="text-xl font-bold text-gray-800" id="header-title">Document Details</h1>
+                    <p class="text-xs text-gray-500 font-medium" id="header-subtitle">DOC-XXXXX</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button type="button" id="print-btn"
+                    class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-4 h-10 rounded-lg flex items-center justify-center gap-2 font-medium cursor-pointer transition-colors shadow-sm text-sm">
+                    <i class="fas fa-print"></i>
+                    Print
+                </button>
+                <button type="button" id="pdf-btn"
+                    class="bg-red-600 text-white px-4 h-10 rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 font-medium cursor-pointer transition-colors shadow-sm text-sm">
+                    <i class="fas fa-file-pdf"></i>
+                    Save as PDF
+                </button>
+                <button type="button" id="edit-btn"
+                    class="bg-amber-500 text-white px-4 h-10 rounded-lg hover:bg-amber-600 flex items-center justify-center gap-2 font-medium cursor-pointer transition-colors shadow-sm text-sm">
+                    <i class="fas fa-edit"></i>
+                    Edit
+                </button>
+                <button id="back-btn"
+                    class="bg-gray-600 text-white px-4 h-10 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium cursor-pointer shadow-sm text-sm">
+                    <i class="fas fa-arrow-left"></i>
+                    Back
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Layout Wrapper -->
+    <div class="flex pt-24 h-screen w-full overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar bg-white h-full flex flex-col border-r border-gray-200 flex-shrink-0 no-select">
+            <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
+                <!-- Sidebar contents populated dynamically by globalScript.ts -->
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-grow overflow-y-auto bg-slate-50 p-6 flex items-start justify-center">
+            
+            <!-- We wrap the simulated sheet of paper inside a container for print HTML extraction -->
+            <div id="view-preview-content" class="w-full max-w-[210mm]">
+                <div class="preview-container doc-standard doc-document paper-view-container fade-in" style="width: 210mm !important; max-width: 210mm !important; min-height: 297mm !important; padding: 25px 30px !important;">
+                    
+                    <!-- Dynamic Header Container -->
+                    <div id="company-header-container" class="mb-6">
+                        <!-- Loaded dynamically -->
+                    </div>
+
+                    <!-- Title Row -->
+                    <div class="second-section border-b border-slate-200 pb-3 mb-6 flex justify-between items-center">
+                        <p id="preview-doc-no" style="display: none;">DOC-XXXXX</p>
+                        <p class="text-sm text-slate-500 font-semibold" id="preview-doc-date">Date: XX/XX/XXXX</p>
+                    </div>
+
+                    <!-- Recipient Block -->
+                    <div class="buyer-details mb-6 text-sm">
+                        <p class="font-bold text-slate-850">To,</p>
+                        <div id="preview-recipient-info">
+                            <!-- Loaded dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Subject Block -->
+                    <div class="mb-6 text-sm font-semibold border-l-4 border-blue-500 pl-3 py-1 bg-slate-50">
+                        <span>Subject: </span>
+                        <span id="preview-subject" class="text-slate-800 font-bold">Untitled Document</span>
+                    </div>
+
+                    <!-- Document Body Content -->
+                    <div id="preview-body" class="paper-body-content mb-6">
+                        <!-- Loaded dynamically -->
+                    </div>
+
+                    <!-- Footer / Signatory Spacer -->
+                    <div class="eighth-section" style="margin-top: 60px; display: flex; flex-direction: column; align-items: flex-end; width: 100%;">
+                        <div style="text-align: right; width: 250px;">
+                            <p style="margin-bottom: 50px;">For <span id="preview-company-name" style="font-weight: bold; text-transform: uppercase;">Shresht Systems</span></p>
+                            <p><strong>Authorized Signatory</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/dist/public/ts/shared/core/utils.js"></script>
+    <script src="/dist/public/ts/shared/core/ipc.js"></script>
+    <script src="/dist/public/ts/shared/documents/documentManager.js"></script>
+    <script src="/dist/public/ts/shared/documents/sectionRenderers.js"></script>
+    <script src="/dist/public/ts/shared/config/companyConfig.js"></script>
+    <script src="/dist/public/ts/shared/core/globalScript.js"></script>
+    <script src="/dist/public/document/src/services/documentApi.js"></script>
+    <script src="/dist/public/document/src/components/documentView.js"></script>
+</body>
+
+</html>

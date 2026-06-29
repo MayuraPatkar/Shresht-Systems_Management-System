@@ -46,6 +46,9 @@ const pages: Array<{ route: string; file: string }> = [
     { route: '/settings', file: 'settings/settings.html' },
     { route: '/backup', file: 'settings/backup.html' },
     { route: '/import-export', file: 'settings/import-export.html' },
+    { route: '/document', file: 'document/document.html' },
+    { route: '/document/details', file: 'document/document_details.html' },
+    { route: '/document/form', file: 'document/document_form.html' },
 ];
 
 // Serve HTML pages - exact route only (not sub-paths)

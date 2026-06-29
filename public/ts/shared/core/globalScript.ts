@@ -306,7 +306,8 @@ function setupCollapsibleSidebar() {
       name: 'Operations',
       icon: 'fa-solid fa-screwdriver-wrench',
       items: [
-        { id: 'service', label: 'Services', path: '/service', icon: 'fa-solid fa-wrench' }
+        { id: 'service', label: 'Services', path: '/service', icon: 'fa-solid fa-wrench' },
+        { id: 'document', label: 'Documents', path: '/document', icon: 'fa-solid fa-file-word' }
       ]
     },
     {

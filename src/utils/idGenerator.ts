@@ -12,6 +12,7 @@ const moduleToSettingKey: Record<string, { prefix: string }> = {
     purchase: { prefix: "purchase_prefix" },
     eWayBill: { prefix: "ewaybill_prefix" },
     service: { prefix: "service_prefix" },
+    document: { prefix: "document_prefix" },
 };
 
 /**
@@ -52,7 +53,7 @@ async function getPrefixAndDateParams(moduleKey: string): Promise<{
     const mapping = moduleToSettingKey[mk] || {};
     const prefixKey = mapping.prefix;
 
-    const defaultPrefix = mk === "service" ? "SRV" : mk.toUpperCase().slice(0, 3);
+    const defaultPrefix = mk === "service" ? "SRV" : mk === "document" ? "DOC" : mk.toUpperCase().slice(0, 3);
     const prefix = (await getSettingsValue(prefixKey, defaultPrefix)) || defaultPrefix;
 
     const now = new Date();
@@ -61,7 +62,7 @@ async function getPrefixAndDateParams(moduleKey: string): Promise<{
     const dd = String(now.getDate()).padStart(2, "0");
     const yy = String(yyyy).slice(-2);
 
-    const isYearly = ['quotation', 'purchaseOrder', 'invoice', 'service'].includes(mk);
+    const isYearly = ['quotation', 'purchaseOrder', 'invoice', 'service', 'document'].includes(mk);
     
     let datePart = `${yy}${mm}${dd}`;
     let counterKey = `${mk}-${datePart}`;

@@ -599,7 +599,7 @@ async function createWindow(): Promise<void> {
             webPreferences: {
                 nodeIntegration: false, // Disabled for better security
                 contextIsolation: true, // Ensures safer IPC communication
-                devTools: process.env.NODE_ENV === 'development',
+                devTools: true, // Enable DevTools for development
                 preload: path.join(__dirname, 'preload.js'),
                 webSecurity: true,
                 allowRunningInsecureContent: false,
@@ -613,7 +613,6 @@ async function createWindow(): Promise<void> {
         mainWindow.once('ready-to-show', () => {
             mainWindow!.show();
             mainWindow!.maximize();
-            // mainWindow!.webContents.openDevTools();
         });
 
         // Enhanced frontend loading with retry logic

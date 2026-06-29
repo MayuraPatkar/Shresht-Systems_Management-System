@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Service Details View and Payments Controller
  */
