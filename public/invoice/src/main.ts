@@ -1,0 +1,2072 @@
+/**
+ * Invoice Module Main Entry Point
+ */
+(function () {
+    // Local references to global helpers to avoid compile-time collisions
+    const debounce = (window as any).debounce;
+    const applyFilters = (window as any).applyFilters;
+    const showCustomDateModal = (window as any).showCustomDateModal;
+    const formatIndian = (window as any).formatIndian;
+    const deleteDocument = (window as any).deleteDocument;
+    const fetchDocumentById = (window as any).fetchDocumentById;
+    const searchDocuments = (window as any).searchDocuments;
+    const showNewDocumentForm = (window as any).showNewDocumentForm;
+    const electronAPI = (window as any).electronAPI;
+    const viewInvoice = (window as any).viewInvoice;
+    const openInvoice = (window as any).openInvoice;
+
+    const invoicesListDiv = document.querySelector(".records") as HTMLElement;
+
+    (window as any).showDeletedItems = false;
+    (window as any).statusFilter = '';
+
+    // Filter state
+    let allInvoices: Invoice[] = [];
+    let archivedInvoices: Invoice[] = [];
+    let currentFilteredInvoices: Invoice[] = [];
+    let currentFilters = {
+        status: 'all',
+        paymentStatus: 'all',
+        dateFilter: 'all',
+        sortBy: 'date-desc',
+        customStartDate: null as string | null,
+        customEndDate: null as string | null
+    };
+    (window as any).currentFilters = currentFilters;
+
+    interface ShortcutItem {
+        label: string;
+        keys: string[];
+    }
+
+    interface ShortcutGroup {
+        title: string;
+        icon: string;
+        items: ShortcutItem[];
+    }
+
+    const INVOICE_SHORTCUT_GROUPS: ShortcutGroup[] = [
+        {
+            title: 'Navigation',
+            icon: 'fas fa-arrows-alt text-blue-600',
+            items: [
+                { label: 'Next Step', keys: ['Enter'] },
+                { label: 'Previous Step', keys: ['Backspace'] },
+                { label: 'Exit/Cancel', keys: ['Esc'] }
+            ]
+        },
+        {
+            title: 'Actions',
+            icon: 'fas fa-bolt text-yellow-600',
+            items: [
+                { label: 'New Invoice', keys: ['Ctrl', 'N'] },
+                { label: 'Refresh List', keys: ['Ctrl', 'R'] },
+                { label: 'Save Invoice', keys: ['Ctrl', 'S'] },
+                { label: 'View Preview', keys: ['Ctrl', 'P'] },
+                { label: 'Print', keys: ['Ctrl', 'Shift', 'P'] },
+                { label: 'Add Item', keys: ['Ctrl', 'I'] },
+                { label: 'Delete Item', keys: ['Ctrl', 'Delete'] },
+                { label: 'Go Home', keys: ['Ctrl', 'H'] },
+                { label: 'Focus Search', keys: ['Ctrl', 'F'] },
+                { label: 'Toggle Trash View', keys: ['Ctrl', 'Shift', 'T'] }
+            ]
+        }
+    ];
+
+    let shortcutsModalRef: HTMLElement | null = null;
+    const isMac = navigator.userAgent.toLowerCase().includes('mac');
+
+    function showToast(message: string) {
+        let toast = document.getElementById('global-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'global-toast';
+            toast.style.cssText = 'display:none;position:fixed;bottom:20px;right:20px;background:#10b981;color:#fff;padding:12px 24px;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1);z-index:9999;';
+            document.body.appendChild(toast);
+        }
+        toast.innerHTML = `<i class="fas fa-check-circle mr-2"></i>${message}`;
+        toast.style.display = 'block';
+        setTimeout(() => {
+            if (toast) toast.style.display = 'none';
+        }, 2000);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const homeSection = document.getElementById('home');
+        if (homeSection) {
+            loadRecentInvoices();
+        }
+
+        // Dynamically toggle Header elements visibility based on active section
+        const newSection = document.getElementById('new');
+        const viewSection = document.getElementById('view');
+        const homeBtn = document.getElementById('home-btn');
+
+        const updateHeaderVisibility = () => {
+            const isHomeVisible = homeSection ? window.getComputedStyle(homeSection).display !== 'none' : true;
+            const isFormActive = newSection ? window.getComputedStyle(newSection).display !== 'none' : false;
+            const isViewActive = viewSection ? window.getComputedStyle(viewSection).display !== 'none' : false;
+
+            const searchWrapper = document.getElementById('search-wrapper');
+            const refreshBtn = document.getElementById('refresh-btn');
+            const archivedBtn = document.getElementById('archived-invoices-btn');
+            const showDeletedBtn = document.getElementById('showDeletedBtn');
+            const viewPreviewBtn = document.getElementById('view-preview');
+            const viewPaymentBtn = document.getElementById('view-payment-btn');
+            const editBtn = document.getElementById('editInvoiceBtnView');
+            const duplicateBtn = document.getElementById('duplicateInvoiceBtnView');
+            const newInvoiceBtn = document.getElementById('new-invoice');
+            const bulkRestoreBtn = document.getElementById('bulk-restore-btn');
+            const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+
+            if (isFormActive) {
+                // Creation mode: hide search, filter, archived, trash, view-preview, refresh, new-invoice. Show home.
+                if (searchWrapper) searchWrapper.style.display = 'none';
+                if (refreshBtn) refreshBtn.style.display = 'none';
+                if (archivedBtn) archivedBtn.style.display = 'none';
+                if (showDeletedBtn) showDeletedBtn.style.display = 'none';
+                if (viewPreviewBtn) viewPreviewBtn.style.display = 'none';
+                if (viewPaymentBtn) viewPaymentBtn.style.display = 'none';
+                if (editBtn) editBtn.style.display = 'none';
+                if (duplicateBtn) duplicateBtn.style.display = 'none';
+                if (newInvoiceBtn) newInvoiceBtn.style.display = 'none';
+                if (homeBtn) homeBtn.style.display = 'flex';
+                if (bulkRestoreBtn) {
+                    bulkRestoreBtn.style.display = 'none';
+                    bulkRestoreBtn.classList.add('hidden');
+                }
+                if (bulkDeleteBtn) {
+                    bulkDeleteBtn.style.display = 'none';
+                    bulkDeleteBtn.classList.add('hidden');
+                }
+            } else if (isViewActive) {
+                // View mode: hide search, filter, archived, trash, view-preview. Show home, new-invoice, refresh.
+                if (searchWrapper) searchWrapper.style.display = 'none';
+                if (refreshBtn) refreshBtn.style.display = 'none';
+                if (archivedBtn) archivedBtn.style.display = 'none';
+                if (showDeletedBtn) showDeletedBtn.style.display = 'none';
+                if (viewPreviewBtn) viewPreviewBtn.style.display = 'none';
+                if (viewPaymentBtn) viewPaymentBtn.style.display = 'flex';
+                if (editBtn) editBtn.style.display = 'flex';
+                if (duplicateBtn) duplicateBtn.style.display = 'flex';
+                if (newInvoiceBtn) newInvoiceBtn.style.display = 'flex';
+                if (homeBtn) homeBtn.style.display = 'flex';
+                if (bulkRestoreBtn) {
+                    bulkRestoreBtn.style.display = 'none';
+                    bulkRestoreBtn.classList.add('hidden');
+                }
+                if (bulkDeleteBtn) {
+                    bulkDeleteBtn.style.display = 'none';
+                    bulkDeleteBtn.classList.add('hidden');
+                }
+            } else {
+                // Dashboard management mode
+                if (searchWrapper) searchWrapper.style.display = 'flex';
+                if (refreshBtn) refreshBtn.style.display = 'flex';
+                if (showDeletedBtn) showDeletedBtn.style.display = 'flex';
+                if (homeBtn) homeBtn.style.display = isHomeVisible ? 'none' : 'flex';
+                if (viewPreviewBtn) viewPreviewBtn.style.display = 'none';
+                if (viewPaymentBtn) viewPaymentBtn.style.display = 'none';
+                if (editBtn) editBtn.style.display = 'none';
+                if (duplicateBtn) duplicateBtn.style.display = 'none';
+
+                // Contextual elements based on Trash mode
+                const isTrashOpen = !!(window as any).showDeletedItems;
+                if (isTrashOpen) {
+                    if (archivedBtn) archivedBtn.style.display = 'none';
+                    if (newInvoiceBtn) newInvoiceBtn.style.display = 'none';
+                    if (bulkRestoreBtn) {
+                        bulkRestoreBtn.style.display = 'flex';
+                        bulkRestoreBtn.classList.remove('hidden');
+                    }
+                    if (bulkDeleteBtn) {
+                        bulkDeleteBtn.style.display = 'flex';
+                        bulkDeleteBtn.classList.remove('hidden');
+                    }
+                } else {
+                    if (archivedBtn) archivedBtn.style.display = 'flex';
+                    if (newInvoiceBtn) newInvoiceBtn.style.display = 'flex';
+                    if (bulkRestoreBtn) {
+                        bulkRestoreBtn.style.display = 'none';
+                        bulkRestoreBtn.classList.add('hidden');
+                    }
+                    if (bulkDeleteBtn) {
+                        bulkDeleteBtn.style.display = 'none';
+                        bulkDeleteBtn.classList.add('hidden');
+                    }
+                }
+            }
+        };
+
+        if (homeSection && homeBtn) {
+            const observer = new MutationObserver(updateHeaderVisibility);
+            observer.observe(homeSection, { attributes: true, attributeFilter: ['style'] });
+            if (newSection) {
+                observer.observe(newSection, { attributes: true, attributeFilter: ['style'] });
+            }
+            if (viewSection) {
+                observer.observe(viewSection, { attributes: true, attributeFilter: ['style'] });
+            }
+            (window as any).updateHeaderVisibility = updateHeaderVisibility;
+            updateHeaderVisibility();
+        }
+
+        const refreshBtn = document.getElementById('refresh-btn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => {
+                const icon = refreshBtn.querySelector('i');
+                if (icon) icon.classList.add('animate-spin');
+                loadRecentInvoices().finally(() => {
+                    setTimeout(() => {
+                        if (icon) icon.classList.remove('animate-spin');
+                    }, 500);
+                });
+            });
+        }
+
+        document.getElementById('new-invoice')?.addEventListener('click', () => {
+            sessionStorage.setItem('currentTab-status', 'new');
+            window.location.href = '/invoice/form';
+        });
+        document.getElementById('home-btn')?.addEventListener('click', () => {
+            // Guard navigation if form has unsaved changes
+            const guardNavigation = (window as any).guardInvoiceNavigation;
+            if (typeof guardNavigation === 'function' && guardNavigation('/invoice')) {
+                return; // Modal shown, navigation deferred
+            }
+
+            sessionStorage.removeItem('currentTab-status');
+            const homeSection = document.getElementById('home');
+            const newSection = document.getElementById('new');
+            const viewSection = document.getElementById('view');
+            const paymentContainer = document.getElementById('payment-container');
+
+            if (homeSection) {
+                window.location.href = '/invoice';
+            }
+            if (newSection) {
+                newSection.style.display = 'none';
+            }
+            if (viewSection) {
+                viewSection.style.display = 'none';
+            }
+            if (paymentContainer) {
+                paymentContainer.style.display = 'none';
+            }
+
+            const newInvoiceBtn = document.getElementById('new-invoice');
+            const viewPreviewBtn = document.getElementById('view-preview');
+            if (newInvoiceBtn) newInvoiceBtn.style.display = 'flex';
+            if (viewPreviewBtn) viewPreviewBtn.style.display = 'none';
+
+            const form = document.getElementById('invoice-form') as HTMLFormElement | null;
+            if (form) form.reset();
+
+            if (typeof currentStep !== 'undefined') {
+                currentStep = 1;
+            }
+
+            loadRecentInvoices();
+        });
+
+        const invSearchInput = document.getElementById('search-input') as HTMLInputElement | null;
+        if (invSearchInput) {
+            invSearchInput.addEventListener('keydown', function (event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    handleSearch();
+                }
+            });
+            invSearchInput.addEventListener('input', debounce(() => {
+                handleSearch();
+            }, 300));
+        }
+
+        initShortcutsModal();
+        initInvoiceFilters();
+
+        const showDeletedBtn = document.getElementById('showDeletedBtn');
+        const archivedBtn = document.getElementById('archived-invoices-btn');
+        const bulkRestoreBtn = document.getElementById('bulk-restore-btn');
+        const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+        const newInvoiceBtn = document.getElementById('new-invoice');
+        const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
+
+        if (archivedBtn) {
+            archivedBtn.onclick = () => {
+                if ((window as any).statusFilter === 'archived') {
+                    (window as any).statusFilter = '';
+                } else {
+                    (window as any).statusFilter = 'archived';
+                }
+                loadRecentInvoices();
+            };
+        }
+
+        if (showDeletedBtn) {
+            showDeletedBtn.onclick = () => {
+                (window as any).showDeletedItems = !(window as any).showDeletedItems;
+                
+                if ((window as any).showDeletedItems) {
+                    showDeletedBtn.classList.remove('bg-gray-200', 'text-gray-700', 'w-10', 'justify-center');
+                    showDeletedBtn.classList.add('bg-red-100', 'text-red-700', 'ring-2', 'ring-red-500', 'px-4', 'gap-2');
+                    showDeletedBtn.innerHTML = '<i class="fas fa-trash-restore"></i> Close Trash';
+                    showDeletedBtn.title = 'Close Trash';
+                } else {
+                    showDeletedBtn.classList.add('bg-gray-200', 'text-gray-700', 'w-10', 'justify-center');
+                    showDeletedBtn.classList.remove('bg-red-100', 'text-red-700', 'ring-2', 'ring-red-500', 'px-4', 'gap-2');
+                    showDeletedBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                    showDeletedBtn.title = 'View Trash';
+                }
+                if (typeof (window as any).updateHeaderVisibility === 'function') {
+                    (window as any).updateHeaderVisibility();
+                }
+                loadRecentInvoices();
+            };
+        }
+
+        function updateBulkButtonLabels() {
+            const query = searchInput ? searchInput.value.trim() : '';
+            const isFiltered = query !== '' ||
+                               currentFilters.status !== 'all' ||
+                               currentFilters.paymentStatus !== 'all' ||
+                               currentFilters.dateFilter !== 'all' ||
+                               currentFilters.sortBy !== 'date-desc';
+            
+            if (bulkRestoreBtn) {
+                const span = bulkRestoreBtn.querySelector('span');
+                if (span) {
+                    span.textContent = isFiltered ? 'Restore All Filtered' : 'Restore All';
+                }
+            }
+            if (bulkDeleteBtn) {
+                const span = bulkDeleteBtn.querySelector('span');
+                if (span) {
+                    span.textContent = isFiltered ? 'Delete All Filtered' : 'Delete All';
+                }
+            }
+        }
+        (window as any).updateBulkButtonLabels = updateBulkButtonLabels;
+
+        if (bulkRestoreBtn) {
+            bulkRestoreBtn.onclick = () => {
+                const filteredData = currentFilteredInvoices || [];
+                if (filteredData.length === 0) {
+                    electronAPI.showAlert1('No invoices to restore.');
+                    return;
+                }
+
+                const query = searchInput ? searchInput.value.trim() : '';
+                const isFiltered = query !== '' ||
+                                   currentFilters.status !== 'all' ||
+                                   currentFilters.paymentStatus !== 'all' ||
+                                   currentFilters.dateFilter !== 'all' ||
+                                   currentFilters.sortBy !== 'date-desc';
+                const message = `Are you sure you want to restore all ${filteredData.length} ${isFiltered ? 'filtered ' : ''}invoices?`;
+
+                const showConfirm = (window as any).showConfirm;
+                if (showConfirm) {
+                    showConfirm(message, async (response: string) => {
+                        if (response === 'Yes') {
+                            try {
+                                await (window as any).invoiceApi.bulkRestoreInvoices(filteredData.map((inv: any) => inv.invoice_id));
+                                showToast('Invoices restored successfully!');
+                                loadRecentInvoices();
+                            } catch (err) {
+                                electronAPI.showAlert1('Failed to bulk restore invoices.');
+                            }
+                        }
+                    });
+                }
+            };
+        }
+
+        if (bulkDeleteBtn) {
+            bulkDeleteBtn.onclick = () => {
+                const filteredData = currentFilteredInvoices || [];
+                if (filteredData.length === 0) {
+                    electronAPI.showAlert1('No invoices to delete.');
+                    return;
+                }
+
+                const query = searchInput ? searchInput.value.trim() : '';
+                const isFiltered = query !== '' ||
+                                   currentFilters.status !== 'all' ||
+                                   currentFilters.paymentStatus !== 'all' ||
+                                   currentFilters.dateFilter !== 'all' ||
+                                   currentFilters.sortBy !== 'date-desc';
+                const message = `Are you sure you want to PERMANENTLY delete all ${filteredData.length} ${isFiltered ? 'filtered ' : ''}invoices? This cannot be undone.`;
+
+                const showConfirm = (window as any).showConfirm;
+                if (showConfirm) {
+                    showConfirm(message, async (response: string) => {
+                        if (response === 'Yes') {
+                            try {
+                                await (window as any).invoiceApi.bulkHardDeleteInvoices(filteredData.map((inv: any) => inv.invoice_id));
+                                showToast('Invoices permanently deleted!');
+                                loadRecentInvoices();
+                            } catch (err) {
+                                electronAPI.showAlert1('Failed to bulk delete invoices.');
+                            }
+                        }
+                    });
+                }
+            };
+        }
+
+        // Expose action handlers to window
+        (window as any).handleRestoreFromArchive = (id: string, name: string) => {
+            const showConfirm = (window as any).showConfirm;
+            const msg = `Are you sure you want to restore invoice "${name || id}"?`;
+            if (showConfirm) {
+                showConfirm(msg, async (response: string) => {
+                    if (response === 'Yes') {
+                        try {
+                            await (window as any).invoiceApi.restoreInvoice(id);
+                            showToast('Invoice restored successfully');
+                            loadRecentInvoices();
+                        } catch (error) {
+                            electronAPI.showAlert1('Failed to restore invoice.');
+                        }
+                    }
+                });
+            }
+        };
+
+        (window as any).handleRestoreFromTrash = (id: string, name: string) => {
+            const showConfirm = (window as any).showConfirm;
+            const msg = `Are you sure you want to restore invoice "${name || id}" from trash?`;
+            if (showConfirm) {
+                showConfirm(msg, async (response: string) => {
+                    if (response === 'Yes') {
+                        try {
+                            await (window as any).invoiceApi.restoreInvoiceFromTrash(id);
+                            showToast('Invoice restored successfully');
+                            loadRecentInvoices();
+                        } catch (error) {
+                            electronAPI.showAlert1('Failed to restore invoice.');
+                        }
+                    }
+                });
+            }
+        };
+
+        (window as any).handleHardDelete = (id: string, name: string) => {
+            const showConfirm = (window as any).showConfirm;
+            const msg = `Are you sure you want to PERMANENTLY delete Invoice "${name || id}"? This action cannot be undone.`;
+            if (showConfirm) {
+                showConfirm(msg, async (response: string) => {
+                    if (response === 'Yes') {
+                        try {
+                            await (window as any).invoiceApi.hardDeleteInvoice(id);
+                            showToast('Invoice permanently deleted');
+                            loadRecentInvoices();
+                        } catch (error) {
+                            electronAPI.showAlert1('Failed to permanently delete invoice.');
+                        }
+                    }
+                });
+            }
+        };
+
+        document.addEventListener('keydown', handleQuotationKeyboardShortcuts, true);
+    });
+
+    const updateArchivedCount = async () => {
+        try {
+            const archived = await (window as any).invoiceApi.fetchRecentInvoices('archived', false);
+            const countBadge = document.getElementById('archived-count-badge');
+            if (countBadge) {
+                countBadge.textContent = archived.length.toString();
+            }
+        } catch (err) {
+            console.error('Failed to update archived count:', err);
+        }
+    };
+    (window as any).updateArchivedCount = updateArchivedCount;
+
+    function updateArchivedButtonVisuals() {
+        const archivedBtn = document.getElementById('archived-invoices-btn') as HTMLButtonElement | null;
+        if (!archivedBtn) return;
+
+        const icon = archivedBtn.querySelector('i');
+        const badge = document.getElementById('archived-count-badge');
+
+        if ((window as any).statusFilter === 'archived') {
+            // Set glowing amber active visual styles
+            archivedBtn.classList.remove('bg-gray-200', 'text-gray-700', 'border-slate-200', 'hover:bg-slate-50');
+            archivedBtn.classList.add('bg-amber-500', 'text-white', 'border-amber-500', 'ring-2', 'ring-amber-500/20', 'shadow-md', 'shadow-amber-500/10', 'hover:bg-amber-600');
+            
+            if (icon) {
+                icon.className = 'fas fa-box-open text-white';
+            }
+            if (badge) {
+                badge.classList.remove('bg-slate-100', 'text-slate-600');
+                badge.classList.add('bg-white', 'text-amber-600', 'font-extrabold');
+            }
+        } else {
+            // Restore default neutral button styles
+            archivedBtn.classList.remove('bg-amber-500', 'text-white', 'border-amber-500', 'ring-2', 'ring-amber-500/20', 'shadow-md', 'shadow-amber-500/10', 'hover:bg-amber-600');
+            archivedBtn.classList.add('bg-gray-200', 'text-gray-700', 'border-slate-200', 'hover:bg-slate-50');
+
+            if (icon) {
+                icon.className = 'fas fa-archive text-slate-400';
+            }
+            if (badge) {
+                badge.classList.remove('bg-white', 'text-amber-600', 'font-extrabold');
+                badge.classList.add('bg-slate-100', 'text-slate-600');
+            }
+        }
+    }
+
+    async function loadRecentInvoices() {
+        try {
+            const deleted = !!(window as any).showDeletedItems;
+            const [invoices, archived] = await Promise.all([
+                (window as any).invoiceApi.fetchRecentInvoices('', deleted),
+                (window as any).invoiceApi.fetchRecentInvoices('archived', deleted)
+            ]);
+            allInvoices = invoices || [];
+            archivedInvoices = archived || [];
+            applyInvoiceFilters();
+            const updateBulkLabels = (window as any).updateBulkButtonLabels;
+            if (typeof updateBulkLabels === 'function') {
+                updateBulkLabels();
+            }
+        } catch (error) {
+            console.error("Error loading invoices:", error);
+            if (invoicesListDiv) {
+                invoicesListDiv.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-16 fade-in">
+                        <div class="bg-red-100 rounded-full p-8 mb-4">
+                            <i class="fas fa-exclamation-triangle text-red-500 text-6xl"></i>
+                        </div>
+                        <h2 class="text-2xl font-semibold text-gray-700 mb-2">Failed to Load Invoices</h2>
+                        <p class="text-gray-500 mb-6">Please try again later</p>
+                        <button id="retry-load-invoices" 
+                            class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
+                            <i class="fas fa-redo"></i>
+                            Retry
+                        </button>
+                    </div>
+                `;
+                document.getElementById('retry-load-invoices')?.addEventListener('click', loadRecentInvoices);
+            }
+        }
+    }
+
+    function updateTabCounts() {
+        const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
+        if (!statusTabs.length) return;
+
+        const counts: Record<string, number> = {
+            all: allInvoices.length,
+            DRAFT: 0,
+            SENT: 0,
+            PAID: 0,
+            'PARTIALLY PAID': 0,
+            OVERDUE: 0,
+            CANCELLED: 0,
+            REFUNDED: 0,
+            archived: archivedInvoices.length
+        };
+
+        allInvoices.forEach(inv => {
+            const status = getInvoiceStatus(inv);
+            if (status in counts) {
+                counts[status]++;
+            }
+        });
+
+        statusTabs.forEach(tab => {
+            const status = (tab as HTMLElement).dataset.status || 'all';
+            const count = counts[status] || 0;
+            
+            let badge = tab.querySelector('.tab-count-badge');
+            if (!badge) {
+                badge = document.createElement('span');
+                tab.appendChild(badge);
+            }
+            badge.className = tab.classList.contains('active')
+                ? 'tab-count-badge ml-1.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-blue-100 text-blue-600 transition-colors duration-150'
+                : 'tab-count-badge ml-1.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-slate-100 text-slate-500 transition-colors duration-150';
+            badge.textContent = count.toString();
+        });
+    }
+
+    (window as any).triggerHeaderSort = (nextSort: string) => {
+        currentFilters.sortBy = nextSort;
+        const sortFilter = document.getElementById('sort-filter') as HTMLSelectElement | null;
+        if (sortFilter) {
+            sortFilter.value = nextSort;
+        }
+        applyInvoiceFilters();
+    };
+
+    function applyInvoiceFilters() {
+        updateTabCounts();
+
+        const sourceList = currentFilters.status === 'archived' ? archivedInvoices : allInvoices;
+
+        let filtered = applyFilters(sourceList, {
+            paymentStatus: currentFilters.paymentStatus,
+            dateFilter: currentFilters.dateFilter,
+            sortBy: currentFilters.sortBy,
+            dateField: 'invoice_date',
+            amountField: 'total_amount_duplicate',
+            nameField: 'project_name',
+            customStartDate: currentFilters.customStartDate,
+            customEndDate: currentFilters.customEndDate
+        });
+        if (currentFilters.status !== 'all' && currentFilters.status !== 'archived') {
+            filtered = filtered.filter((inv: Invoice) => getInvoiceStatus(inv) === currentFilters.status);
+        }
+
+        // Highlight filter button if any filters are applied
+        const isFilterActive = currentFilters.paymentStatus !== 'all' ||
+                               currentFilters.dateFilter !== 'all' ||
+                               currentFilters.sortBy !== 'date-desc';
+        const filterBtn = document.getElementById('filter-btn');
+        if (filterBtn) {
+            if (isFilterActive) {
+                filterBtn.className = "bg-blue-50 text-blue-600 border border-blue-300 px-3 py-2 rounded-lg transition-all duration-150 flex items-center justify-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500/20 active:scale-95 cursor-pointer shadow-sm";
+            } else {
+                filterBtn.className = "bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 px-3 py-2 rounded-lg transition-all duration-150 flex items-center justify-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500/20 active:scale-95 cursor-pointer";
+            }
+        }
+
+        currentFilteredInvoices = filtered;
+        renderInvoices(filtered);
+        updateActiveFiltersBar();
+    }
+
+    function updateActiveFiltersBar() {
+        const infoBar = document.getElementById('active-filters-info-bar');
+        const badgesContainer = document.getElementById('active-filters-badges');
+        if (!infoBar || !badgesContainer) return;
+
+        // Preserve only the header label span
+        const label = badgesContainer.querySelector('span');
+        badgesContainer.innerHTML = '';
+        if (label) badgesContainer.appendChild(label);
+
+        const activeBadges: { label: string, clearFn: () => void }[] = [];
+
+        // Search Query
+        const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
+        const query = searchInput ? searchInput.value.trim() : '';
+        if (query) {
+            activeBadges.push({
+                label: `Search: "${query}"`,
+                clearFn: () => {
+                    if (searchInput) {
+                        searchInput.value = '';
+                        searchInput.dispatchEvent(new Event('input'));
+                    }
+                }
+            });
+        }
+
+        // Status Filter
+        if (currentFilters.status !== 'all') {
+            const statusLabels: Record<string, string> = {
+                DRAFT: 'Draft',
+                SENT: 'Sent',
+                OVERDUE: 'Overdue',
+                PARTIALLY_PAID: 'Partially Paid',
+                PAID: 'Paid',
+                CANCELLED: 'Cancelled',
+                REFUNDED: 'Refunded'
+            };
+            activeBadges.push({
+                label: `Status: ${statusLabels[currentFilters.status] || currentFilters.status}`,
+                clearFn: () => {
+                    currentFilters.status = 'all';
+                    const statusFilter = document.getElementById('status-filter') as HTMLInputElement | null;
+                    if (statusFilter) statusFilter.value = 'all';
+                    
+                    const statusDropdown = document.getElementById('statusFilterDropdown');
+                    if (statusDropdown) {
+                        statusDropdown.querySelectorAll('a').forEach((a, i) => {
+                            a.classList.remove('bg-gray-100', 'font-semibold');
+                            if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                        });
+                    }
+                    
+                    const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
+                    statusTabs.forEach(t => {
+                        if (t.getAttribute('data-status') === 'all') {
+                            t.classList.add('active');
+                        } else {
+                            t.classList.remove('active');
+                        }
+                    });
+                    
+                    applyInvoiceFilters();
+                }
+            });
+        }
+
+        // Date Filter
+        if (currentFilters.dateFilter !== 'all') {
+            let dateLabel = currentFilters.dateFilter;
+            if (currentFilters.dateFilter === 'custom' && currentFilters.customStartDate && currentFilters.customEndDate) {
+                dateLabel = `${currentFilters.customStartDate} to ${currentFilters.customEndDate}`;
+            } else {
+                const dateLabels: Record<string, string> = {
+                    today: 'Today',
+                    week: 'This Week',
+                    month: 'This Month'
+                };
+                dateLabel = dateLabels[currentFilters.dateFilter] || currentFilters.dateFilter;
+            }
+            activeBadges.push({
+                label: `Date: ${dateLabel}`,
+                clearFn: () => {
+                    currentFilters.dateFilter = 'all';
+                    currentFilters.customStartDate = null;
+                    currentFilters.customEndDate = null;
+                    const dateSelect = document.getElementById('date-filter') as HTMLInputElement | null;
+                    if (dateSelect) dateSelect.value = 'all';
+                    const dateDropdown = document.getElementById('dateFilterDropdown');
+                    if (dateDropdown) {
+                        dateDropdown.querySelectorAll('a').forEach((a, i) => {
+                            a.classList.remove('bg-gray-100', 'font-semibold');
+                            if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                        });
+                    }
+                    applyInvoiceFilters();
+                }
+            });
+        }
+
+        // Sort Filter
+        if (currentFilters.sortBy !== 'date-desc') {
+            const sortLabels: Record<string, string> = {
+                'date-asc': 'Oldest First',
+                'amount-desc': 'Amount: High-Low',
+                'amount-asc': 'Amount: Low-High',
+                'status-asc': 'Status A-Z',
+                'status-desc': 'Status Z-A'
+            };
+            activeBadges.push({
+                label: `Sort: ${sortLabels[currentFilters.sortBy] || currentFilters.sortBy}`,
+                clearFn: () => {
+                    currentFilters.sortBy = 'date-desc';
+                    const sortSelect = document.getElementById('sort-filter') as HTMLInputElement | null;
+                    if (sortSelect) sortSelect.value = 'date-desc';
+                    const sortDropdown = document.getElementById('sortFilterDropdown');
+                    if (sortDropdown) {
+                        sortDropdown.querySelectorAll('a').forEach((a, i) => {
+                            a.classList.remove('bg-gray-100', 'font-semibold');
+                            if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                        });
+                    }
+                    applyInvoiceFilters();
+                }
+            });
+        }
+
+        if (activeBadges.length > 0) {
+            infoBar.classList.remove('hidden');
+            activeBadges.forEach(badgeData => {
+                const badge = document.createElement('span');
+                badge.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100 shadow-sm transition-all duration-150';
+                badge.innerHTML = `
+                    <span>${badgeData.label}</span>
+                    <button class="text-blue-400 hover:text-blue-700 ml-0.5 focus:outline-none cursor-pointer text-[10px]" title="Remove filter">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                badge.querySelector('button')?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    badgeData.clearFn();
+                });
+                badgesContainer.appendChild(badge);
+            });
+        } else {
+            infoBar.classList.add('hidden');
+        }
+    }
+
+    function initInvoiceFilters() {
+        const filterBtn = document.getElementById('filter-btn');
+        const filterPopover = document.getElementById('filter-popover');
+        const dateFilter = document.getElementById('date-filter') as HTMLInputElement | null;
+        const sortFilter = document.getElementById('sort-filter') as HTMLInputElement | null;
+        const statusFilter = document.getElementById('status-filter') as HTMLInputElement | null;
+        const clearFiltersBtn = document.getElementById('clear-filters-btn');
+        const applyFiltersBtn = document.getElementById('apply-filters-btn');
+        
+        const dateDropdown = document.getElementById('dateFilterDropdown');
+        const sortDropdown = document.getElementById('sortFilterDropdown');
+        const statusDropdown = document.getElementById('statusFilterDropdown');
+        
+        if (filterBtn && filterPopover) {
+            filterBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const rect = filterBtn.getBoundingClientRect();
+                const popoverWidth = 280; // width is 280px
+                
+                filterPopover.style.top = `${rect.bottom + 8}px`;
+                
+                let leftPos = rect.right - popoverWidth;
+                if (leftPos + popoverWidth > window.innerWidth - 16) {
+                    leftPos = window.innerWidth - popoverWidth - 16;
+                }
+                if (leftPos < 16) {
+                    leftPos = 16;
+                }
+                
+                filterPopover.style.left = `${leftPos}px`;
+                filterPopover.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', (e) => {
+                const target = e.target as HTMLElement;
+                if (!filterPopover.contains(target) && target !== filterBtn && !target.closest('#custom-date-modal')) {
+                    filterPopover.classList.add('hidden');
+                }
+            });
+        }
+
+        // Handle date filter custom options & clicks
+        if (dateDropdown && dateFilter) {
+            dateDropdown.addEventListener('click', (e: Event) => {
+                const target = e.target as HTMLElement;
+                const link = target.closest('a');
+                if (!link) return;
+
+                e.preventDefault();
+
+                const value = link.getAttribute('data-date-filter') || 'all';
+                if (value === 'custom') {
+                    showCustomDateModal((startDate: string, endDate: string) => {
+                        dateDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+                        link.classList.add('bg-gray-100', 'font-semibold');
+
+                        currentFilters.dateFilter = 'custom';
+                        currentFilters.customStartDate = startDate;
+                        currentFilters.customEndDate = endDate;
+                        dateFilter.value = 'custom';
+                        applyInvoiceFilters();
+                    });
+                } else {
+                    dateDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+                    link.classList.add('bg-gray-100', 'font-semibold');
+
+                    currentFilters.dateFilter = value;
+                    currentFilters.customStartDate = null;
+                    currentFilters.customEndDate = null;
+                    dateFilter.value = value;
+                    applyInvoiceFilters();
+                }
+            });
+        }
+
+        // Handle sort filter clicks
+        if (sortDropdown && sortFilter) {
+            sortDropdown.addEventListener('click', (e: Event) => {
+                const target = e.target as HTMLElement;
+                const link = target.closest('a');
+                if (!link) return;
+
+                e.preventDefault();
+
+                sortDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+                link.classList.add('bg-gray-100', 'font-semibold');
+
+                const value = link.getAttribute('data-sort-filter') || 'date-desc';
+                currentFilters.sortBy = value;
+                sortFilter.value = value;
+                applyInvoiceFilters();
+            });
+        }
+
+        // Handle status filter clicks
+        if (statusDropdown && statusFilter) {
+            statusDropdown.addEventListener('click', (e: Event) => {
+                const target = e.target as HTMLElement;
+                const link = target.closest('a');
+                if (!link) return;
+
+                e.preventDefault();
+
+                statusDropdown.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+                link.classList.add('bg-gray-100', 'font-semibold');
+
+                const value = link.getAttribute('data-status-filter') || 'all';
+                currentFilters.status = value;
+                statusFilter.value = value;
+
+                // Sync with top status tabs: highlight "All" tab if value is "all", otherwise clear active state
+                const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
+                statusTabs.forEach(t => {
+                    if (value === 'all' && t.getAttribute('data-status') === 'all') {
+                        t.classList.add('active');
+                    } else {
+                        t.classList.remove('active');
+                    }
+                });
+
+                applyInvoiceFilters();
+            });
+        }
+
+        if (clearFiltersBtn) {
+            clearFiltersBtn.addEventListener('click', () => {
+                currentFilters = {
+                    status: 'all',
+                    paymentStatus: 'all',
+                    dateFilter: 'all',
+                    sortBy: 'date-desc',
+                    customStartDate: null,
+                    customEndDate: null
+                };
+                if (dateFilter) dateFilter.value = 'all';
+                if (sortFilter) sortFilter.value = 'date-desc';
+                if (statusFilter) statusFilter.value = 'all';
+                
+                if (dateDropdown) {
+                    dateDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
+                if (sortDropdown) {
+                    sortDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
+                if (statusDropdown) {
+                    statusDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
+                
+                // Reset status tabs
+                const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
+                statusTabs.forEach(t => {
+                    if ((t as HTMLElement).dataset.status === 'all') {
+                        t.classList.add('active');
+                    } else {
+                        t.classList.remove('active');
+                    }
+                });
+
+                applyInvoiceFilters();
+                if (filterPopover) filterPopover.classList.add('hidden');
+            });
+        }
+
+        // Status Tabs click events
+        const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
+        statusTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                statusTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                const status = (tab as HTMLElement).dataset.status || 'all';
+                currentFilters.status = status;
+                
+                if (statusFilter) {
+                    statusFilter.value = status;
+                }
+                
+                if (statusDropdown) {
+                    statusDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
+                
+                applyInvoiceFilters();
+            });
+        });
+
+        // Clear All active filters info bar shortcut
+        const clearAllShortcut = document.getElementById('clear-all-filters-shortcut') as HTMLButtonElement | null;
+        if (clearAllShortcut) {
+            clearAllShortcut.addEventListener('click', () => {
+                currentFilters = {
+                    status: 'all',
+                    paymentStatus: 'all',
+                    dateFilter: 'all',
+                    sortBy: 'date-desc',
+                    customStartDate: null,
+                    customEndDate: null
+                };
+                const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
+                if (searchInput) {
+                    searchInput.value = '';
+                    searchInput.dispatchEvent(new Event('input'));
+                }
+                if (dateFilter) dateFilter.value = 'all';
+                if (sortFilter) sortFilter.value = 'date-desc';
+                if (statusFilter) statusFilter.value = 'all';
+                
+                if (dateDropdown) {
+                    dateDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
+                if (sortDropdown) {
+                    sortDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
+                if (statusDropdown) {
+                    statusDropdown.querySelectorAll('a').forEach((a, i) => {
+                        a.classList.remove('bg-gray-100', 'font-semibold');
+                        if (i === 0) a.classList.add('bg-gray-100', 'font-semibold');
+                    });
+                }
+                
+                // Reset status tabs
+                const statusTabs = document.querySelectorAll('#status-tabs-container .filter-tab');
+                statusTabs.forEach(t => {
+                    if ((t as HTMLElement).dataset.status === 'all') {
+                        t.classList.add('active');
+                    } else {
+                        t.classList.remove('active');
+                    }
+                });
+
+                applyInvoiceFilters();
+            });
+        }
+
+        // Hook search input change to update badges
+        const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
+        if (searchInput) {
+            searchInput.addEventListener('input', () => {
+                updateActiveFiltersBar();
+            });
+        }
+    }
+
+    function renderInvoices(invoices: Invoice[]) {
+        if ((window as any).invoiceTable && typeof (window as any).invoiceTable.render === 'function') {
+            (window as any).invoiceTable.render(invoices);
+        } else {
+            console.error("InvoiceTable render method not found.");
+        }
+    }
+
+    async function deleteInvoice(invoiceId: string) {
+        await deleteDocument('invoice', invoiceId, 'Invoice', loadRecentInvoices);
+    }
+
+    function showNewInvoiceForm() {
+        sessionStorage.setItem('currentTab-status', 'new');
+        showNewDocumentForm({
+            homeId: 'home',
+            formId: 'new',
+            newButtonId: 'new-invoice',
+            viewId: 'view',
+            stepIndicatorId: 'step-indicator',
+            currentStep: typeof currentStep !== 'undefined' ? currentStep : undefined,
+            totalSteps: typeof totalSteps !== 'undefined' ? totalSteps : undefined,
+            additionalSetup: () => {
+                sessionStorage.setItem('update-invoice', 'original');
+                const searchContainer = document.getElementById("buyer-search-container");
+                if (searchContainer) {
+                    searchContainer.style.display = "";
+                }
+            }
+        });
+
+        if (typeof (window as any).changeStep === 'function') {
+            (window as any).changeStep(1);
+        }
+
+        const itemsContainer = document.getElementById("items-container");
+        const nonItemsContainer = document.getElementById("non-items-container");
+        const itemsTableBody = document.querySelector("#items-table tbody");
+        const nonItemsTableBody = document.querySelector("#non-items-table tbody");
+
+        if (itemsContainer) itemsContainer.innerHTML = "";
+        if (nonItemsContainer) nonItemsContainer.innerHTML = "";
+        if (itemsTableBody) itemsTableBody.innerHTML = "";
+        if (nonItemsTableBody) nonItemsTableBody.innerHTML = "";
+
+        const form = document.getElementById('invoice-form') as HTMLFormElement | null;
+        if (form) form.reset();
+
+        const idInput = document.getElementById('id') as HTMLInputElement | null;
+        if (idInput) {
+            idInput.value = 'Auto-Generated';
+        }
+
+        const statusSelect = document.getElementById('invoice-status') as HTMLSelectElement | null;
+        if (statusSelect) {
+            statusSelect.innerHTML = `
+                <option value="DRAFT">Draft</option>
+                <option value="SENT">Sent</option>
+            `;
+            statusSelect.value = 'DRAFT';
+        }
+
+        if (typeof (window as any).isCustomId !== 'undefined') {
+            (window as any).isCustomId = false;
+        }
+
+        // Add one default empty item row (same behavior as Quotation)
+        if (typeof (window as any).addItem === 'function') {
+            (window as any).addItem();
+        }
+
+        const invoiceDateInput = document.getElementById('invoice-date') as HTMLInputElement | null;
+        if (invoiceDateInput) {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            invoiceDateInput.value = `${yyyy}-${mm}-${dd}`;
+        }
+
+        // Clear dirty state — freshly opened form is not dirty
+        if (typeof (window as any).markInvoiceFormClean === 'function') {
+            (window as any).markInvoiceFormClean();
+        }
+    }
+
+    async function handleSearch() {
+        const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
+        const query = searchInput ? searchInput.value.trim() : '';
+        if (!query) {
+            await loadRecentInvoices();
+            return;
+        }
+
+        try {
+            const status = currentFilters.status === 'archived' ? 'archived' : '';
+            const deleted = !!(window as any).showDeletedItems;
+            let url = `/invoice/search/${encodeURIComponent(query)}?`;
+            if (status) url += `status=${encodeURIComponent(status)}&`;
+            if (deleted) url += `deleted=true&`;
+
+            const response = await fetch(url);
+            if (!response.ok) {
+                allInvoices = [];
+                applyInvoiceFilters();
+                return;
+            }
+
+            const data = await response.json();
+            allInvoices = data.invoices || [];
+            applyInvoiceFilters();
+        } catch (error) {
+            console.error('Error searching invoices:', error);
+            electronAPI.showAlert1('Failed to search invoices. Please try again later.');
+        }
+    }
+
+    async function payment(id: string, editIndex: number | null = null, editData: PaymentRecord | null = null) {
+        const invoiceId = id;
+
+        (window as any).paymentEditMode = editIndex !== null;
+        (window as any).paymentEditIndex = editIndex;
+        (window as any).paymentEditOriginalAmount = editData ? editData.paid_amount : 0;
+
+        const viewEl = document.getElementById('view');
+        if (viewEl && window.getComputedStyle(viewEl).display !== 'none') {
+            (window as any).paymentReturnView = 'view';
+        } else {
+            (window as any).paymentReturnView = 'home';
+        }
+
+        try {
+            const response = await fetchDocumentById('invoice', invoiceId);
+            if (!response || !response.invoice) {
+                electronAPI.showAlert1('Invoice not found.');
+                return;
+            }
+
+            const invoice = response.invoice as Invoice;
+            const totalAmount = invoice.total_amount_duplicate || invoice.total_amount_original || 0;
+            const paidAmount = invoice.total_paid_amount || 0;
+            const dueAmount = (window as any).paymentEditMode
+                ? (totalAmount - paidAmount + (window as any).paymentEditOriginalAmount)
+                : (totalAmount - paidAmount);
+
+            if (!(window as any).paymentEditMode && (!dueAmount || dueAmount <= 0)) {
+                electronAPI.showAlert1('There is no outstanding due on this invoice.');
+                return;
+            }
+
+            const viewPreview = document.getElementById('view-preview');
+            const home = document.getElementById('home');
+            const newSec = document.getElementById('new');
+            const view = document.getElementById('view');
+            const paymentContainer = document.getElementById('payment-container');
+
+            if (viewPreview) viewPreview.style.display = 'none';
+            if (home) home.style.display = 'none';
+            if (newSec) newSec.style.display = 'none';
+            if (view) view.style.display = 'none';
+            if (paymentContainer) paymentContainer.style.display = 'flex';
+
+            (window as any).currentPaymentInvoiceId = invoiceId;
+
+            const modalTitle = document.querySelector('#payment-container h2');
+            const paymentBtn = document.getElementById('payment-btn');
+            if ((window as any).paymentEditMode) {
+                if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-edit text-blue-600 mr-2"></i>Edit Payment';
+                if (paymentBtn) paymentBtn.innerHTML = '<i class="fas fa-save"></i> Update Payment';
+            } else {
+                if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-money-bill-wave text-green-600 mr-2"></i>Add Payment';
+                if (paymentBtn) paymentBtn.innerHTML = '<i class="fas fa-save"></i> Save Payment';
+            }
+
+            const paidAmountInput = document.getElementById('paid-amount') as HTMLInputElement | null;
+            if (paidAmountInput) {
+                const newPaidAmountInput = paidAmountInput.cloneNode(true) as HTMLInputElement;
+                if (paidAmountInput.parentNode) {
+                    paidAmountInput.parentNode.replaceChild(newPaidAmountInput, paidAmountInput);
+                }
+
+                newPaidAmountInput.value = editData ? String(editData.paid_amount) : '';
+
+                newPaidAmountInput.addEventListener('input', function () {
+                    const val = parseFloat(this.value);
+                    if (val > dueAmount) {
+                        this.setCustomValidity(`Amount cannot exceed due amount (₹ ${formatIndian(dueAmount, 2)})`);
+                        this.reportValidity();
+                        this.classList.add('border-red-500', 'focus:ring-red-500');
+                        this.classList.remove('border-gray-300', 'focus:ring-blue-500');
+                    } else {
+                        this.setCustomValidity('');
+                        this.classList.remove('border-red-500', 'focus:ring-red-500');
+                        this.classList.add('border-gray-300', 'focus:ring-blue-500');
+                    }
+                });
+            }
+
+            const paymentModeSelect = document.getElementById('payment-mode') as HTMLSelectElement | null;
+            if (paymentModeSelect) {
+                paymentModeSelect.value = editData ? editData.payment_mode : 'Cash';
+                paymentModeSelect.dispatchEvent(new Event('change'));
+            }
+
+            const paymentDateInput = document.getElementById('payment-date') as HTMLInputElement | null;
+            if (paymentDateInput) {
+                if (editData && editData.payment_date) {
+                    const editDate = new Date(editData.payment_date);
+                    paymentDateInput.value = (window as any).formatDateInput ? (window as any).formatDateInput(editDate) : editDate.toISOString().split('T')[0];
+                } else {
+                    const today = (window as any).getTodayForInput ? (window as any).getTodayForInput() : new Date().toISOString().split('T')[0];
+                    paymentDateInput.value = today;
+                }
+            }
+
+            setTimeout(() => {
+                if (editData && editData.extra_details) {
+                    const extraFieldInput = document.querySelector('#extra-payment-details input') as HTMLInputElement | null;
+                    if (extraFieldInput) {
+                        extraFieldInput.value = editData.extra_details;
+                    }
+                }
+            }, 50);
+
+            const dueAmountElement = document.getElementById('payment-due-amount');
+            if (dueAmountElement) {
+                dueAmountElement.textContent = `₹ ${formatIndian(dueAmount, 2)}`;
+            }
+
+            const autofillBtn = document.getElementById('autofill-full-amount');
+            if (autofillBtn) {
+                const newAutofillBtn = autofillBtn.cloneNode(true);
+                if (autofillBtn.parentNode) {
+                    autofillBtn.parentNode.replaceChild(newAutofillBtn, autofillBtn);
+                }
+
+                newAutofillBtn.addEventListener('click', () => {
+                    const currentPaidInput = document.getElementById('paid-amount') as HTMLInputElement | null;
+                    if (currentPaidInput && dueAmount > 0) {
+                        currentPaidInput.value = dueAmount.toFixed(2);
+                        currentPaidInput.classList.add('ring-2', 'ring-green-500');
+                        setTimeout(() => {
+                            currentPaidInput.classList.remove('ring-2', 'ring-green-500');
+                        }, 500);
+                    }
+                });
+            }
+
+            setTimeout(() => {
+                const firstInput = document.getElementById('paid-amount');
+                if (firstInput) {
+                    firstInput.focus();
+                }
+            }, 100);
+        } catch (error) {
+            console.error('Error fetching invoice for payment:', error);
+            electronAPI.showAlert1('Failed to fetch invoice details.');
+        }
+    }
+
+    async function editPayment(invoiceId: string, paymentIndex: number) {
+        try {
+            const response = await fetchDocumentById('invoice', invoiceId);
+            if (!response || !response.invoice) {
+                electronAPI.showAlert1('Invoice not found.');
+                return;
+            }
+
+            const invoice = response.invoice as Invoice;
+            if (!invoice.payments || paymentIndex >= invoice.payments.length) {
+                electronAPI.showAlert1('Payment not found.');
+                return;
+            }
+
+            const paymentData = invoice.payments[paymentIndex];
+            payment(invoiceId, paymentIndex, paymentData);
+        } catch (error) {
+            console.error('Error fetching payment for edit:', error);
+            electronAPI.showAlert1('Failed to fetch payment details.');
+        }
+    }
+
+    async function deletePayment(invoiceId: string, paymentIndex: number) {
+        electronAPI.showAlert2(
+            'Are you sure you want to delete this payment? This action cannot be undone.',
+            'Delete Payment'
+        );
+
+        electronAPI.receiveAlertResponse(async (response: string) => {
+            if (response === "Yes") {
+                try {
+                    const res = await fetch(`/invoice/delete-payment/${invoiceId}/${paymentIndex}`, {
+                        method: 'DELETE'
+                    });
+
+                    const data = await res.json();
+
+                    if (!res.ok) {
+                        electronAPI.showAlert1(`Error: ${data.message || 'Failed to delete payment.'}`);
+                        return;
+                    }
+
+                    electronAPI.showAlert1('Payment deleted successfully.');
+
+                    const userRole = sessionStorage.getItem('userRole');
+                    if (typeof viewInvoice === 'function') {
+                        viewInvoice(invoiceId, userRole);
+                    }
+                } catch (error) {
+                    console.error('Error deleting payment:', error);
+                    electronAPI.showAlert1('Failed to delete payment.');
+                }
+            }
+        });
+    }
+
+    document.getElementById('close-payment-modal')?.addEventListener('click', () => {
+        const payContainer = document.getElementById('payment-container');
+        if (payContainer) payContainer.style.display = 'none';
+
+        if ((window as any).paymentReturnView === 'view') {
+            const viewEl = document.getElementById('view');
+            if (viewEl) viewEl.style.display = 'block';
+            const userRole = sessionStorage.getItem('userRole');
+            if (typeof viewInvoice === 'function' && (window as any).currentPaymentInvoiceId) {
+                viewInvoice((window as any).currentPaymentInvoiceId, userRole);
+            }
+        } else {
+            const homeEl = document.getElementById('home');
+            if (homeEl) homeEl.style.display = 'block';
+            loadRecentInvoices();
+        }
+    });
+
+    document.getElementById('payment-mode')?.addEventListener('change', function (this: HTMLSelectElement) {
+        const mode = this.value;
+        const extraField = document.getElementById('extra-payment-details');
+
+        if (!extraField) return;
+
+        extraField.innerHTML = '';
+
+        if (mode === 'Cash') {
+            extraField.innerHTML = `
+                <label for="cash-location" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>Cash Location
+                </label>
+                <input type="text" id="cash-location" placeholder="Enter cash location"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            `;
+        } else if (mode === 'UPI') {
+            extraField.innerHTML = `
+                <label for="upi-transaction-id" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-mobile-alt text-gray-500 mr-1"></i>UPI Transaction ID
+                </label>
+                <input type="text" id="upi-transaction-id" placeholder="Enter UPI transaction ID"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            `;
+        } else if (mode === 'Cheque') {
+            extraField.innerHTML = `
+                <label for="cheque-number" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-money-check text-gray-500 mr-1"></i>Cheque Number
+                </label>
+                <input type="text" id="cheque-number" placeholder="Enter cheque number"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            `;
+        } else if (mode === 'Bank Transfer') {
+            extraField.innerHTML = `
+                <label for="bank-details" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-university text-gray-500 mr-1"></i>Bank Details
+                </label>
+                <input type="text" id="bank-details" placeholder="Enter bank details"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            `;
+        }
+    });
+
+    document.getElementById('payment-btn')?.addEventListener('click', async () => {
+        const paymentBtn = document.getElementById('payment-btn') as HTMLButtonElement | null;
+        if (!paymentBtn || paymentBtn.disabled) return;
+
+        const paidAmountInput = document.getElementById("paid-amount") as HTMLInputElement | null;
+        const paidAmount = parseFloat(paidAmountInput?.value || '0') || 0;
+        const paymentDateInput = document.getElementById("payment-date") as HTMLInputElement | null;
+        const paymentDate = paymentDateInput ? paymentDateInput.value : '';
+        const paymentModeSelect = document.getElementById("payment-mode") as HTMLSelectElement | null;
+        const paymentMode = paymentModeSelect ? paymentModeSelect.value : '';
+
+        let dueAmount: number | null = null;
+        try {
+            const invResp = await fetchDocumentById('invoice', (window as any).currentPaymentInvoiceId);
+            if (invResp && invResp.invoice) {
+                const invoice = invResp.invoice as Invoice;
+                const totalAmount = invoice.total_amount_duplicate || invoice.total_amount_original || 0;
+                const paidSoFar = invoice.total_paid_amount || 0;
+                const adjustedDue = (window as any).paymentEditMode
+                    ? (totalAmount - paidSoFar + (window as any).paymentEditOriginalAmount)
+                    : (totalAmount - paidSoFar);
+                dueAmount = Number(adjustedDue.toFixed(2));
+            }
+        } catch (err) {
+            console.error('Error fetching invoice for validation:', err);
+        }
+
+        if (!(window as any).currentPaymentInvoiceId) {
+            electronAPI.showAlert1('Invoice not selected for payment.');
+            return;
+        }
+
+        if (!paymentDate) {
+            electronAPI.showAlert1('Please select a payment date.');
+            return;
+        }
+
+        const today = new Date();
+        const enteredDate = new Date(paymentDate + 'T00:00:00');
+        if (isNaN(enteredDate.getTime())) {
+            electronAPI.showAlert1('Invalid payment date.');
+            return;
+        }
+        if (enteredDate > today) {
+            electronAPI.showAlert1('Payment date cannot be in the future.');
+            return;
+        }
+
+        if (!paymentMode) {
+            electronAPI.showAlert1('Please select a payment method.');
+            return;
+        }
+
+        if (paidAmount <= 0 || isNaN(paidAmount)) {
+            electronAPI.showAlert1('Please enter a valid paid amount greater than 0.');
+            paidAmountInput?.focus();
+            return;
+        }
+
+        if (dueAmount !== null && paidAmount > dueAmount) {
+            electronAPI.showAlert1(`Paid amount cannot exceed due amount (₹ ${formatIndian(dueAmount, 2)}).`);
+            paidAmountInput?.focus();
+            return;
+        }
+
+        let extraInfo = '';
+        if (paymentMode === 'Cash') {
+            const cashLocInput = document.getElementById('cash-location') as HTMLInputElement | null;
+            extraInfo = cashLocInput ? cashLocInput.value : '';
+            if (!extraInfo.trim()) {
+                electronAPI.showAlert1('Please enter cash location.');
+                return;
+            }
+        } else if (paymentMode === 'UPI') {
+            const upiIdInput = document.getElementById('upi-transaction-id') as HTMLInputElement | null;
+            extraInfo = upiIdInput ? upiIdInput.value : '';
+            if (!extraInfo.trim()) {
+                electronAPI.showAlert1('Please enter UPI transaction ID.');
+                return;
+            }
+        } else if (paymentMode === 'Cheque') {
+            const chequeNumInput = document.getElementById('cheque-number') as HTMLInputElement | null;
+            extraInfo = chequeNumInput ? chequeNumInput.value : '';
+            if (!extraInfo.trim()) {
+                electronAPI.showAlert1('Please enter cheque number.');
+                return;
+            }
+        } else if (paymentMode === 'Bank Transfer') {
+            const bankDetailsInput = document.getElementById('bank-details') as HTMLInputElement | null;
+            extraInfo = bankDetailsInput ? bankDetailsInput.value : '';
+            if (!extraInfo.trim()) {
+                electronAPI.showAlert1('Please enter bank details.');
+                return;
+            }
+        }
+
+        interface PaymentSubmitData {
+            invoiceId: string;
+            paidAmount: number;
+            paymentDate: string;
+            paymentMode: string;
+            paymentExtra: string;
+            paymentIndex?: number;
+        }
+
+        const submitData: PaymentSubmitData = {
+            invoiceId: (window as any).currentPaymentInvoiceId,
+            paidAmount: paidAmount,
+            paymentDate: paymentDate,
+            paymentMode: paymentMode,
+            paymentExtra: extraInfo,
+        };
+
+        if ((window as any).paymentEditMode) {
+            submitData.paymentIndex = (window as any).paymentEditIndex;
+        }
+
+        paymentBtn.disabled = true;
+        const originalBtnText = paymentBtn.innerHTML;
+        paymentBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+        try {
+            const endpoint = (window as any).paymentEditMode ? "/invoice/update-payment" : "/invoice/save-payment";
+            const method = (window as any).paymentEditMode ? "PUT" : "POST";
+
+            const response = await fetch(endpoint, {
+                method: method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(submitData),
+            });
+
+            const responseData = await response.json();
+
+            if (!response.ok) {
+                electronAPI.showAlert1(`Error: ${responseData.message || "Unknown error occurred."}`);
+                paymentBtn.disabled = false;
+                paymentBtn.innerHTML = originalBtnText;
+            } else {
+                electronAPI.showAlert1((window as any).paymentEditMode ? "Payment Updated!" : "Payment Saved!");
+
+                (window as any).paymentEditMode = false;
+                (window as any).paymentEditIndex = null;
+                (window as any).paymentEditOriginalAmount = 0;
+
+                if (paidAmountInput) paidAmountInput.value = '';
+                const paymentDateEl = document.getElementById('payment-date') as HTMLInputElement | null;
+                if (paymentDateEl) paymentDateEl.value = (window as any).getTodayForInput ? (window as any).getTodayForInput() : new Date().toISOString().split('T')[0];
+                if (paymentModeSelect) paymentModeSelect.value = '';
+                const extraField = document.getElementById('extra-payment-details');
+                if (extraField) {
+                    extraField.innerHTML = `
+                        <label for="cash-location" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>Cash Location
+                        </label>
+                        <input type="text" id="cash-location" placeholder="Enter cash location"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    `;
+                }
+
+                paymentBtn.disabled = false;
+                paymentBtn.innerHTML = originalBtnText;
+
+                const paymentContainer = document.getElementById('payment-container');
+                if (paymentContainer) paymentContainer.style.display = 'none';
+
+                if ((window as any).paymentReturnView === 'view') {
+                    const viewEl = document.getElementById('view');
+                    if (viewEl) viewEl.style.display = 'block';
+                    const userRole = sessionStorage.getItem('userRole');
+                    if (typeof viewInvoice === 'function' && (window as any).currentPaymentInvoiceId) {
+                        viewInvoice((window as any).currentPaymentInvoiceId, userRole);
+                    }
+                } else {
+                    const homeEl = document.getElementById('home');
+                    if (homeEl) homeEl.style.display = 'block';
+                    loadRecentInvoices();
+                }
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            electronAPI.showAlert1("Failed to connect to server.");
+            paymentBtn.disabled = false;
+            paymentBtn.innerHTML = originalBtnText;
+        }
+    });
+
+    function initShortcutsModal() {
+        shortcutsModalRef = document.getElementById('shortcuts-modal');
+        const shortcutsBtn = document.getElementById('shortcuts-btn');
+        const closeBtn = document.getElementById('close-shortcuts');
+        const contentContainer = document.getElementById('shortcuts-content');
+
+        if (!shortcutsModalRef || !shortcutsBtn || !closeBtn || !contentContainer) {
+            return;
+        }
+
+        contentContainer.innerHTML = INVOICE_SHORTCUT_GROUPS.map(renderShortcutSection).join('');
+
+        shortcutsBtn.addEventListener('click', () => {
+            showShortcutsModal();
+        });
+
+        closeBtn.addEventListener('click', () => {
+            hideShortcutsModal();
+        });
+
+        shortcutsModalRef.addEventListener('click', (event) => {
+            if (event.target === shortcutsModalRef) {
+                hideShortcutsModal();
+            }
+        });
+    }
+
+    function renderShortcutSection(section: ShortcutGroup) {
+        const sectionHeader = `
+            <div class="shortcuts-section">
+                <h3 class="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+                    <i class="${section.icon}"></i>
+                    ${section.title}
+                </h3>
+                <div class="space-y-1">
+                    ${section.items.map(renderShortcutRow).join('')}
+                </div>
+            </div>
+        `;
+        return sectionHeader;
+    }
+
+    function renderShortcutRow(item: ShortcutItem) {
+        return `
+            <div class="shortcut-row">
+                <span class="text-xs font-semibold text-slate-600">${item.label}</span>
+                ${renderShortcutKeys(item.keys)}
+            </div>
+        `;
+    }
+
+    function renderShortcutKeys(keys: string[]) {
+        const keyCaps = keys.map((key, index) => {
+            const displayKey = key === 'Ctrl' && isMac ? 'Cmd' : key;
+            const separator = index > 0 ? '<span class="text-slate-300 font-medium">+</span>' : '';
+            return `${separator}<kbd>${displayKey}</kbd>`;
+        }).join('');
+        return `<div class="shortcut-keys">${keyCaps}</div>`;
+    }
+
+    function showShortcutsModal() {
+        if (!shortcutsModalRef) return;
+        shortcutsModalRef.classList.remove('hidden');
+        shortcutsModalRef.offsetHeight;
+        shortcutsModalRef.classList.remove('opacity-0');
+    }
+
+    function hideShortcutsModal() {
+        if (!shortcutsModalRef) return;
+        shortcutsModalRef.classList.add('opacity-0');
+        setTimeout(() => {
+            shortcutsModalRef?.classList.add('hidden');
+        }, 200);
+    }
+
+    function isSectionVisible(sectionId: string) {
+        const el = document.getElementById(sectionId);
+        if (!el) return false;
+        return window.getComputedStyle(el).display !== 'none';
+    }
+
+    function isFormActive() {
+        return isSectionVisible('new');
+    }
+
+    function isExistingDocument() {
+        const status = sessionStorage.getItem('currentTab-status');
+        return status === 'update' || status === 'clone';
+    }
+
+    function isPreviewStepActive() {
+        if (typeof currentStep === 'undefined' || typeof totalSteps === 'undefined') {
+            return false;
+        }
+        return currentStep === totalSteps;
+    }
+
+    async function runOnPreviewStep(callback: () => void) {
+        if (typeof callback !== 'function') {
+            return;
+        }
+
+        if (!isFormActive()) {
+            return;
+        }
+
+        if (isPreviewStepActive()) {
+            if (typeof (window as any).generatePreview === 'function') {
+                await (window as any).generatePreview();
+            }
+            callback();
+            return;
+        }
+
+        const navigateToPreview = async () => {
+            const nextBtn = document.getElementById('next-btn');
+            if (!nextBtn) {
+                return;
+            }
+
+            const stepBefore = typeof currentStep !== 'undefined' ? currentStep : 0;
+            nextBtn.click();
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            const stepAfter = typeof currentStep !== 'undefined' ? currentStep : 0;
+            if (stepAfter === stepBefore) {
+                return;
+            }
+
+            if (isPreviewStepActive()) {
+                if (typeof (window as any).generatePreview === 'function') {
+                    await (window as any).generatePreview();
+                }
+                callback();
+                return;
+            }
+
+            await navigateToPreview();
+        };
+
+        await navigateToPreview();
+    }
+
+    function isItemsStepActive() {
+        if (typeof currentStep === 'undefined') {
+            return false;
+        }
+        return currentStep === 4;
+    }
+
+    function isHomeScreenActive() {
+        const homeSectionVisible = isSectionVisible('home');
+        return homeSectionVisible && !isFormActive() && !isSectionVisible('view');
+    }
+
+    function triggerAddEntry() {
+        if (!isFormActive()) {
+            return false;
+        }
+
+        const itemsBtn = document.getElementById('add-item-btn');
+        if (itemsBtn && isItemsStepActive()) {
+            itemsBtn.click();
+            return true;
+        }
+
+        const nonItemBtn = document.getElementById('add-non-item-btn');
+        if (nonItemBtn && typeof currentStep !== 'undefined' && currentStep === 5) {
+            nonItemBtn.click();
+            return true;
+        }
+
+        return false;
+    }
+
+    function triggerPrintAction() {
+        const formPrintBtn = document.getElementById('print-btn');
+        if (formPrintBtn && isFormActive()) {
+            runOnPreviewStep(() => formPrintBtn.click());
+            return true;
+        }
+
+        const viewPrintBtn = document.getElementById('printProject');
+        if (viewPrintBtn && isSectionVisible('view')) {
+            viewPrintBtn.click();
+            return true;
+        }
+
+        return false;
+    }
+
+    function isTypingContext() {
+        const active = document.activeElement;
+        if (!active) return false;
+        const tagName = active.tagName;
+        return tagName === 'INPUT' || tagName === 'TEXTAREA' || (active as any).isContentEditable || tagName === 'SELECT';
+    }
+
+    function handleQuotationKeyboardShortcuts(event: KeyboardEvent) {
+        const keyLower = event.key.toLowerCase();
+        const isModifierPressed = event.ctrlKey || event.metaKey;
+        const isShiftPressed = event.shiftKey;
+        const homeButton = document.getElementById('home-btn');
+
+        if (isModifierPressed && isShiftPressed && keyLower === 't') {
+            const trashBtn = document.getElementById('showDeletedBtn');
+            if (trashBtn && window.getComputedStyle(trashBtn).display !== 'none') {
+                event.preventDefault();
+                event.stopPropagation();
+                trashBtn.click();
+            }
+            return;
+        }
+
+        if (isModifierPressed && event.shiftKey && keyLower === 'a') {
+            const archivedBtn = document.getElementById('archived-invoices-btn');
+            if (archivedBtn && window.getComputedStyle(archivedBtn).display !== 'none') {
+                event.preventDefault();
+                event.stopPropagation();
+                archivedBtn.click();
+            }
+            return;
+        }
+
+        const paymentContainer = document.getElementById('payment-container');
+        const isPaymentOpen = paymentContainer && paymentContainer.style.display !== 'none';
+
+        if (isPaymentOpen) {
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                event.stopPropagation();
+                document.getElementById('close-payment-modal')?.click();
+                return;
+            }
+
+            if (event.key === 'Enter') {
+                if (document.activeElement && document.activeElement.tagName === 'BUTTON') {
+                    return;
+                }
+                event.preventDefault();
+                event.stopPropagation();
+                document.getElementById('payment-btn')?.click();
+                return;
+            }
+
+            if (event.key === 'Tab') {
+                const focusableElements = paymentContainer.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+                if (focusableElements.length > 0) {
+                    const firstElement = focusableElements[0] as HTMLElement;
+                    const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+                    if (event.shiftKey) {
+                        if (document.activeElement === firstElement) {
+                            event.preventDefault();
+                            lastElement.focus();
+                        }
+                    } else {
+                        if (document.activeElement === lastElement) {
+                            event.preventDefault();
+                            firstElement.focus();
+                        }
+                    }
+                }
+                return;
+            }
+
+            if (isModifierPressed || event.altKey) {
+                event.preventDefault();
+                event.stopPropagation();
+                return;
+            }
+
+            return;
+        }
+
+        if (!shortcutsModalRef) {
+            shortcutsModalRef = document.getElementById('shortcuts-modal');
+        }
+
+        if (!event.altKey && isModifierPressed) {
+            switch (keyLower) {
+                case 'n': {
+                    const newBtn = document.getElementById('new-invoice');
+                    if (newBtn && window.getComputedStyle(newBtn).display !== 'none') {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        newBtn.click();
+                    }
+                    break;
+                }
+                case 'r': {
+                    const refreshBtn = document.getElementById('refresh-btn');
+                    if (refreshBtn && window.getComputedStyle(refreshBtn).display !== 'none') {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        refreshBtn.click();
+                    }
+                    break;
+                }
+                case 's': {
+                    const saveBtn = document.getElementById('save-btn');
+                    if (saveBtn && isFormActive()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        runOnPreviewStep(() => saveBtn.click());
+                    }
+                    break;
+                }
+                case 'p': {
+                    const isShift = event.shiftKey;
+                    if (isShift) {
+                        if (triggerPrintAction()) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                    } else {
+                        const previewBtn = document.getElementById('view-preview');
+                        if (previewBtn && window.getComputedStyle(previewBtn).display !== 'none') {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            previewBtn.click();
+                        }
+                    }
+                    break;
+                }
+                case 'i': {
+                    if (triggerAddEntry()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    break;
+                }
+                case 'h': {
+                    if (homeButton) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        homeButton.click();
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 150);
+                    }
+                    break;
+                }
+                case 'f': {
+                    const searchInput = document.getElementById('search-input');
+                    if (searchInput) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        searchInput.focus();
+                        (searchInput as HTMLInputElement).select();
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+            return;
+        }
+
+        if (event.altKey) {
+            return;
+        }
+
+        if (event.key === 'Escape') {
+            if (shortcutsModalRef && !shortcutsModalRef.classList.contains('hidden')) {
+                event.preventDefault();
+                event.stopPropagation();
+                hideShortcutsModal();
+                return;
+            }
+
+            // If unsaved changes modal is open, let it handle Escape
+            if (typeof (window as any).isUnsavedChangesModalOpen === 'function' && (window as any).isUnsavedChangesModalOpen()) {
+                return; // Handled by unsavedChanges.ts capture-phase listener
+            }
+
+            // If form is active and dirty, show unsaved changes modal instead of navigating
+            if (isFormActive()) {
+                const guardNavigation = (window as any).guardInvoiceNavigation;
+                if (typeof guardNavigation === 'function' && guardNavigation('/invoice')) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    return;
+                }
+            }
+
+            if (isHomeScreenActive()) {
+                event.preventDefault();
+                event.stopPropagation();
+                window.location.href = '/dashboard';
+                return;
+            }
+
+            event.stopPropagation();
+            return;
+        }
+
+        if (event.key === '?' && !isTypingContext()) {
+            event.preventDefault();
+            event.stopPropagation();
+            showShortcutsModal();
+            return;
+        }
+
+        if (isTypingContext()) {
+            return;
+        }
+
+        if (event.key === 'Enter') {
+            if (isHomeScreenActive()) {
+                event.preventDefault();
+                event.stopPropagation();
+                return;
+            }
+
+            if (isFormActive()) {
+                const nextBtn = document.getElementById('next-btn') as HTMLButtonElement | null;
+                if (nextBtn && !nextBtn.disabled) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    nextBtn.click();
+                }
+                return;
+            }
+        }
+
+        if (event.key === 'Backspace' && isFormActive()) {
+            const prevBtn = document.getElementById('prev-btn') as HTMLButtonElement | null;
+            if (prevBtn && !prevBtn.disabled) {
+                event.preventDefault();
+                event.stopPropagation();
+                prevBtn.click();
+            }
+        }
+    }
+
+    async function archiveInvoice(invoiceId: string) {
+        await (window as any).invoiceApi.archiveInvoice(invoiceId);
+        showToast(`Invoice ${invoiceId} archived`);
+        await loadRecentInvoices();
+    }
+
+    async function restoreInvoiceFromArchive(invoiceId: string) {
+        await (window as any).invoiceApi.restoreInvoiceFromArchive(invoiceId);
+        showToast(`Invoice ${invoiceId} restored`);
+        await loadRecentInvoices();
+    }
+
+    // Expose functions globally for payment and delete actions
+    (window as any).payment = payment;
+    (window as any).editPayment = editPayment;
+    (window as any).deletePayment = deletePayment;
+    (window as any).deleteInvoice = deleteInvoice;
+    (window as any).archiveInvoice = archiveInvoice;
+    (window as any).restoreInvoiceFromArchive = restoreInvoiceFromArchive;
+    (window as any).loadRecentInvoices = loadRecentInvoices;
+    (window as any).showToast = showToast;
+})();

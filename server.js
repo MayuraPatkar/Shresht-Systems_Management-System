@@ -33,6 +33,10 @@ exServer.use(helmet({
             objectSrc: ["'none'"],
             mediaSrc: ["'self'"],
             frameSrc: ["'none'"],
+            // The desktop app serves localhost over HTTP. Helmet enables this
+            // directive by default, which rewrites local API calls to HTTPS and
+            // causes ERR_SSL_PROTOCOL_ERROR because the server has no TLS.
+            upgradeInsecureRequests: null,
         },
     },
     crossOriginEmbedderPolicy: false
@@ -207,19 +211,26 @@ connectDB().then(async () => {
 });
 
 // Routes - Importing route modules
-const authRoutes = require('./src/routes/auth');
-const viewRoutes = require('./src/routes/views');
-const stockRoutes = require('./src/routes/stock');
-const invoiceRoutes = require('./src/routes/invoice');
-const quotationRoutes = require('./src/routes/quotation');
-const purchaseRoutes = require('./src/routes/purchaseOrder');
-const eWayBillRoutes = require('./src/routes/eWayBill');
-const serviceRoutes = require('./src/routes/service');
-const employeeRoute = require('./src/routes/employee');
-const analyticsRoutes = require('./src/routes/analytics');
-const commsRouter = require('./src/routes/comms');
-const settingsRoutes = require('./src/routes/settings');
-const reportsRoutes = require('./src/routes/reports');
+import authRoutes from './routes/auth.route';
+import viewRoutes from './routes/views.route';
+import stockRoutes from './routes/stock.route';
+import invoiceRoutes from './routes/invoice.route';
+import quotationRoutes from './routes/quotation.route';
+import purchaseOrderRoutes from './routes/purchaseOrder.route';
+import purchaseOnlyRoutes from './routes/purchase.route';
+import eWayBillRoutes from './routes/eWayBill.route';
+import serviceRoutes from './routes/service.route';
+import employeeRoute from './routes/employee.route';
+import analyticsRoutes from './routes/analytics.route';
+import commsRouter from './routes/comms.route';
+import settingsRoutes from './routes/settings.route';
+import reportsRoutes from './routes/reports.route';
+import paymentRoutes from './routes/payment.route';
+import voucherRoutes from './routes/voucher.route';
+import customerRoutes from './routes/customer.route';
+import supplierRoutes from './routes/supplier.route';
+import searchRoutes from './routes/search.route';
+
 
 // Health check endpoint
 exServer.get('/health', async (req, res) => {
@@ -261,6 +272,12 @@ exServer.use('/analytics', analyticsRoutes);
 exServer.use('/comms', commsRouter);
 exServer.use('/settings', settingsRoutes);
 exServer.use('/reports', reportsRoutes);
+exServer.use('/payment', paymentRoutes);
+exServer.use('/voucher', voucherRoutes);
+exServer.use('/api/customers', customerRoutes);
+exServer.use('/api/suppliers', supplierRoutes);
+exServer.use('/search', searchRoutes);
+
 
 // View routes LAST (to avoid catching API routes)
 exServer.use('/', viewRoutes);

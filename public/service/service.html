@@ -48,25 +48,15 @@
 
         .list-tabs {
             display: flex;
-            border-bottom: 1px solid #e5e7eb;
+            flex-direction: column;
+            height: 100%;
         }
 
-        .list-tab {
-            flex: 1;
-            padding: 0.75rem 0.5rem;
-            text-align: center;
-            font-weight: 600;
-            font-size: 0.8rem;
-            color: #6b7280;
-            cursor: pointer;
-            transition: all 0.2s;
-            border-bottom: 2px solid transparent;
-        }
-
-        .list-tab.active {
-            color: #2563eb;
-            background: #eff6ff;
-            border-bottom-color: #2563eb;
+        .hidden.md\:block.overflow-y-auto thead {
+            display: block;
+            flex-shrink: 0;
+            overflow-y: auto;
+            scrollbar-gutter: stable;
         }
 
         .list-tab:hover:not(.active) {
@@ -334,53 +324,30 @@
             overflow: visible !important;
         }
 
-        /* Override panel overflow when suggestions are visible */
-        .service-detail-panel:has(.suggestions[style*="block"]) {
-            overflow: visible !important;
+        .filter-tab {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: #64748b; /* slate-500 */
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+            gap: 0.25rem;
+            outline: none;
+            border-radius: 0.5rem; /* rounded-lg */
+            user-select: none;
+            -webkit-user-select: none;
         }
 
-        .detail-content:has(.suggestions[style*="block"]) {
-            overflow: visible !important;
+        .filter-tab:hover:not(.active) {
+            color: #334155; /* slate-700 */
+            background: #f1f5f9; /* slate-100 */
         }
 
-        .form-step:has(.suggestions[style*="block"]) {
-            overflow: visible !important;
-        }
-
-        /* Fallback: always allow overflow in form step 1 */
-        #form-step-1 {
-            overflow: visible !important;
-        }
-
-        #form-step-1>div {
-            overflow: visible !important;
-        }
-
-        /* Stats Card Hover */
-        .stats-grid>div:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Selected Card State */
-        .service-card.selected {
-            border-color: #3b82f6;
-            background: linear-gradient(to right, #eff6ff, #fff);
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-        }
-
-        /* Button Loading State */
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        /* Filter Popover */
-        #filter-popover {
-            position: absolute;
-            z-index: 30;
-            min-width: 200px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        .filter-tab.active {
+            color: #2563eb; /* blue-600 */
+            background: #eff6ff; /* blue-50 */
         }
 
         /* Smooth Focus Transitions */
@@ -427,23 +394,28 @@
                 <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
                 <h1 class="text-xl font-bold text-gray-800">Service</h1>
             </div>
-            <div class="flex items-center gap-4 flex-1 max-w-xl mx-8">
-                <div class="relative flex-1">
-                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" id="search-input" placeholder="Search services..."
-                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                </div>
-                <button id="filter-btn" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300">
-                    <i class="fas fa-filter"></i>
+            <div class="flex items-center gap-3">
+                <button id="home-btn"
+                    class="hidden bg-gray-600 text-white px-4 h-10 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium text-sm transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    title="Home (Ctrl+H)">
+                    <i class="fas fa-home"></i>
+                    Home
                 </button>
             </div>
             <div class="flex items-center gap-3">
                 <button id="new-service-btn"
-                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium">
+                    class="bg-blue-600 text-white px-4 h-10 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium text-sm transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    title="New Service (Ctrl+N)">
                     <i class="fas fa-plus"></i>
                     New Service
                 </button>
-                <button id="shortcuts-btn" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300"
+                <button id="refresh-btn"
+                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
+                    title="Refresh List (Ctrl+R)">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button id="shortcuts-btn"
+                    class="bg-gray-200 text-gray-700 border border-slate-200 hover:bg-slate-50 w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer shadow-sm"
                     title="Keyboard Shortcuts (?)">
                     <i class="fas fa-keyboard"></i>
                 </button>
@@ -514,160 +486,70 @@
         </nav>
     </aside>
 
-    <!-- Main Content - Master-Detail Layout -->
-    <main class="ml-[280px] pt-24 mt-6 px-8 pt-8 pb-0">
-        <div class="service-container">
+        <!-- Main Content -->
+        <main class="flex-grow overflow-hidden flex flex-col h-[calc(100vh-6rem)]">
 
-            <!-- Left Panel: Service List -->
-            <div class="service-list-panel">
-                <!-- Stats Header -->
-                <div class="list-header">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-sm font-medium text-gray-600">Service Overview</span>
-                        <span id="service-count"
-                            class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">0</span>
+        <!-- Home Section -->
+        <div id="home" class="flex-1 flex flex-col min-h-0 overflow-hidden">
+            <!-- Tabs Selection & List Panel -->
+            <section class="bg-white shadow-sm border border-slate-200 overflow-hidden flex-1 flex flex-col min-h-0">
+                <div class="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 bg-slate-50/50 flex-shrink-0">
+                    <div class="flex items-center gap-1">
+                        <!-- Navigation tabs -->
+                        <div class="flex items-center gap-1.5 bg-slate-100/80 p-1 rounded-xl" id="status-tabs-container">
+                            <button class="list-tab filter-tab active" data-tab="due">
+                                <i class="fas fa-clock mr-1"></i>Due
+                            </button>
+                            <button class="list-tab filter-tab" data-tab="all">
+                                <i class="fas fa-list mr-1"></i>Scheduled
+                            </button>
+                            <button class="list-tab filter-tab" data-tab="completed">
+                                <i class="fas fa-check mr-1"></i>Completed
+                            </button>
+                        </div>
                     </div>
-                    <div class="flex gap-2">
-                        <div class="flex-1 bg-orange-50 rounded-lg p-2 text-center border border-orange-200">
-                            <div id="due-count" class="text-lg font-bold text-orange-600">0</div>
-                            <div class="text-xs text-orange-600">Due</div>
+                    <!-- Search & Filter wrapper next to navigation tabs -->
+                    <div class="flex items-center gap-3 max-w-md w-full" id="search-wrapper">
+                        <div class="relative flex-1">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" id="search-input" placeholder="Search services... (Ctrl+F)" autocomplete="off"
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white">
                         </div>
-                        <div class="flex-1 bg-yellow-50 rounded-lg p-2 text-center border border-yellow-200">
-                            <div id="paused-count" class="text-lg font-bold text-yellow-600">0</div>
-                            <div class="text-xs text-yellow-600">Paused</div>
-                        </div>
-                        <div class="flex-1 bg-green-50 rounded-lg p-2 text-center border border-green-200">
-                            <div id="completed-count" class="text-lg font-bold text-green-600">0</div>
-                            <div class="text-xs text-green-600">Done</div>
-                        </div>
+                        <button id="filter-btn" class="bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 px-3 py-2 rounded-lg transition-all duration-150 flex items-center justify-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500/20 active:scale-95 cursor-pointer" title="Open Filters (Ctrl+Shift+F)">
+                            <i class="fas fa-filter text-sm"></i>
+                        </button>
                     </div>
                 </div>
 
-                <!-- Tabs -->
-                <div class="list-tabs">
-                    <div class="list-tab active" data-tab="due">
-                        <i class="fas fa-clock mr-1"></i>Due
+                <!-- Active Filters Info Bar -->
+                <div id="active-filters-info-bar" class="px-6 py-2.5 bg-slate-50 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 hidden text-xs transition-all duration-200 flex-shrink-0">
+                    <div class="flex flex-wrap items-center gap-1.5" id="active-filters-badges">
+                        <span class="font-bold text-slate-500 mr-1 flex items-center gap-1">
+                            <i class="fas fa-filter text-[10px]"></i> Active Filters:
+                        </span>
                     </div>
-                    <div class="list-tab" data-tab="all">
-                        <i class="fas fa-list mr-1"></i>Scheduled
-                    </div>
-                    <div class="list-tab" data-tab="completed">
-                        <i class="fas fa-check mr-1"></i>Completed
-                    </div>
+                    <button id="clear-all-filters-shortcut" class="text-blue-600 hover:text-blue-800 font-bold hover:underline flex items-center gap-1 cursor-pointer transition-all duration-150">
+                        <i class="fas fa-times-circle"></i> Clear All
+                    </button>
                 </div>
 
-                <!-- List Content -->
-                <div class="list-content" id="service-list">
-                    <div class="flex flex-col items-center justify-center py-8 text-gray-400">
-                        <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
-                        <span class="text-sm">Loading services...</span>
-                    </div>
+                <div class="hidden md:block overflow-x-auto overflow-y-auto flex-1 min-h-0">
+                    <table class="w-full text-sm border-collapse">
+                        <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
+                            <tr class="text-slate-755 border-b border-slate-200" id="table-header-row">
+                                <!-- Populated dynamically by script -->
+                            </tr>
+                        </thead>
+                        <tbody id="service-tbody">
+                            <tr>
+                                <td colspan="9" class="w-full px-4 py-12 flex flex-col items-center justify-center text-slate-400">
+                                    <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
+                                    <p>Loading services...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-            </div>
-
-            <!-- Right Panel: Detail/Form View -->
-            <div class="service-detail-panel" id="detail-panel">
-
-                <!-- Empty State (default) -->
-                <div class="detail-section active" id="section-empty">
-                    <div class="detail-empty">
-                        <i class="fas fa-hand-pointer text-6xl mb-4"></i>
-                        <h3 class="text-xl font-semibold text-gray-600 mb-2">Select a Service</h3>
-                        <p class="text-gray-500 text-center max-w-xs mb-4">Choose a service from the list to view
-                            details, or click "New Service" to create one.</p>
-                    </div>
-                </div>
-
-                <!-- View Mode -->
-                <div class="detail-section" id="section-view">
-                    <div class="detail-content">
-                        <!-- View Header -->
-                        <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
-                            <div class="flex items-center gap-3">
-                                <div
-                                    class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
-                                    <i class="fas fa-wrench text-white text-xl"></i>
-                                </div>
-                                <div>
-                                    <h2 id="view-title" class="text-xl font-bold text-gray-800">Service Details</h2>
-                                    <p id="view-subtitle" class="text-sm text-gray-500">INV-001 • 1st Service</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <button id="view-history-btn"
-                                    class="px-3 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 border border-purple-200"
-                                    title="Service History">
-                                    <i class="fas fa-history"></i>
-                                </button>
-                                <button id="view-edit-btn"
-                                    class="px-3 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 border border-purple-200"
-                                    title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button id="view-print-btn"
-                                    class="px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 border border-blue-200"
-                                    title="Print">
-                                    <i class="fas fa-print"></i>
-                                </button>
-                                <button id="view-pdf-btn"
-                                    class="px-3 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 border border-green-200"
-                                    title="Save PDF">
-                                    <i class="fas fa-file-pdf"></i>
-                                </button>
-                                <button id="view-close-btn"
-                                    class="px-3 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200"
-                                    title="Close">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- View Content (dynamically populated) -->
-                        <div id="view-content">
-                            <!-- Customer Info -->
-                            <div class="grid grid-cols-2 gap-4 mb-6">
-                                <div class="bg-gray-50 rounded-lg p-4">
-                                    <h4 class="text-sm font-medium text-gray-500 mb-2">Customer</h4>
-                                    <p id="view-customer" class="font-semibold text-gray-800">-</p>
-                                    <p id="view-phone" class="text-sm text-gray-600">-</p>
-                                    <p id="view-address" class="text-sm text-gray-600">-</p>
-                                </div>
-                                <div class="bg-gray-50 rounded-lg p-4">
-                                    <h4 class="text-sm font-medium text-gray-500 mb-2">Service Info</h4>
-                                    <p><span class="text-gray-600">Date:</span> <span id="view-date"
-                                            class="font-medium">-</span></p>
-                                    <p><span class="text-gray-600">Project:</span> <span id="view-project"
-                                            class="font-medium">-</span></p>
-                                    <p><span class="text-gray-600">Invoice:</span> <span id="view-invoice-id"
-                                            class="font-medium text-blue-600 cursor-pointer hover:underline">-</span>
-                                    </p>
-                                </div>
-                            </div>
-
-                            <!-- Items Table -->
-                            <div class="mb-6">
-                                <h4 class="text-sm font-medium text-gray-700 mb-2"><i
-                                        class="fas fa-tools mr-1"></i>Service Items</h4>
-                                <div class="border border-gray-200 rounded-lg overflow-hidden">
-                                    <table class="w-full text-sm">
-                                        <thead class="bg-gray-50">
-                                            <tr>
-                                                <th class="px-4 py-2 text-left text-gray-600">#</th>
-                                                <th class="px-4 py-2 text-left text-gray-600">Description</th>
-                                                <th class="px-4 py-2 text-right text-gray-600">Qty</th>
-                                                <th class="px-4 py-2 text-right text-gray-600">Rate</th>
-                                                <th class="px-4 py-2 text-right text-gray-600">Amount</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="view-items-tbody">
-                                            <tr>
-                                                <td colspan="5" class="px-4 py-4 text-center text-gray-400">No items
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
 
                             <!-- Totals -->
                             <div
@@ -933,80 +815,52 @@
                     </div>
                 </div>
 
-                <!-- History Mode -->
-                <div class="detail-section" id="section-history">
-                    <div class="detail-content">
-                        <!-- History Header -->
-                        <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
-                            <div class="flex items-center gap-3">
-                                <div
-                                    class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
-                                    <i class="fas fa-history text-white text-xl"></i>
-                                </div>
-                                <div>
-                                    <h2 class="text-xl font-bold text-gray-800">Service History</h2>
-                                    <p id="history-subtitle" class="text-sm text-gray-500">Loading...</p>
-                                </div>
-                            </div>
-                            <button id="history-back-btn"
-                                class="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 flex items-center gap-2">
-                                <i class="fas fa-arrow-left"></i>Back
-                            </button>
-                        </div>
-
-                        <!-- History Content -->
-                        <div id="history-content" class="space-y-4">
-                            <div class="flex items-center justify-center py-8">
-                                <i class="fas fa-spinner fa-spin text-purple-500 text-3xl"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
     </main>
+    </div>
+
+    <!-- Hidden input filters to store active states -->
+    <input type="hidden" id="date-filter" value="all">
+    <input type="hidden" id="payment-status-filter" value="all">
+    <input type="hidden" id="sort-filter" value="date-desc">
 
     <!-- Filter Popover -->
-    <div id="filter-popover" class="fixed bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-40 hidden"
-        style="width: 280px;">
-        <h3 class="font-semibold text-gray-800 mb-3">Filter & Sort</h3>
-        <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
-            <select id="date-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                <option value="all">All Dates</option>
-                <option value="today">Today</option>
-                <option value="week">This Week</option>
-                <option value="month">This Month</option>
-            </select>
+    <div id="filter-popover" class="fixed bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-40 hidden" style="width: 280px;">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold text-gray-800">Filter & Sort</h3>
+            <button id="clear-filters-btn" class="text-xs text-blue-600 hover:text-blue-800 font-semibold cursor-pointer">Clear All</button>
         </div>
+
+        <!-- Date Range Section -->
         <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Payment Status</label>
-            <select id="payment-status-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                <option value="all">All Status</option>
-                <option value="paid">Paid</option>
-                <option value="unpaid">Unpaid</option>
-                <option value="partial">Partial</option>
-            </select>
+            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Date Range</label>
+            <div id="dateFilterDropdown" class="flex flex-col gap-1">
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md bg-gray-100 font-semibold" data-date-filter="all">All Dates</a>
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-date-filter="today">Today</a>
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-date-filter="week">This Week</a>
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-date-filter="month">This Month</a>
+            </div>
         </div>
+
+        <!-- Payment Status Section -->
         <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
-            <select id="sort-filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                <option value="date-desc">Latest First</option>
-                <option value="date-asc">Oldest First</option>
-                <option value="amount-desc">Amount: High to Low</option>
-                <option value="amount-asc">Amount: Low to High</option>
-            </select>
+            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Payment Status</label>
+            <div id="paymentStatusFilterDropdown" class="flex flex-col gap-1">
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md bg-gray-100 font-semibold" data-payment-status-filter="all">All Status</a>
+                <a href="#" class="block px-3 py-1.5 text-xs text-green-600 hover:bg-gray-100 rounded-md" data-payment-status-filter="paid">Paid</a>
+                <a href="#" class="block px-3 py-1.5 text-xs text-red-600 hover:bg-gray-100 rounded-md" data-payment-status-filter="unpaid">Unpaid</a>
+                <a href="#" class="block px-3 py-1.5 text-xs text-yellow-600 hover:bg-gray-100 rounded-md" data-payment-status-filter="partial">Partial</a>
+            </div>
         </div>
-        <div class="flex gap-2">
-            <button id="clear-filters-btn"
-                class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium text-sm">
-                Clear
-            </button>
-            <button id="apply-filters-btn"
-                class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm">
-                Apply
-            </button>
+
+        <!-- Sort By Section -->
+        <div class="mb-2">
+            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Sort By</label>
+            <div id="sortFilterDropdown" class="flex flex-col gap-1">
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md bg-gray-100 font-semibold" data-sort-filter="date-desc">Latest First</a>
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-sort-filter="date-asc">Oldest First</a>
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-sort-filter="amount-desc">Amount: High to Low</a>
+                <a href="#" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-md" data-sort-filter="amount-asc">Amount: Low to High</a>
+            </div>
         </div>
     </div>
 

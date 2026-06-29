@@ -64,6 +64,9 @@
     <script>
         // Close the window on button click
         function closeWindow() {
+            if (window.electronAPI) {
+                window.electronAPI.sendMessage('OK');
+            }
             window.close();
         }
 

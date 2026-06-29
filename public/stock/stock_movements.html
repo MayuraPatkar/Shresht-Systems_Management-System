@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Stock Movements</title>
+    <link rel="stylesheet" href="../css/tailwind.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>body{font-family:Inter,sans-serif;overflow:hidden;user-select:none}.sidebar{width:240px}.suggestions{position:absolute;z-index:50;width:100%;background:#fff;border:1px solid #e2e8f0;border-radius:.75rem;box-shadow:0 10px 25px rgba(15,23,42,.12);max-height:13rem;overflow:auto}.suggestions li{padding:.65rem 1rem;cursor:pointer;font-size:.875rem}.suggestions li:hover{background:#f1f5f9}input,select{user-select:text}::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:#2563eb;border-radius:4px}</style>
+</head>
+<body class="bg-slate-100">
+    <header class="fixed top-0 left-0 right-0 bg-white border-b border-slate-200 z-30 h-24 flex items-center px-4">
+        <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-3"><img src="../assets/icon.png" class="h-10 w-10 object-contain" alt="Icon"><div><h1 class="text-xl font-bold text-slate-800">Stock Movements</h1><p class="text-xs text-slate-500 font-medium">Inventory movement history and audit report</p></div></div>
+            <div class="flex items-center gap-3"><button id="refresh-btn" class="bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 w-10 h-10 rounded-lg shadow-sm"><i class="fas fa-sync-alt"></i></button><button id="home-btn" class="bg-gray-600 text-white px-4 h-10 rounded-lg hover:bg-gray-700 flex items-center gap-2 font-medium text-sm"><i class="fas fa-box"></i>Stock</button></div>
+        </div>
+    </header>
+    <div class="flex pt-24 h-screen w-full overflow-hidden">
+        <aside class="sidebar bg-white h-full flex flex-col border-r border-slate-200 flex-shrink-0"><nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav"></nav></aside>
+        <main class="flex-1 h-full overflow-y-auto p-6 lg:p-8">
+            <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+                <div class="flex items-center gap-2 mb-5 pb-3 border-b border-slate-100"><i class="fas fa-filter text-blue-600"></i><h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Filter Movements</h2></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                    <label class="text-xs font-semibold text-slate-600">Start Date<input type="date" id="stock-start-date" class="mt-1.5 w-full px-3 py-2.5 border border-slate-300 rounded-lg outline-none"></label>
+                    <label class="text-xs font-semibold text-slate-600">End Date<input type="date" id="stock-end-date" class="mt-1.5 w-full px-3 py-2.5 border border-slate-300 rounded-lg outline-none"></label>
+                    <label class="text-xs font-semibold text-slate-600">Movement Type<select id="stock-movement-type" class="mt-1.5 w-full px-3 py-2.5 border border-slate-300 rounded-lg bg-white"><option value="all">All Movements</option><option value="in">Stock In</option><option value="out">Stock Out</option></select></label>
+                    <div class="relative"><label class="text-xs font-semibold text-slate-600">Item Name<input type="text" id="stock-item-filter" autocomplete="off" placeholder="Search item..." class="mt-1.5 w-full px-3 py-2.5 border border-slate-300 rounded-lg outline-none"></label><ul id="stock-item-suggestions-list" class="suggestions" style="display:none"></ul></div>
+                </div>
+                <div class="mt-5 flex gap-2"><button id="generate-stock-report" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold shadow-sm flex items-center gap-2"><i class="fas fa-search"></i>Generate Report</button><button id="clear-stock-filters" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-5 py-2.5 rounded-lg text-sm font-semibold">Clear</button></div>
+            </section>
+            <section id="stock-report-summary" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6" style="display:none">
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5"><p class="text-[10px] font-bold uppercase text-slate-400">Total Stock In</p><p id="summary-stock-in" class="text-2xl font-extrabold text-emerald-600 mt-2">0</p></div>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5"><p class="text-[10px] font-bold uppercase text-slate-400">Total Stock Out</p><p id="summary-stock-out" class="text-2xl font-extrabold text-red-600 mt-2">0</p></div>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5"><p class="text-[10px] font-bold uppercase text-slate-400">Net Change</p><p id="summary-net-change" class="text-2xl font-extrabold text-blue-600 mt-2">0</p></div>
+            </section>
+            <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between"><div><h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Movement History</h2><p class="text-xs text-slate-500 mt-1">Incoming and outgoing inventory transactions</p></div><div class="flex gap-2"><button id="print-stock-report" style="display:none" class="border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold"><i class="fas fa-print mr-2"></i>Print</button><button id="save-stock-pdf" style="display:none" class="border border-red-200 text-red-600 px-4 py-2 rounded-lg text-sm font-semibold"><i class="fas fa-file-pdf mr-2"></i>PDF</button></div></div>
+                <div class="overflow-x-auto"><table id="stock-report-table" class="w-full text-sm"><thead class="bg-slate-50 border-b"><tr><th class="px-4 py-3 text-left text-xs font-semibold uppercase">Date</th><th class="px-4 py-3 text-left text-xs font-semibold uppercase">Item Name</th><th class="px-4 py-3 text-left text-xs font-semibold uppercase">Type</th><th class="px-4 py-3 text-left text-xs font-semibold uppercase">Quantity</th><th class="px-4 py-3 text-left text-xs font-semibold uppercase">Reference</th><th class="px-4 py-3 text-left text-xs font-semibold uppercase">Notes</th></tr></thead><tbody id="stock-report-tbody"><tr><td colspan="6" class="px-6 py-14 text-center text-slate-400">Choose filters and generate a report</td></tr></tbody></table></div>
+            </section>
+        </main>
+    </div>
+    <script src="../../dist/public/ts/shared/core/globalScript.js"></script><script src="../../dist/public/ts/shared/core/utils.js"></script><script src="../../dist/public/ts/shared/core/ipc.js"></script><script src="../../dist/public/ts/shared/config/companyConfig.js"></script><script src="../../dist/public/reports/src/types/reports.types.js"></script><script src="../../dist/public/reports/src/services/reportsApi.js"></script><script src="../../dist/public/reports/src/utils/reportsUtils.js"></script><script src="../../dist/public/reports/src/components/stockReport.js"></script><script src="../../dist/public/stock/src/stockMovementMain.js"></script>
+</body></html>
