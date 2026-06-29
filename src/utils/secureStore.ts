@@ -136,7 +136,16 @@ async function getWhatsAppToken(): Promise<string | null> {
         if (fs.existsSync(f)) {
             const json = JSON.parse(fs.readFileSync(f, "utf8"));
             if (json.whatsapp_token) {
-                return decrypt(json.whatsapp_token);
+                const dec = decrypt(json.whatsapp_token);
+                if (dec === null) {
+                    try {
+                        delete json.whatsapp_token;
+                        fs.writeFileSync(f, JSON.stringify(json, null, 2), { mode: 0o600 });
+                    } catch (e) {
+                        /* ignore write errors */
+                    }
+                }
+                return dec;
             }
         }
     } catch (err) {

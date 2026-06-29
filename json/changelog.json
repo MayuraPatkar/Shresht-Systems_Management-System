@@ -1,47 +1,51 @@
 {
-  "version": "4.0.0",
-  "date": "2026-06-29",
-  "title": "TypeScript Rewrite & Next-Generation Foundation",
-  "changes": [
+  "versions": [
     {
-      "type": "feature",
-      "description": "New Customer Module: Dedicated customer management built on the redesigned data model"
-    },
-    {
-      "type": "feature",
-      "description": "New Supplier Module: Improved supplier records with the new database architecture"
-    },
-    {
-      "type": "feature",
-      "description": "New Payments Module: Centralized payment tracking independent of invoices"
-    },
-    {
-      "type": "feature",
-      "description": "Automatic Data Migration: Existing v3.6 databases are migrated to the new v4 schema during upgrade"
-    },
-    {
-      "type": "improvement",
-      "description": "Complete TypeScript migration across Electron, backend, routes, utilities, middleware, and frontend scripts for improved reliability and maintainability"
-    },
-    {
-      "type": "improvement",
-      "description": "Database Architecture Redesign: Modernized MongoDB schemas for better scalability and future feature development"
-    },
-    {
-      "type": "improvement",
-      "description": "Service Layer Architecture: Business logic moved into dedicated services for cleaner, more maintainable code"
-    },
-    {
-      "type": "improvement",
-      "description": "Build System Modernization: New TypeScript build pipeline, improved development workflow, and optimized project structure"
-    },
-    {
-      "type": "improvement",
-      "description": "Developer Infrastructure: Added automated testing with Vitest and GitHub Actions CI/CD pipeline"
-    },
-    {
-      "type": "bugfix",
-      "description": "Improved overall application stability through stricter type checking and extensive internal refactoring"
+      "version": "4.0.0",
+      "date": "2026-06-29",
+      "title": "TypeScript Rewrite & Next-Generation Foundation",
+      "changes": [
+        {
+          "type": "feature",
+          "description": "New Customer Module: Dedicated customer management built on the redesigned data model"
+        },
+        {
+          "type": "feature",
+          "description": "New Supplier Module: Improved supplier records with the new database architecture"
+        },
+        {
+          "type": "feature",
+          "description": "New Payments Module: Centralized payment tracking independent of invoices"
+        },
+        {
+          "type": "feature",
+          "description": "Automatic Data Migration: Existing v3.6 databases are migrated to the new v4 schema during upgrade"
+        },
+        {
+          "type": "improvement",
+          "description": "Complete TypeScript migration across Electron, backend, routes, utilities, middleware, and frontend scripts for improved reliability and maintainability"
+        },
+        {
+          "type": "improvement",
+          "description": "Database Architecture Redesign: Modernized MongoDB schemas for better scalability and future feature development"
+        },
+        {
+          "type": "improvement",
+          "description": "Service Layer Architecture: Business logic moved into dedicated services for cleaner, more maintainable code"
+        },
+        {
+          "type": "improvement",
+          "description": "Build System Modernization: New TypeScript build pipeline, improved development workflow, and optimized project structure"
+        },
+        {
+          "type": "improvement",
+          "description": "Developer Infrastructure: Added automated testing with Vitest and GitHub Actions CI/CD pipeline"
+        },
+        {
+          "type": "bugfix",
+          "description": "Improved overall application stability through stricter type checking and extensive internal refactoring"
+        }
+      ]
     }
   ]
 }
