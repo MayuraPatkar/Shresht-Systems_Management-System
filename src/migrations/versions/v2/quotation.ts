@@ -152,6 +152,34 @@ export async function migrateQuotations(
                     billing_address: addressFromLegacy(doc.customer_snapshot?.billing_address || doc.customer_address),
                 };
 
+                // Determine quotation status and converted_invoice_id
+                let status = doc.quotation_status || "Draft";
+                let convertedInvoiceId = doc.converted_invoice_id ? new Types.ObjectId(doc.converted_invoice_id) : undefined;
+
+                if (status === "Converted" || !convertedInvoiceId) {
+                    const rawInvoiceCollection = db.collection("invoices");
+                    const legacyQuotationId = doc.quotation_id || doc.quotation_no;
+                    const queryConditions: any[] = [];
+                    if (doc._id) queryConditions.push({ quotation_id: doc._id });
+                    if (legacyQuotationId) {
+                        queryConditions.push({ quotation_id: legacyQuotationId });
+                        queryConditions.push({ quotation_no: legacyQuotationId });
+                        queryConditions.push({ "quotation.quotation_id": legacyQuotationId });
+                        queryConditions.push({ "quotation.quotation_no": legacyQuotationId });
+                    }
+                    
+                    if (queryConditions.length > 0) {
+                        const referencingInvoice = await rawInvoiceCollection.findOne({
+                            $or: queryConditions
+                        }, { projection: { _id: 1 } });
+
+                        if (referencingInvoice) {
+                            status = "Converted";
+                            convertedInvoiceId = referencingInvoice._id;
+                        }
+                    }
+                }
+
                 // Run atomic update directly bypass mongoose validators for legacy document format
                 await rawQuotationCollection.updateOne(
                     { _id: doc._id },
@@ -159,7 +187,8 @@ export async function migrateQuotations(
                         $set: {
                             schema_version: 2,
                             quotation_no: doc.quotation_no || doc.quotation_id,
-                            quotation_status: doc.quotation_status || "Draft",
+                            quotation_status: status,
+                            converted_invoice_id: convertedInvoiceId,
                             discount: Number(doc.discount || 0),
                             customer_id: customerId,
                             customer_snapshot: customerSnapshot,

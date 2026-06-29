@@ -275,7 +275,25 @@ export async function migratePurchaseOrders(db: any): Promise<{
                 grand_total: grandTotal,
             };
 
-            const isReceived = !!doc.purchase_invoice_id || doc.purchase_invoice_no;
+            let isReceived = !!doc.purchase_invoice_id || doc.purchase_invoice_no;
+            const legacyPOId = doc.purchase_order_id || doc.purchase_order_no;
+            const queryConditions: any[] = [];
+            if (doc._id) queryConditions.push({ purchase_order_id: doc._id });
+            if (legacyPOId) {
+                queryConditions.push({ purchase_order_id: legacyPOId });
+                queryConditions.push({ purchase_order_no: legacyPOId });
+                queryConditions.push({ "purchase_order.purchase_order_id": legacyPOId });
+                queryConditions.push({ "purchase_order.purchase_order_no": legacyPOId });
+            }
+
+            if (!isReceived && queryConditions.length > 0) {
+                const referencingPurchase = await rawPurchaseCollection.findOne({
+                    $or: queryConditions
+                }, { projection: { _id: 1 } });
+                if (referencingPurchase) {
+                    isReceived = true;
+                }
+            }
 
             await purchaseordersCollection.updateOne(
                 { _id: doc._id },

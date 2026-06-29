@@ -202,6 +202,48 @@ export async function migrateInvoices(
                 else if (legacyStatus === "REFUNDED") statusVal = InvoiceStatus.REFUNDED;
                 else if (legacyStatus === "SENT" || legacyStatus === "ISSUED") statusVal = InvoiceStatus.SENT;
 
+                // Sum up payments from mappedPayments
+                let calculatedPaidAmount = mappedPayments.reduce((sum: number, p: any) => sum + (p.paid_amount || 0), 0);
+
+                // Also check payments collection for any linked payments
+                const rawPaymentCollection = db.collection("payments");
+                const legacyInvoiceId = doc.invoice_id || doc.invoice_no;
+                const queryConditions: any[] = [];
+                if (doc._id) {
+                    queryConditions.push({ "reference.ref": doc._id }, { reference_id: doc._id.toString() });
+                }
+                if (legacyInvoiceId) {
+                    queryConditions.push({ reference_id: legacyInvoiceId });
+                    queryConditions.push({ "reference.id": legacyInvoiceId });
+                }
+
+                if (queryConditions.length > 0) {
+                    const linkedPayments = await rawPaymentCollection.find({
+                        $or: queryConditions,
+                        "deletion.is_deleted": { $ne: true }
+                    }).toArray();
+
+                    const linkedSum = linkedPayments.reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
+                    if (linkedSum > calculatedPaidAmount) {
+                        calculatedPaidAmount = linkedSum;
+                    }
+                }
+
+                // Determine payment status based on calculatedPaidAmount and totalsOriginal
+                let calculatedPaymentStatus = doc.payment_status || "Unpaid";
+                if (calculatedPaymentStatus === "Unpaid" || calculatedPaymentStatus === "Partial" || !doc.payment_status) {
+                    const targetTotal = totalsOriginal.grand_total || 0;
+                    if (targetTotal > 0) {
+                        if (calculatedPaidAmount >= targetTotal) {
+                            calculatedPaymentStatus = "Paid";
+                        } else if (calculatedPaidAmount > 0) {
+                            calculatedPaymentStatus = "Partial";
+                        } else {
+                            calculatedPaymentStatus = "Unpaid";
+                        }
+                    }
+                }
+
                 // Update document bypass mongoose validators for legacy fields
                 await rawInvoiceCollection.updateOne(
                     { _id: doc._id },
@@ -226,8 +268,8 @@ export async function migrateInvoices(
                             discount: Number(doc.discount || 0),
                             totals_original: totalsOriginal,
                             totals_duplicate: totalsDuplicate,
-                            total_paid_amount: Number(doc.total_paid_amount || 0),
-                            payment_status: doc.payment_status || "Unpaid",
+                            total_paid_amount: calculatedPaidAmount || Number(doc.total_paid_amount || 0),
+                            payment_status: calculatedPaymentStatus,
                             payments: mappedPayments,
                             content,
                             deletion: doc.deletion || { is_deleted: Boolean(doc.is_deleted) },

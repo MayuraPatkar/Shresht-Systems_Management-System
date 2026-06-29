@@ -177,6 +177,37 @@ function normalizePaymentResponse(
         }
     }
 
+    let resolvedReferenceId = referenceId;
+    const isObjectId = (val: any) => {
+        if (!val) return false;
+        return /^[0-9a-fA-F]{24}$/.test(String(val));
+    };
+
+    if ((!resolvedReferenceId || isObjectId(resolvedReferenceId)) && referenceRef) {
+        const refStr = referenceRef.toString();
+        if (referenceType === 'Invoice' && invoiceMap) {
+            const inv = invoiceMap.get(refStr);
+            if (inv) resolvedReferenceId = inv.invoice_id || inv.invoice_no;
+        } else if (referenceType === 'Purchase' && purchaseMap) {
+            const pu = purchaseMap.get(refStr);
+            if (pu) resolvedReferenceId = pu.purchase_no || pu.purchase_invoice_no;
+        } else if (referenceType === 'PurchaseOrder' && purchaseMap) {
+            const po = purchaseMap.get(refStr);
+            if (po) resolvedReferenceId = po.purchase_order_no || po.purchase_invoice_no;
+        } else if (referenceType === 'Service' && serviceMap) {
+            const sv = serviceMap.get(refStr);
+            if (sv) resolvedReferenceId = sv.service_no || sv.service_id;
+        }
+    }
+
+    let resolvedRemarks = obj.remarks;
+    if (resolvedRemarks && referenceRef && resolvedReferenceId && !isObjectId(resolvedReferenceId)) {
+        const refStr = referenceRef.toString();
+        if (resolvedRemarks.includes(refStr)) {
+            resolvedRemarks = resolvedRemarks.replace(new RegExp(refStr, 'g'), resolvedReferenceId);
+        }
+    }
+
     return {
         ...obj,
         party_type: partyType,
@@ -184,8 +215,9 @@ function normalizePaymentResponse(
         party_display_id: partyId,
         party_name: partyName,
         reference_type: referenceType,
-        reference_id: referenceId || (referenceRef ? String(referenceRef) : undefined),
+        reference_id: resolvedReferenceId || (referenceRef ? String(referenceRef) : undefined),
         reference_ref: referenceRef ? String(referenceRef) : undefined,
+        remarks: resolvedRemarks,
     };
 }
 
@@ -198,33 +230,59 @@ async function enrichSinglePayment(payment: any) {
     const referenceType = obj.reference?.type || obj.reference_type;
     const referenceRef = obj.reference?.ref || obj.reference_id;
 
-    // Dynamically resolve party from reference if it is missing
-    if (!partyRef && referenceRef) {
+    let resolvedReferenceId = obj.reference?.id;
+    const isObjectId = (val: any) => {
+        if (!val) return false;
+        return /^[0-9a-fA-F]{24}$/.test(String(val));
+    };
+
+    // Dynamically resolve party and reference ID
+    if (referenceRef) {
         if (referenceType === 'Invoice') {
-            const inv = await InvoiceModel.findById(referenceRef, { customer_id: 1 }).lean();
-            if (inv && inv.customer_id) {
-                partyType = 'Customer';
-                partyRef = inv.customer_id;
-            }
-        } else if (referenceType === 'Purchase') {
-            const pu = await PurchaseModel.findById(referenceRef, { supplier_id: 1 }).lean();
-            if (pu && pu.supplier_id) {
-                partyType = 'Supplier';
-                partyRef = pu.supplier_id;
-            }
-        } else if (referenceType === 'PurchaseOrder') {
-            const pu = await PurchaseOrderModel.findById(referenceRef, { supplier_id: 1 }).lean();
-            if (pu && pu.supplier_id) {
-                partyType = 'Supplier';
-                partyRef = pu.supplier_id;
-            }
-        } else if (referenceType === 'Service') {
-            const sv = await ServiceModel.findById(referenceRef, { invoice_id: 1 }).lean();
-            if (sv && sv.invoice_id) {
-                const inv = await InvoiceModel.findById(sv.invoice_id, { customer_id: 1 }).lean();
-                if (inv && inv.customer_id) {
+            const inv = await InvoiceModel.findById(referenceRef, { customer_id: 1, invoice_id: 1, invoice_no: 1 }).lean();
+            if (inv) {
+                if (!partyRef && inv.customer_id) {
                     partyType = 'Customer';
                     partyRef = inv.customer_id;
+                }
+                if (!resolvedReferenceId || isObjectId(resolvedReferenceId)) {
+                    resolvedReferenceId = inv.invoice_id || inv.invoice_no;
+                }
+            }
+        } else if (referenceType === 'Purchase') {
+            const pu = await PurchaseModel.findById(referenceRef, { supplier_id: 1, purchase_no: 1, purchase_invoice_no: 1 }).lean();
+            if (pu) {
+                if (!partyRef && pu.supplier_id) {
+                    partyType = 'Supplier';
+                    partyRef = pu.supplier_id;
+                }
+                if (!resolvedReferenceId || isObjectId(resolvedReferenceId)) {
+                    resolvedReferenceId = pu.purchase_no || pu.purchase_invoice_no;
+                }
+            }
+        } else if (referenceType === 'PurchaseOrder') {
+            const po = await PurchaseOrderModel.findById(referenceRef, { supplier_id: 1, purchase_order_no: 1, purchase_invoice_no: 1 }).lean();
+            if (po) {
+                if (!partyRef && po.supplier_id) {
+                    partyType = 'Supplier';
+                    partyRef = po.supplier_id;
+                }
+                if (!resolvedReferenceId || isObjectId(resolvedReferenceId)) {
+                    resolvedReferenceId = po.purchase_order_no || po.purchase_invoice_no;
+                }
+            }
+        } else if (referenceType === 'Service') {
+            const sv = await ServiceModel.findById(referenceRef, { invoice_id: 1, service_no: 1, service_id: 1 }).lean();
+            if (sv) {
+                if (!partyRef && sv.invoice_id) {
+                    const inv = await InvoiceModel.findById(sv.invoice_id, { customer_id: 1 }).lean();
+                    if (inv && inv.customer_id) {
+                        partyType = 'Customer';
+                        partyRef = inv.customer_id;
+                    }
+                }
+                if (!resolvedReferenceId || isObjectId(resolvedReferenceId)) {
+                    resolvedReferenceId = sv.service_no || sv.service_id;
                 }
             }
         }
@@ -250,6 +308,15 @@ async function enrichSinglePayment(payment: any) {
     norm.party_id = partyRef ? String(partyRef) : undefined;
     norm.party_display_id = partyId;
     norm.party_name = partyName;
+    if (resolvedReferenceId) {
+        norm.reference_id = resolvedReferenceId;
+        if (norm.remarks && referenceRef) {
+            const refStr = referenceRef.toString();
+            if (norm.remarks.includes(refStr) && !isObjectId(resolvedReferenceId)) {
+                norm.remarks = norm.remarks.replace(new RegExp(refStr, 'g'), resolvedReferenceId);
+            }
+        }
+    }
 
     // Check if this payment is already refunded by an active refund payment
     const refunds = await PaymentModel.find({
@@ -296,10 +363,10 @@ async function normalizePaymentResponses(payments: any[]) {
     const customerMap = new Map(customers.map(c => [c._id.toString(), c]));
     const supplierMap = new Map(suppliers.map(s => [s._id.toString(), s]));
 
-    const invoices = await InvoiceModel.find({}, { customer_id: 1 }).lean();
-    const purchases = await PurchaseModel.find({}, { supplier_id: 1 }).lean();
-    const purchaseOrders = await PurchaseOrderModel.find({}, { supplier_id: 1 }).lean();
-    const services = await ServiceModel.find({}, { invoice_id: 1 }).lean();
+    const invoices = await InvoiceModel.find({}, { customer_id: 1, invoice_id: 1, invoice_no: 1 }).lean();
+    const purchases = await PurchaseModel.find({}, { supplier_id: 1, purchase_no: 1, purchase_invoice_no: 1 }).lean();
+    const purchaseOrders = await PurchaseOrderModel.find({}, { supplier_id: 1, purchase_order_no: 1, purchase_invoice_no: 1 }).lean();
+    const services = await ServiceModel.find({}, { invoice_id: 1, service_no: 1, service_id: 1 }).lean();
 
     const invoiceMap = new Map(invoices.map(i => [i._id.toString(), i] as [string, any]));
     const purchaseMap = new Map<string, any>([

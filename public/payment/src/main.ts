@@ -1367,12 +1367,10 @@ interface Window {
             <tr class="payment-row border-b border-slate-100 hover:bg-slate-50 transition-all duration-150 group cursor-pointer" data-payment-id="${escapeHtml(p._id)}" tabindex="0">
                 <td class="px-4 py-3 text-slate-850 font-medium whitespace-nowrap text-xs">${formatDate(p.payment_date)}</td>
                 <td class="px-4 py-3 whitespace-nowrap">${typeBadge}</td>
-                <td class="px-4 py-3 text-slate-700 text-xs font-semibold max-w-[150px] truncate" title="${escapeHtml((p as any).party_name || p.party_display_id || p.party_id || '-')}">
+                <td class="px-4 py-3 text-slate-700 text-xs font-semibold max-w-[250px] truncate" title="${escapeHtml((p as any).party_name || p.party_display_id || p.party_id || '-')}">
                     ${escapeHtml((p as any).party_name || p.party_display_id || p.party_id || '-')}
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">${refLink}</td>
-                <td class="px-4 py-3 whitespace-nowrap text-xs">
-                </td>
                 <td class="px-4 py-3 whitespace-nowrap text-xs">
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold border ${modeClass === 'badge-cash' ? 'bg-amber-50 text-amber-700 border-amber-200' : modeClass === 'badge-upi' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : modeClass === 'badge-bank' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-purple-50 text-purple-700 border-purple-200'}">
                         ${escapeHtml(p.mode)}
