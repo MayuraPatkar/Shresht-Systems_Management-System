@@ -90,9 +90,6 @@
                         <button id="btn-tab-payroll" data-tab="tab-payroll" class="tab-btn py-4 font-bold text-xs uppercase tracking-wider border-b-2 border-transparent text-slate-500 hover:text-slate-800 cursor-pointer">
                             Payroll
                         </button>
-                        <button id="btn-tab-performance" data-tab="tab-performance" class="tab-btn py-4 font-bold text-xs uppercase tracking-wider border-b-2 border-transparent text-slate-500 hover:text-slate-800 cursor-pointer">
-                            Performance
-                        </button>
                     </div>
                     
                     <!-- Tab contents -->
@@ -200,21 +197,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Performance Tab -->
-                        <div id="tab-performance" class="tab-content space-y-4">
-                            <div class="flex items-center justify-between mb-2">
-                                <h3 class="text-xs font-bold uppercase text-slate-500">Performance Grades & Reviews</h3>
-                                <button id="link-to-performance" class="text-blue-600 hover:text-blue-800 text-xs font-bold hover:underline">
-                                    Evaluate Now <i class="fas fa-chevron-right ml-1"></i>
-                                </button>
-                            </div>
-                            <div id="performance-history" class="space-y-4">
-                                <div class="py-6 text-center text-slate-400 text-xs">
-                                    No logged competency ratings.
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -235,7 +217,6 @@
             // Links inside tabs
             document.getElementById('link-to-attendance')?.addEventListener('click', () => window.location.href = '/attendance');
             document.getElementById('link-to-payroll')?.addEventListener('click', () => window.location.href = '/payroll');
-            document.getElementById('link-to-performance')?.addEventListener('click', () => window.location.href = '/performance');
             
             // Tab buttons
             document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -259,7 +240,6 @@
                         renderEmployeeProfile();
                         renderAttendanceTab();
                         renderPayrollTab();
-                        renderPerformanceTab();
                     } else {
                         document.getElementById('header-name').textContent = 'Employee Not Found';
                     }
@@ -337,37 +317,6 @@
             document.getElementById('payroll-net').textContent = `₹${net.toLocaleString('en-IN')}`;
         }
 
-        function renderPerformanceTab() {
-            const container = document.getElementById('performance-history');
-            const saved = JSON.parse(localStorage.getItem('hr_reviews') || '[]');
-            const filtered = saved.filter(rev => String(rev.empId) === String(employeeObj.emp_id));
-
-            if (filtered.length === 0) {
-                container.innerHTML = `
-                    <div class="py-6 text-center text-slate-400 text-xs">
-                        No logged evaluations for this employee.
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = filtered.map(rev => `
-                <div class="bg-slate-50 border border-slate-200 rounded-lg p-4 flex justify-between gap-4 items-center">
-                    <div class="flex-1">
-                        <div class="text-[10px] text-slate-400 font-bold mb-1">${rev.date}</div>
-                        <p class="text-xs text-slate-700 italic">"${rev.feedback}"</p>
-                        <div class="flex gap-3 text-[10px] text-slate-500 mt-2">
-                            <span>Prod: <strong>${rev.p}/10</strong></span>
-                            <span>Comm: <strong>${rev.c}/10</strong></span>
-                            <span>Punc: <strong>${rev.t}/10</strong></span>
-                        </div>
-                    </div>
-                    <div class="text-center w-16">
-                        <span class="text-2xl font-black ${rev.grade.startsWith('A') ? 'text-emerald-600' : rev.grade === 'B' ? 'text-blue-600' : rev.grade === 'C' ? 'text-amber-500' : 'text-red-500'}">${rev.grade}</span>
-                        <div class="text-[9px] text-slate-450 font-bold mt-0.5">${rev.avg}/10</div>
-                    </div>
-                </div>
-            `).join('');
         }
 
         function switchTab(tabId) {

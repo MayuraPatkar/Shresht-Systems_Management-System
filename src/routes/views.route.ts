@@ -43,7 +43,6 @@ const pages: Array<{ route: string; file: string }> = [
     { route: '/employee', file: 'hr/employees.html' },
     { route: '/attendance', file: 'hr/attendance.html' },
     { route: '/payroll', file: 'hr/payroll.html' },
-    { route: '/performance', file: 'hr/performance.html' },
     { route: '/employee/details', file: 'hr/employee_details.html' },
     { route: '/database', file: 'database.html' },
     { route: '/analytics', file: 'analytics/analytics.html' },
