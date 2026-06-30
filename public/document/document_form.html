@@ -66,7 +66,7 @@
             border-radius: 4px;
             width: 210mm;
             min-height: 297mm;
-            padding: 25mm 20mm;
+            padding: 15mm 10mm;
             margin: 0 auto;
             position: relative;
         }
@@ -196,7 +196,7 @@
 
              <!-- Right Side: A4 Page live preview editor -->
              <div class="flex-grow p-8 overflow-y-auto flex items-start justify-center">
-                 <div class="preview-container doc-standard doc-document paper-preview fade-in">
+                 <div class="preview-container doc-standard doc-document paper-preview fade-in" style="padding: 15mm 10mm !important;">
                      <!-- Dynamic Header Container -->
                      <div id="company-header-container" class="mb-6">
                          <!-- Loaded dynamically -->
@@ -208,28 +208,31 @@
                          <p class="text-sm text-slate-500 font-semibold" id="preview-doc-date">Date: XX/XX/XXXX</p>
                      </div>
  
-                     <!-- Recipient Block -->
-                     <div class="buyer-details mb-6 text-sm">
-                         <p class="font-bold text-slate-800">To,</p>
-                         <div id="preview-recipient-info">
-                             <p class="italic text-slate-400">No recipient details specified.</p>
-                         </div>
-                     </div>
+                     <!-- Document Content Wrapper -->
+                     <div style="padding: 0 30px;">
+                         <!-- Recipient Block -->
+                          <div class="buyer-details mb-6 text-sm">
+                              <p class="doc-recipient-to">To,</p>
+                              <div id="preview-recipient-info">
+                                  <p class="doc-body-empty">No recipient details specified.</p>
+                              </div>
+                          </div>
+  
+                          <!-- Subject Block -->
+                          <div class="doc-subject-block">
+                              <span>Subject: </span>
+                              <span id="preview-subject" class="text-slate-800 font-bold">Untitled Document</span>
+                          </div>
  
-                     <!-- Subject Block -->
-                     <div class="mb-6 text-sm font-semibold border-l-4 border-blue-500 pl-3 py-1 bg-slate-50">
-                         <span>Subject: </span>
-                         <span id="preview-subject" class="text-slate-800 font-bold">Untitled Document</span>
-                     </div>
+                         <!-- Large Editable Body -->
+                         <div id="preview-body" contenteditable="true" class="paper-body-editor focus:outline-none"></div>
  
-                     <!-- Large Editable Body -->
-                     <div id="preview-body" contenteditable="true" class="paper-body-editor focus:outline-none"></div>
- 
-                     <!-- Footer / Signatory Spacer -->
-                     <div class="eighth-section" style="margin-top: 60px; display: flex; flex-direction: column; align-items: flex-end; width: 100%;">
-                         <div style="text-align: right; width: 250px;">
-                             <p style="margin-bottom: 50px;">For <span id="preview-company-name" style="font-weight: bold; text-transform: uppercase;">Shresht Systems</span></p>
-                             <p><strong>Authorized Signatory</strong></p>
+                         <!-- Footer / Signatory Spacer -->
+                         <div class="eighth-section" style="margin-top: 60px; display: flex; flex-direction: column; align-items: flex-end; width: 100%;">
+                             <div style="text-align: right; width: 250px;">
+                                 <p style="margin-bottom: 50px;">For <span id="preview-company-name" style="font-weight: bold; text-transform: uppercase;">Shresht Systems</span></p>
+                                 <p><strong>Authorized Signatory</strong></p>
+                             </div>
                          </div>
                      </div>
                  </div>

@@ -85,6 +85,16 @@ class QuotationPrintHandler {
                 return result;
             };
 
+            const tailwindStylesPath = path.join(__dirname, "../../public/css/tailwind.css");
+            const tailwindExists = fs.existsSync(tailwindStylesPath);
+            const tailwindStyles = tailwindExists ? fs.readFileSync(tailwindStylesPath, "utf-8") : "";
+            logger.info("Tailwind stylesheet loaded", { 
+                service: "print_handler", 
+                path: tailwindStylesPath, 
+                exists: tailwindExists, 
+                size: tailwindStyles.length 
+            });
+
             let processedDoc = replaceUrl(documentStyles, "icon2.png", iconDataUri);
             processedDoc = replaceUrl(processedDoc, "icon.png", iconPngDataUri);
             processedDoc = replaceUrl(processedDoc, "logo.png", logoBase64);
@@ -96,6 +106,9 @@ class QuotationPrintHandler {
             processedQuot = replaceUrl(processedQuot, "shresht-systems-payment-QR-code.jpg", qrCodeBase64);
 
             const combinedCSS = `
+/* Tailwind CSS */
+${tailwindStyles}
+
 /* Document Styles */
 ${processedDoc}
 
@@ -182,7 +195,11 @@ ${processedQuot}
         processed = processed.replace(/src=["']\.\.\\assets\\icon2\.png["']/g, `src="${assets.iconDataUri}"`);
         processed = processed.replace(/src=["']\.\.\\assets\\logo\.png["']/g, `src="${assets.logoBase64}"`);
         processed = processed.replace(/src=["']\.\.\\assets\\shresht-systems-payment-QR-code\.jpg["']/g, `src="${assets.qrCodeBase64}"`);
-
+        // Replace icons, logo, QR code in content
+        processed = processed.replace(/(\.\.\/)*assets\/icon2\.png/g, assets.iconDataUri);
+        processed = processed.replace(/(\.\.\/)*assets\/icon\.png/g, assets.iconPngDataUri);
+        processed = processed.replace(/(\.\.\/)*assets\/logo\.png/g, assets.logoBase64);
+        processed = processed.replace(/(\.\.\/)*assets\/shresht-systems-payment-QR-code\.jpg/g, assets.qrCodeBase64);
         return processed;
     }
 
@@ -223,6 +240,9 @@ ${processedQuot}
                         box-shadow: none !important; border: none !important; border-radius: 0 !important;
                         background: #ffffff url("${assets.iconDataUri}") no-repeat center/40% !important;
                         position: relative; overflow: visible !important;
+                    }
+                    .preview-container.doc-document {
+                        padding: 15mm 10mm !important;
                     }
                     .preview-container:has(.quotation-letter-content),
                     .preview-container:has(.terms-section):not(:has(.items-section)) {

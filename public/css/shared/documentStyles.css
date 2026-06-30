@@ -719,3 +719,40 @@ body {
 /* alignment inside compact totals card */
 .doc-standard .fifth-section .totals-section.totals-section-compact .totals-section-sub1 p { text-align: left; }
 .doc-standard .fifth-section .totals-section.totals-section-compact .totals-section-sub2 p { text-align: right; }
+
+/* Custom Document/Letter Styling overrides for 100% PDF compatibility */
+.doc-recipient-to {
+    font-weight: 700 !important;
+    color: #1e293b !important;
+    font-size: 14px !important;
+}
+.doc-recipient-name {
+    font-weight: 600 !important;
+    color: #1e293b !important;
+    font-size: 14px !important;
+}
+.doc-recipient-details {
+    color: #475569 !important;
+    font-size: 14px !important;
+}
+.doc-recipient-phone {
+    color: #64748b !important;
+    font-size: 14px !important;
+}
+.doc-subject-block {
+    margin-top: 30px !important;
+    margin-bottom: 30px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    border-left: 4px solid #3b82f6 !important;
+    padding-left: 12px !important;
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+    background-color: #f8fafc !important;
+    display: block !important;
+    width: 100% !important;
+}
+.doc-body-empty {
+    font-style: italic !important;
+    color: #94a3b8 !important;
+}

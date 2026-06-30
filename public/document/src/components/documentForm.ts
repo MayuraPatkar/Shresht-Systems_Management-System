@@ -27,19 +27,19 @@ function updatePreviewRecipient() {
     const phone = (document.getElementById('recipient-phone-input') as HTMLInputElement).value.trim();
     const container = document.getElementById('preview-recipient-info');
 
-    if (!container) return;
+    if (container) {
+        if (!name && !address && !phone) {
+            container.innerHTML = `<p class="doc-body-empty">No recipient details specified.</p>`;
+            return;
+        }
 
-    if (!name && !address && !phone) {
-        container.innerHTML = `<p class="italic text-slate-400">No recipient details specified.</p>`;
-        return;
+        let html = '';
+        if (name) html += `<p class="doc-recipient-name">${name}</p>`;
+        if (address) html += `<p class="doc-recipient-details whitespace-pre-wrap">${address}</p>`;
+        if (phone) html += `<p class="doc-recipient-phone">Ph: ${phone}</p>`;
+
+        container.innerHTML = html;
     }
-
-    let html = '';
-    if (name) html += `<p class="font-semibold text-slate-800">${name}</p>`;
-    if (address) html += `<p class="text-slate-600 whitespace-pre-wrap">${address}</p>`;
-    if (phone) html += `<p class="text-slate-500">Ph: ${phone}</p>`;
-
-    container.innerHTML = html;
 }
 
 function syncPreview() {

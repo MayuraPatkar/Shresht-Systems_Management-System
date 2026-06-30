@@ -94,12 +94,12 @@ function renderDocument(doc: any) {
     
     if (recipientContainer) {
         if (!name && !address && !phone) {
-            recipientContainer.innerHTML = `<p class="italic text-slate-400">No recipient details specified.</p>`;
+            recipientContainer.innerHTML = `<p class="doc-body-empty">No recipient details specified.</p>`;
         } else {
             let html = '';
-            if (name) html += `<p class="font-semibold text-slate-800">${name}</p>`;
-            if (address) html += `<p class="text-slate-600 whitespace-pre-wrap">${address}</p>`;
-            if (phone) html += `<p class="text-slate-500">Ph: ${phone}</p>`;
+            if (name) html += `<p class="doc-recipient-name">${name}</p>`;
+            if (address) html += `<p class="doc-recipient-details whitespace-pre-wrap">${address}</p>`;
+            if (phone) html += `<p class="doc-recipient-phone">Ph: ${phone}</p>`;
             recipientContainer.innerHTML = html;
         }
     }
@@ -110,7 +110,7 @@ function renderDocument(doc: any) {
 
     // Body
     const previewBody = document.getElementById('preview-body');
-    if (previewBody) previewBody.innerHTML = doc.body || '<p class="italic text-slate-400">Empty Document Body</p>';
+    if (previewBody) previewBody.innerHTML = doc.body || '<p class="doc-body-empty">Empty Document Body</p>';
     
     // Page Title
     document.title = `Document ${docNo} - Details`;

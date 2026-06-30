@@ -25,6 +25,7 @@ import { migrateStockMovements } from "./versions/v2/stockMovement";
 import { migrateEWayBills } from "./versions/v2/ewaybill";
 import { migrateCounters } from "./versions/v2/counter";
 import { migratePayments } from "./versions/v2/payment";
+import { migrateV2toV3 } from "./versions/v3";
 import logger from "../utils/logger";
 import connectDB from "../config/database";
 
@@ -55,8 +56,8 @@ export async function runMigrations(): Promise<{
     }
 
     // 2. Check migration version
-    const state = await MigrationService.getMigrationState();
-    if (state.current_version >= 2) {
+    let state = await MigrationService.getMigrationState();
+    if (state.current_version >= 3) {
         logger.info(`Database schema is already at version ${state.current_version}. No migration needed.`);
         return {
             success: true,
@@ -68,152 +69,158 @@ export async function runMigrations(): Promise<{
     await MigrationService.updateState("running");
 
     // 3. Create backup marker
-    let backupMarker = "Skipped or Failed";
-    try {
-        const settings = await SettingsModel.findOne().lean();
-        const backupLocation = settings?.backup?.backup_location || "./backups";
-        logger.info(`Creating pre-migration backup in: ${backupLocation}...`);
-        const backupResult = await createBackup(backupLocation);
-        backupMarker = backupResult.backupPath;
-        logger.info(`Pre-migration database backup created successfully: ${backupMarker}`);
-    } catch (backupErr: unknown) {
-        const msg = backupErr instanceof Error ? backupErr.message : String(backupErr);
-        backupMarker = `Skipped: ${msg}`;
-        logger.warn(`Pre-migration backup was skipped or failed. Continuing migration. Reason: ${msg}`);
+    let backupMarker = state.backup_marker || "Skipped or Failed";
+    if (state.current_version === 1) {
+        try {
+            const settings = await SettingsModel.findOne().lean();
+            const backupLocation = settings?.backup?.backup_location || "./backups";
+            logger.info(`Creating pre-migration backup in: ${backupLocation}...`);
+            const backupResult = await createBackup(backupLocation);
+            backupMarker = backupResult.backupPath;
+            logger.info(`Pre-migration database backup created successfully: ${backupMarker}`);
+        } catch (backupErr: unknown) {
+            const msg = backupErr instanceof Error ? backupErr.message : String(backupErr);
+            backupMarker = `Skipped: ${msg}`;
+            logger.warn(`Pre-migration backup was skipped or failed. Continuing migration. Reason: ${msg}`);
+        }
+        await MigrationService.updateState("running", undefined, backupMarker);
     }
 
-    await MigrationService.updateState("running", undefined, backupMarker);
-
-    // Try starting a session for transaction support if replica set is active
-    let session: mongoose.mongo.ClientSession | null = null;
-    let useTransaction = false;
-    try {
-        session = await mongoose.startSession();
-        session.startTransaction();
-        useTransaction = true;
-        logger.info("Started MongoDB transaction session successfully.");
-    } catch {
-        logger.warn("MongoDB transactions not supported (e.g. standalone server). Running migration in non-transactional mode.");
-    }
-
-    try {
-        // Step 3a: Run Settings Migration
-        logger.info("Step 3a: Executing settings migration...");
-        const settingsResult = await migrateSettings(db);
-
-        // Step 3b: Run Admin Migration
-        logger.info("Step 3b: Executing admin/user migration...");
-        const adminResult = await migrateAdmins(db);
-
-        // 4. Run Customer Migration
-        logger.info("Step 4: Executing customer migration...");
-        const customerResult = await migrateCustomers(db);
-
-        // 5. Run Quotation Migration
-        logger.info("Step 5: Executing quotation migration...");
-        const quotationResult = await migrateQuotations(db, customerResult.lookupMap);
-
-        // 6. Run Invoice Migration
-        logger.info("Step 6: Executing invoice migration...");
-        const invoiceResult = await migrateInvoices(db, customerResult.lookupMap);
-
-        // 7. Run Purchase Order Migration
-        logger.info("Step 7: Executing purchase order migration...");
-        const poResult = await migratePurchaseOrders(db);
-
-        // Step 7a: Run Stock (Items) Migration
-        logger.info("Step 7a: Executing stock/item migration...");
-        const stockResult = await migrateStocks(db);
-
-        // Step 7b: Run Purchase Migration
-        logger.info("Step 7b: Executing purchase migration...");
-        const purchaseResult = await migratePurchases(db);
-
-        // Step 7c: Run Service Migration
-        logger.info("Step 7c: Executing service migration...");
-        const serviceResult = await migrateServices(db);
-
-        // Step 7d: Run Stock Movement Migration
-        logger.info("Step 7d: Executing stock movement migration...");
-        const stockMovementResult = await migrateStockMovements(db);
-
-        // Step 7e: Run E-Way Bill Migration
-        logger.info("Step 7e: Executing e-way bill migration...");
-        const ewaybillResult = await migrateEWayBills(db);
-
-        // Step 7f: Run Counter Migration
-        logger.info("Step 7f: Executing counter migration...");
-        const counterResult = await migrateCounters(db);
-
-        // Step 7g: Run Payment Migration (extract from invoices and purchases)
-        logger.info("Step 7g: Executing payment migration...");
-        const paymentResult = await migratePayments(db);
-
-        // Commit transaction if active
-        if (useTransaction && session) {
-            await session.commitTransaction();
-            logger.info("Committed MongoDB transaction successfully.");
+    // Run V2 migration if version is 1
+    if (state.current_version === 1) {
+        logger.info("Executing Schema Version 2 Migrations...");
+        // Try starting a session for transaction support if replica set is active
+        let session: mongoose.mongo.ClientSession | null = null;
+        let useTransaction = false;
+        try {
+            session = await mongoose.startSession();
+            session.startTransaction();
+            useTransaction = true;
+            logger.info("Started MongoDB transaction session successfully.");
+        } catch {
+            logger.warn("MongoDB transactions not supported (e.g. standalone server). Running migration in non-transactional mode.");
         }
 
-        // 8. Validate migrated data
-        logger.info("Step 8: Performing post-migration data validation...");
-        const validationReport = await performValidation();
+        try {
+            // Step 3a: Run Settings Migration
+            logger.info("Step 3a: Executing settings migration...");
+            const settingsResult = await migrateSettings(db);
 
-        // 9. Update migration version and mark complete
-        await MigrationService.completeMigration(2, backupMarker);
+            // Step 3b: Run Admin Migration
+            logger.info("Step 3b: Executing admin/user migration...");
+            const adminResult = await migrateAdmins(db);
 
-        const summaryReport = `
+            // 4. Run Customer Migration
+            logger.info("Step 4: Executing customer migration...");
+            const customerResult = await migrateCustomers(db);
+
+            // 5. Run Quotation Migration
+            logger.info("Step 5: Executing quotation migration...");
+            const quotationResult = await migrateQuotations(db, customerResult.lookupMap);
+
+            // 6. Run Invoice Migration
+            logger.info("Step 6: Executing invoice migration...");
+            const invoiceResult = await migrateInvoices(db, customerResult.lookupMap);
+
+            // 7. Run Purchase Order Migration
+            logger.info("Step 7: Executing purchase order migration...");
+            const poResult = await migratePurchaseOrders(db);
+
+            // Step 7a: Run Stock (Items) Migration
+            logger.info("Step 7a: Executing stock/item migration...");
+            const stockResult = await migrateStocks(db);
+
+            // Step 7b: Run Purchase Migration
+            logger.info("Step 7b: Executing purchase migration...");
+            const purchaseResult = await migratePurchases(db);
+
+            // Step 7c: Run Service Migration
+            logger.info("Step 7c: Executing service migration...");
+            const serviceResult = await migrateServices(db);
+
+            // Step 7d: Run Stock Movement Migration
+            logger.info("Step 7d: Executing stock movement migration...");
+            const stockMovementResult = await migrateStockMovements(db);
+
+            // Step 7e: Run E-Way Bill Migration
+            logger.info("Step 7e: Executing e-way bill migration...");
+            const ewaybillResult = await migrateEWayBills(db);
+
+            // Step 7f: Run Counter Migration
+            logger.info("Step 7f: Executing counter migration...");
+            const counterResult = await migrateCounters(db);
+
+            // Step 7g: Run Payment Migration (extract from invoices and purchases)
+            logger.info("Step 7g: Executing payment migration...");
+            const paymentResult = await migratePayments(db);
+
+            // Commit transaction if active
+            if (useTransaction && session) {
+                await session.commitTransaction();
+                logger.info("Committed MongoDB transaction successfully.");
+            }
+
+            // 8. Validate migrated data
+            logger.info("Step 8: Performing post-migration data validation...");
+            const validationReport = await performValidation();
+
+            // 9. Update migration version and mark complete
+            await MigrationService.completeMigration(2, backupMarker);
+            logger.info("Completed Schema Version 2 Migrations successfully.");
+        } catch (err: unknown) {
+            // Rollback transaction if active
+            if (useTransaction && session) {
+                await session.abortTransaction();
+                logger.error("Aborted MongoDB transaction due to fatal migration error.");
+            }
+
+            const msg = err instanceof Error ? err.message : String(err);
+            logger.error("FATAL MIGRATION ERROR - STOPPING PROCESS IMMEDIATELY:", { error: msg });
+            await MigrationService.failMigration(msg);
+            return { success: false, error: msg };
+        } finally {
+            if (session) {
+                await session.endSession();
+            }
+        }
+
+        // Reload state to run version 3
+        state = await MigrationService.getMigrationState();
+    }
+
+    // Run V3 migration if version is 2
+    if (state.current_version === 2) {
+        logger.info("Executing Schema Version 3 Migrations...");
+        try {
+            const v3Result = await migrateV2toV3(db);
+
+            // Update migration version and mark complete
+            await MigrationService.completeMigration(3, backupMarker);
+
+            const summaryReport = `
 =========================================
 DATABASE MIGRATION SUCCESS REPORT
 =========================================
-Schema Version: 1 -> 2
+Schema Version: 2 -> 3
 Backup Location: ${backupMarker}
 
-MIGRATION METRICS:
-- Settings Migrated: ${settingsResult.migrated} (Skipped: ${settingsResult.skipped}, Failed: ${settingsResult.failed})
-- Users Migrated: ${adminResult.migrated} (Skipped: ${adminResult.skipped}, Failed: ${adminResult.failed})
-- Customers Created: ${customerResult.report.migrated} (Merged: ${customerResult.report.duplicatesMerged}, Failed: ${customerResult.report.failed})
-- Quotations Migrated: ${quotationResult.migrated} (Skipped: ${quotationResult.skipped}, Failed: ${quotationResult.failed})
-- Invoices Migrated: ${invoiceResult.migrated} (Skipped: ${invoiceResult.skipped}, Failed: ${invoiceResult.failed})
-- Suppliers Created: ${poResult.suppliersCreated} (Merged: ${poResult.suppliersMerged})
-- Purchase Orders Migrated: ${poResult.migrated} (Skipped: ${poResult.skipped}, Failed: ${poResult.failed})
-- Stock Items Migrated: ${stockResult.migrated} (Skipped: ${stockResult.skipped}, Failed: ${stockResult.failed})
-- Purchases Migrated: ${purchaseResult.migrated} (Skipped: ${purchaseResult.skipped}, Failed: ${purchaseResult.failed})
-- Payments Migrated: ${paymentResult.migrated} (Failed: ${paymentResult.failed})
-- Services Migrated: ${serviceResult.migrated} (Skipped: ${serviceResult.skipped}, Failed: ${serviceResult.failed})
-- Stock Movements Migrated: ${stockMovementResult.migrated} (Skipped: ${stockMovementResult.skipped}, Failed: ${stockMovementResult.failed})
-- E-Way Bills Migrated: ${ewaybillResult.migrated} (Skipped: ${ewaybillResult.skipped}, Failed: ${ewaybillResult.failed})
-- Counters Validated: ${counterResult.migrated + counterResult.skipped}
-
-POST-MIGRATION VALIDATION RESULTS:
-- Validated Quotations: ${validationReport.validatedQuotations} / ${validationReport.totalQuotations} (Failed: ${validationReport.failedQuotations})
-- Validated Invoices: ${validationReport.validatedInvoices} / ${validationReport.totalInvoices} (Failed: ${validationReport.failedInvoices})
-- Validated Purchase Orders: ${validationReport.validatedPurchaseOrders} / ${validationReport.totalPurchaseOrders} (Failed: ${validationReport.failedPurchaseOrders})
-- Validated Users: ${validationReport.validatedUsers} / ${validationReport.totalUsers} (Failed: ${validationReport.failedUsers})
-- Validated Stock Items: ${validationReport.validatedItems} / ${validationReport.totalItems} (Failed: ${validationReport.failedItems})
-- Validated Purchases: ${validationReport.validatedPurchases} / ${validationReport.totalPurchases} (Failed: ${validationReport.failedPurchases})
-- Validated Services: ${validationReport.validatedServices} / ${validationReport.totalServices} (Failed: ${validationReport.failedServices})
-- Validated E-Way Bills: ${validationReport.validatedEWayBills} / ${validationReport.totalEWayBills} (Failed: ${validationReport.failedEWayBills})
+MIGRATION METRICS (V3 Recovery):
+- Recovered Purchases: ${v3Result.recovered}
+- Already Present: ${v3Result.alreadyPresent}
+- Failed: ${v3Result.failed}
 =========================================
 `;
-        logger.info(summaryReport);
-        return { success: true, report: summaryReport };
-    } catch (err: unknown) {
-        // Rollback transaction if active
-        if (useTransaction && session) {
-            await session.abortTransaction();
-            logger.error("Aborted MongoDB transaction due to fatal migration error.");
-        }
-
-        const msg = err instanceof Error ? err.message : String(err);
-        logger.error("FATAL MIGRATION ERROR - STOPPING PROCESS IMMEDIATELY:", { error: msg });
-        await MigrationService.failMigration(msg);
-        return { success: false, error: msg };
-    } finally {
-        if (session) {
-            await session.endSession();
+            logger.info(summaryReport);
+            return { success: true, report: summaryReport };
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : String(err);
+            logger.error("FATAL MIGRATION ERROR (V3) - STOPPING PROCESS IMMEDIATELY:", { error: msg });
+            await MigrationService.failMigration(msg);
+            return { success: false, error: msg };
         }
     }
+
+    return { success: false, error: "Unexpected migration state or path." };
 }
 
 /**
