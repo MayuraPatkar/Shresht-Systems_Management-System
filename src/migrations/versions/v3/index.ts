@@ -31,7 +31,7 @@ export async function migrateV2toV3(db: any): Promise<{
         for (const idx of indexes) {
             // Check for index name or index key matching purchase_order_id with unique constraint
             const isPurchaseOrderIdIndex = idx.key && idx.key.purchase_order_id !== undefined;
-            if (isPurchaseOrderIdIndex && idx.unique && idx.name !== "purchase_order_id_1_sparse") {
+            if (isPurchaseOrderIdIndex && idx.unique) {
                 logger.info(`Found unique index on purchase_order_id: ${idx.name}. Dropping it...`);
                 await purchasesCollection.dropIndex(idx.name);
                 logger.info(`Successfully dropped index ${idx.name}`);
@@ -42,22 +42,20 @@ export async function migrateV2toV3(db: any): Promise<{
         logger.warn(`Non-fatal warning when dropping unique index: ${msg}`);
     }
 
-    // 2. Create proper sparse unique index on purchase_order_id
-    logger.info("Step 2: Creating sparse unique index on purchase_order_id...");
+    // 2. Create standard non-unique index on purchase_order_id
+    logger.info("Step 2: Creating non-unique index on purchase_order_id...");
     try {
         await purchasesCollection.createIndex(
             { purchase_order_id: 1 },
             {
-                unique: true,
-                sparse: true,
-                name: "purchase_order_id_1_sparse",
+                name: "purchase_order_id_1",
                 background: true
             }
         );
-        logger.info("Successfully created sparse unique index: purchase_order_id_1_sparse");
+        logger.info("Successfully created non-unique index: purchase_order_id_1");
     } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
-        logger.error(`Failed to create sparse unique index: ${msg}`);
+        logger.error(`Failed to create non-unique index: ${msg}`);
         throw err;
     }
 
