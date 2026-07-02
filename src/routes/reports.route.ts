@@ -403,6 +403,7 @@ router.get('/gst', async (req: Request, res: Response) => {
             const items = invoice.items_original || [];
             items.forEach((item: any) => {
                 const rate = parseFloat(item.gst_rate !== undefined ? item.gst_rate : item.rate) || 0;
+                if (rate === 0) return; // Exclude 0% GST
                 const taxableValue = typeof item.taxable_value === 'number' ? item.taxable_value : ((item.quantity || 0) * (item.unit_price || 0));
                 const cgst = (taxableValue * rate / 2) / 100;
                 const sgst = (taxableValue * rate / 2) / 100;
@@ -421,20 +422,38 @@ router.get('/gst', async (req: Request, res: Response) => {
         });
 
         const taxRateList = Object.values(rateBreakdown).sort((a: any, b: any) => b.rate - a.rate);
-        const invoiceBreakdown = invoices.map(inv => ({
-            invoice_id: inv.invoice_no || inv.invoice_id, invoice_date: inv.invoice_date, customer_name: inv.customer_snapshot?.name || inv.customer_name || '-',
-            taxable_value: inv.totals_original?.taxable_value || inv.totals_duplicate?.taxable_value || (inv.total_amount_original - (inv.total_tax_original || 0)),
-            cgst: inv.totals_original?.cgst || inv.totals_duplicate?.cgst || (inv.total_tax_original || 0) / 2,
-            sgst: inv.totals_original?.sgst || inv.totals_duplicate?.sgst || (inv.total_tax_original || 0) / 2,
-            total_tax: inv.totals_original?.total_tax || inv.totals_duplicate?.total_tax || inv.total_tax_original || 0,
-            total_value: inv.totals_original?.grand_total || inv.totals_duplicate?.grand_total || inv.total_amount_original || 0
-        }));
+        
+        const invoiceBreakdown: any[] = [];
+        invoices.forEach(inv => {
+            let invTaxableValue = 0, invCGST = 0, invSGST = 0;
+            const items = inv.items_original || [];
+            items.forEach((item: any) => {
+                const rate = parseFloat(item.gst_rate !== undefined ? item.gst_rate : item.rate) || 0;
+                if (rate === 0) return;
+                const taxableValue = typeof item.taxable_value === 'number' ? item.taxable_value : ((item.quantity || 0) * (item.unit_price || 0));
+                const cgst = (taxableValue * rate / 2) / 100;
+                const sgst = (taxableValue * rate / 2) / 100;
+                invTaxableValue += taxableValue;
+                invCGST += cgst;
+                invSGST += sgst;
+            });
+            if (invTaxableValue > 0) {
+                invoiceBreakdown.push({
+                    invoice_id: inv.invoice_no || inv.invoice_id, invoice_date: inv.invoice_date, customer_name: inv.customer_snapshot?.name || inv.customer_name || '-',
+                    taxable_value: invTaxableValue,
+                    cgst: invCGST,
+                    sgst: invSGST,
+                    total_tax: invCGST + invSGST,
+                    total_value: invTaxableValue + invCGST + invSGST
+                });
+            }
+        });
 
         res.json({
             success: true, report: {
                 month: reportMonth, year: reportYear,
                 period: `${startDate.toLocaleDateString('en-IN')} - ${endDate.toLocaleDateString('en-IN')}`,
-                summary: { total_invoices: invoices.length, total_taxable_value: totalTaxableValue, total_cgst: totalCGST, total_sgst: totalSGST, total_igst: totalIGST, total_tax: totalCGST + totalSGST + totalIGST, total_invoice_value: totalInvoiceValue },
+                summary: { total_invoices: invoiceBreakdown.length, total_taxable_value: totalTaxableValue, total_cgst: totalCGST, total_sgst: totalSGST, total_igst: totalIGST, total_tax: totalCGST + totalSGST + totalIGST, total_invoice_value: totalInvoiceValue },
                 tax_rate_breakdown: taxRateList, invoice_breakdown: invoiceBreakdown
             }, generated_at: new Date()
         });
@@ -489,7 +508,11 @@ router.get('/purchase-gst', async (req: Request, res: Response) => {
         const startDate = new Date(reportYear, reportMonth - 1, 1);
         const endDate = new Date(reportYear, reportMonth, 0, 23, 59, 59, 999);
 
-        const purchaseOrders = await PurchaseOrderModel.find({ purchase_date: { $gte: startDate, $lte: endDate } }).sort({ purchase_date: 1 }) as any[];
+        const purchaseOrders = await PurchaseModel.find({
+            purchase_date: { $gte: startDate, $lte: endDate },
+            'deletion.is_deleted': false,
+            is_archived: { $ne: true }
+        }).sort({ purchase_date: 1 }) as any[];
 
         const rateBreakdown: Record<string, any> = {};
         let totalTaxableValue = 0, totalCGST = 0, totalSGST = 0, totalIGST = 0, totalPurchaseValue = 0;
@@ -497,6 +520,7 @@ router.get('/purchase-gst', async (req: Request, res: Response) => {
         purchaseOrders.forEach(po => {
             (po.items || []).forEach((item: any) => {
                 const rate = parseFloat(item.gst_rate !== undefined ? item.gst_rate : item.rate) || 0;
+                if (rate === 0) return; // Exclude 0% GST
                 const taxableValue = typeof item.taxable_value === 'number' ? item.taxable_value : ((item.quantity || 0) * (item.unit_price || 0));
                 const cgst = (taxableValue * rate / 2) / 100;
                 const sgst = (taxableValue * rate / 2) / 100;
@@ -511,32 +535,40 @@ router.get('/purchase-gst', async (req: Request, res: Response) => {
         });
 
         const taxRateList = Object.values(rateBreakdown).sort((a: any, b: any) => b.rate - a.rate);
-        const purchaseBreakdown = purchaseOrders.map(po => {
-            let poTaxableValue = 0, poTax = 0;
+        
+        const purchaseBreakdown: any[] = [];
+        purchaseOrders.forEach(po => {
+            let poTaxableValue = 0, poCGST = 0, poSGST = 0;
             (po.items || []).forEach((item: any) => {
-                const t = typeof item.taxable_value === 'number' ? item.taxable_value : ((item.quantity || 0) * (item.unit_price || 0));
-                poTaxableValue += t;
-                const rate = item.gst_rate !== undefined ? item.gst_rate : (item.rate || 0);
-                poTax += (t * rate) / 100;
+                const rate = parseFloat(item.gst_rate !== undefined ? item.gst_rate : item.rate) || 0;
+                if (rate === 0) return;
+                const taxableValue = typeof item.taxable_value === 'number' ? item.taxable_value : ((item.quantity || 0) * (item.unit_price || 0));
+                const cgst = (taxableValue * rate / 2) / 100;
+                const sgst = (taxableValue * rate / 2) / 100;
+                poTaxableValue += taxableValue;
+                poCGST += cgst;
+                poSGST += sgst;
             });
-            return {
-                purchase_order_id: po.purchase_order_no || po.purchase_order_id || po.purchase_no || po._id,
-                purchase_invoice_id: po.purchase_invoice_no || po.purchase_invoice_id,
-                purchase_date: po.purchase_date,
-                supplier_name: po.supplier_snapshot?.name || po.supplier_name || '-',
-                taxable_value: poTaxableValue,
-                cgst: poTax / 2,
-                sgst: poTax / 2,
-                total_tax: poTax,
-                total_value: po.totals?.grand_total || po.total_amount || (poTaxableValue + poTax)
-            };
+            if (poTaxableValue > 0) {
+                purchaseBreakdown.push({
+                    purchase_order_id: po.purchase_order_no || po.purchase_order_id || po.purchase_no || po._id,
+                    purchase_invoice_id: po.purchase_invoice_no || po.purchase_invoice_id,
+                    purchase_date: po.purchase_date,
+                    supplier_name: po.supplier_snapshot?.name || po.supplier_name || '-',
+                    taxable_value: poTaxableValue,
+                    cgst: poCGST,
+                    sgst: poSGST,
+                    total_tax: poCGST + poSGST,
+                    total_value: poTaxableValue + poCGST + poSGST
+                });
+            }
         });
 
         res.json({
             success: true, report: {
                 month: reportMonth, year: reportYear,
                 period: `${startDate.toLocaleDateString('en-IN')} - ${endDate.toLocaleDateString('en-IN')}`,
-                summary: { total_purchase_orders: purchaseOrders.length, total_taxable_value: totalTaxableValue, total_cgst: totalCGST, total_sgst: totalSGST, total_igst: totalIGST, total_tax: totalCGST + totalSGST + totalIGST, total_purchase_value: totalPurchaseValue },
+                summary: { total_purchase_orders: purchaseBreakdown.length, total_taxable_value: totalTaxableValue, total_cgst: totalCGST, total_sgst: totalSGST, total_igst: totalIGST, total_tax: totalCGST + totalSGST + totalIGST, total_purchase_value: totalPurchaseValue },
                 tax_rate_breakdown: taxRateList, purchase_breakdown: purchaseBreakdown
             }, generated_at: new Date()
         });

@@ -268,14 +268,18 @@
             </html>
             `;
 
-            const printWindow = window.open('', '', 'height=800,width=1000');
-            if (printWindow) {
-                printWindow.document.write(payslipHTML);
-                printWindow.document.close();
-                printWindow.focus();
-                setTimeout(() => {
-                    printWindow.print();
-                }, 250);
+            if (window.electronAPI && typeof window.electronAPI.handlePrintEvent === 'function') {
+                window.electronAPI.handlePrintEvent(payslipHTML, 'print', `payslip-EMP-${empId}`);
+            } else {
+                const printWindow = window.open('', '', 'height=800,width=1000');
+                if (printWindow) {
+                    printWindow.document.write(payslipHTML);
+                    printWindow.document.close();
+                    printWindow.focus();
+                    setTimeout(() => {
+                        printWindow.print();
+                    }, 250);
+                }
             }
         }
     </script>

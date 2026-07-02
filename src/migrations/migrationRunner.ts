@@ -26,6 +26,7 @@ import { migrateEWayBills } from "./versions/v2/ewaybill";
 import { migrateCounters } from "./versions/v2/counter";
 import { migratePayments } from "./versions/v2/payment";
 import { migrateV2toV3 } from "./versions/v3";
+import { migrateV3toV4 } from "./versions/v4";
 import logger from "../utils/logger";
 import connectDB from "../config/database";
 
@@ -57,7 +58,7 @@ export async function runMigrations(): Promise<{
 
     // 2. Check migration version
     let state = await MigrationService.getMigrationState();
-    if (state.current_version >= 3) {
+    if (state.current_version >= 4) {
         logger.info(`Database schema is already at version ${state.current_version}. No migration needed.`);
         return {
             success: true,
@@ -197,24 +198,44 @@ export async function runMigrations(): Promise<{
             // Update migration version and mark complete
             await MigrationService.completeMigration(3, backupMarker);
 
+            logger.info("Completed Schema Version 3 Migrations successfully.");
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : String(err);
+            logger.error("FATAL MIGRATION ERROR (V3) - STOPPING PROCESS IMMEDIATELY:", { error: msg });
+            await MigrationService.failMigration(msg);
+            return { success: false, error: msg };
+        }
+
+        // Reload state to run version 4
+        state = await MigrationService.getMigrationState();
+    }
+
+    // Run V4 migration if version is 3
+    if (state.current_version === 3) {
+        logger.info("Executing Schema Version 4 Migrations (Employee Name Split)...");
+        try {
+            const v4Result = await migrateV3toV4(db);
+
+            // Update migration version and mark complete
+            await MigrationService.completeMigration(4, backupMarker);
+
             const summaryReport = `
 =========================================
 DATABASE MIGRATION SUCCESS REPORT
 =========================================
-Schema Version: 2 -> 3
+Schema Version: 3 -> 4
 Backup Location: ${backupMarker}
 
-MIGRATION METRICS (V3 Recovery):
-- Recovered Purchases: ${v3Result.recovered}
-- Already Present: ${v3Result.alreadyPresent}
-- Failed: ${v3Result.failed}
+MIGRATION METRICS (V4 Employee Name Split):
+- Migrated Employees: ${v4Result.migrated}
+- Failed: ${v4Result.failed}
 =========================================
 `;
             logger.info(summaryReport);
             return { success: true, report: summaryReport };
         } catch (err: unknown) {
             const msg = err instanceof Error ? err.message : String(err);
-            logger.error("FATAL MIGRATION ERROR (V3) - STOPPING PROCESS IMMEDIATELY:", { error: msg });
+            logger.error("FATAL MIGRATION ERROR (V4) - STOPPING PROCESS IMMEDIATELY:", { error: msg });
             await MigrationService.failMigration(msg);
             return { success: false, error: msg };
         }

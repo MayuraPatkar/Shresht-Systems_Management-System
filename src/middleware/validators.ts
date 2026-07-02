@@ -117,7 +117,8 @@ const validators = {
     // Employee validators
     createEmployee: [
         body("emp_id").trim().notEmpty().withMessage("Employee ID is required"),
-        body("name").trim().notEmpty().withMessage("Name is required"),
+        body("first_name").trim().notEmpty().withMessage("First name is required"),
+        body("last_name").optional().trim(),
         body("email").optional().isEmail().withMessage("Invalid email"),
         body("phone").optional().matches(/^[0-9]{10}$/).withMessage("Invalid phone number"),
         validate,

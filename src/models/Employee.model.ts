@@ -18,7 +18,9 @@ export interface IBankDetails {
 
 export interface IEmployee extends Document {
     emp_id: number;
-    name: string;
+    first_name: string;
+    last_name?: string;
+    name: string; // Virtual property
     address: IAddress;
     phone: string;
     email: string;
@@ -38,10 +40,15 @@ const employeeSchema = new Schema<IEmployee>(
             unique: true,
             index: true
         },
-        name: {
+        first_name: {
             type: String,
             required: true,
             trim: true
+        },
+        last_name: {
+            type: String,
+            trim: true,
+            default: ""
         },
         address: {
             line1: { type: String, trim: true },
@@ -79,9 +86,16 @@ const employeeSchema = new Schema<IEmployee>(
         }
     },
     {
-        timestamps: true
+        timestamps: true,
+        toJSON: { virtuals: true },
+        toObject: { virtuals: true }
     }
 );
+
+// Virtual for backward-compatible full name
+employeeSchema.virtual("name").get(function(this: any) {
+    return `${this.first_name || ""} ${this.last_name || ""}`.trim();
+});
 
 export const EmployeeModel: Model<IEmployee> =
     mongoose.models.Employee || mongoose.model<IEmployee>("Employee", employeeSchema);

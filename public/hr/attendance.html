@@ -192,13 +192,21 @@
                 });
 
                 if (res.ok) {
-                    alert(`Attendance recorded for EMP-${empId}!`);
+                    showNotification(`Attendance recorded for EMP-${empId}!`);
                 } else {
                     const err = await res.json();
-                    alert(err.message || 'Submission failed');
+                    showNotification(err.message || 'Submission failed');
                 }
             } catch (err) {
-                alert('Connection error');
+                showNotification('Connection error');
+            }
+        }
+
+        function showNotification(message) {
+            if (window.electronAPI && typeof window.electronAPI.showAlert1 === 'function') {
+                window.electronAPI.showAlert1(message);
+            } else {
+                alert(message);
             }
         }
     </script>
