@@ -345,9 +345,6 @@ router.get("/recent-purchases", async (req: Request, res: Response) => {
         }
 
         let queryBuilder = PurchaseModel.find(query).sort({ createdAt: -1 });
-        if (status !== 'archived' && deleted !== 'true') {
-            queryBuilder = queryBuilder.limit(10);
-        }
 
         const recentPurchases = await queryBuilder
             .select("purchase_no supplier_snapshot totals purchase_date createdAt is_archived deletion payment_status total_paid_amount");

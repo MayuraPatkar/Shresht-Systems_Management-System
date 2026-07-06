@@ -638,9 +638,6 @@ router.get("/recent-invoices", async (req: Request, res: Response) => {
         }
 
         let queryBuilder = InvoiceModel.find(query).sort({ createdAt: -1 });
-        if (status !== 'archived' && deleted !== 'true') {
-            queryBuilder = queryBuilder.limit(10);
-        }
 
         const recentInvoices = await queryBuilder
             .select("project_name invoice_id status customer_name customer_phone customer_address payment_status total_amount_duplicate total_paid_amount invoice_date createdAt is_archived deletion");
