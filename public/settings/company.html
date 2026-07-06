@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Information</title>
+    <link rel="stylesheet" href="../css/tailwind.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            /* Prevent body scroll */
+            user-select: none;
+        }
+
+        input, textarea, select, [contenteditable="true"] {
+            user-select: text;
+        }
+
+        .sidebar {
+            width: 240px;
+            height: 100%;
+            overflow-y: auto;
+            /* Enable sidebar scroll */
+            overflow-x: hidden;
+        }
+
+        /* Main content scrolling */
+        main {
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        /* Custom scrollbar styling */
+        *::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        *::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        *::-webkit-scrollbar-thumb {
+            background: #2563eb;
+            border-radius: 4px;
+            background-clip: padding-box;
+            border: 2px solid transparent;
+        }
+
+        *::-webkit-scrollbar-thumb:hover {
+            background: #1d4ed8;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .content-section {
+            min-height: calc(100vh - 11rem);
+        }
+
+        /* Hide native scroll/spin controls on number inputs */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+
+    <!-- Unified Header -->
+    <header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-30 h-24 flex items-center px-4">
+        <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-3">
+                <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
+                <h1 class="text-xl font-bold text-gray-800">Company Information</h1>
+            </div>
+            <div>
+                <button id="logout-button"
+                    class="flex items-center gap-2 px-3.5 py-2 text-sm text-rose-600 bg-transparent rounded-lg hover:bg-rose-50 hover:text-rose-700 font-medium border border-transparent transition-all cursor-pointer whitespace-nowrap">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Layout Wrapper -->
+    <div class="flex pt-24 h-screen w-full overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar bg-white h-full flex flex-col border-r border-gray-200 flex-shrink-0">
+            <!-- Navigation Links -->
+            <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav"></nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 h-full overflow-y-auto bg-white px-8 py-8 md:px-12 md:py-12 content-section">
+
+            <!-- Admin Information Section -->
+            <section id="admin-info-section" class="w-full space-y-8 pb-4 fade-in">
+                <!-- Section Header -->
+                <div class="flex justify-between items-center pb-6 border-b border-slate-205">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2.5">
+                            <i class="fas fa-id-card text-purple-600 text-lg"></i>
+                            <span>Company Profile</span>
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Manage your corporate credentials, billing parameters, and payout details</p>
+                    </div>
+                    <!-- Action Buttons Toolbar -->
+                    <div class="flex items-center gap-2">
+                        <button id="export-company-info-button" type="button" class="hidden sm:flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-650 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 transition cursor-pointer" title="Download Details as PDF">
+                            <i class="fas fa-download text-slate-400 text-[10px]"></i>
+                            <span>Download details</span>
+                        </button>
+                        <button id="edit-company-info-button" type="button"
+                            class="flex items-center gap-1.5 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 active:scale-[0.98] transition font-semibold text-xs shadow-sm hover:shadow-purple-500/20 cursor-pointer">
+                            <i class="fas fa-edit text-[10px]"></i>
+                            <span>Edit Profile</span>
+                        </button>
+                        <div id="edit-company-actions" class="hidden items-center gap-2">
+                            <button id="save-company-info-button" type="button"
+                                class="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 active:scale-[0.98] transition font-semibold text-xs shadow-sm cursor-pointer">
+                                <i class="fas fa-save text-[10px]"></i>
+                                <span>Save</span>
+                            </button>
+                            <button id="cancel-edit-company-button" type="button"
+                                class="flex items-center gap-1.5 px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition font-semibold text-xs cursor-pointer">
+                                <i class="fas fa-times text-[10px]"></i>
+                                <span>Cancel</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grid Layout -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Business Details (Left side, 2 cols) -->
+                    <div class="lg:col-span-2">
+                        <!-- VIEW MODE FOR COMPANY DETAILS -->
+                        <div id="company-view-mode" class="space-y-6">
+                            <!-- Company Identity Card -->
+                            <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+                                <div class="flex items-start justify-between gap-4">
+                                    <div class="flex items-center gap-4">
+                                        <!-- Dynamic Logo / Initials Fallback Upload Area -->
+                                        <div class="w-16 h-16 rounded-xl border border-slate-200 bg-slate-50/50 flex items-center justify-center shadow-sm shrink-0">
+                                            <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
+                                        </div>
+                                        <div class="space-y-1">
+                                            <h3 class="text-lg font-bold text-slate-800 tracking-tight" id="admin-company-name">Shresht Systems</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Contact & Identity Information Grid -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Contact Info Card -->
+                                <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+                                    <div class="flex items-center gap-2 border-b border-slate-100 pb-2">
+                                        <i class="fas fa-address-book text-purple-600 text-xs"></i>
+                                        <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Contact Information</h4>
+                                    </div>
+                                    <div class="space-y-3.5">
+                                        <!-- Phone Primary -->
+                                        <div class="flex justify-between items-start gap-4">
+                                            <div>
+                                                <span class="block text-[9px] font-bold text-gray-500 tracking-wider uppercase">Phone 1 (Primary)</span>
+                                                <span id="admin-contact1" class="text-xs font-semibold text-slate-700">-</span>
+                                            </div>
+                                        </div>
+                                        <!-- Phone Secondary -->
+                                        <div class="flex justify-between items-start gap-4">
+                                            <div>
+                                                <span class="block text-[9px] font-bold text-gray-500 tracking-wider uppercase">Phone 2 (Secondary)</span>
+                                                <span id="admin-contact2" class="text-xs font-semibold text-slate-700">-</span>
+                                            </div>
+                                        </div>
+                                        <!-- Email -->
+                                        <div class="flex justify-between items-start gap-4">
+                                            <div class="min-w-0">
+                                                <span class="block text-[9px] font-bold text-gray-500 tracking-wider uppercase">Email Address</span>
+                                                <div class="flex items-center gap-1.5 mt-0.5">
+                                                    <a href="" id="admin-email" class="text-xs font-semibold text-slate-700 hover:text-purple-600 hover:underline transition truncate block">-</a>
+                                                </div>
+                                            </div>
+                                            <button class="copy-btn hover:text-purple-600 p-1 text-slate-400 cursor-pointer shrink-0" data-clipboard-target="#admin-email" title="Copy Email">
+                                                <i class="fas fa-copy text-xs"></i>
+                                            </button>
+                                        </div>
+                                        <!-- Website -->
+                                        <div class="flex justify-between items-start gap-4">
+                                            <div class="min-w-0">
+                                                <span class="block text-[9px] font-bold text-gray-500 tracking-wider uppercase">Website URL</span>
+                                                <a href="" target="_blank" id="admin-website" class="text-xs font-semibold text-slate-700 hover:text-purple-600 hover:underline transition truncate block">-</a>
+                                            </div>
+                                            <button class="copy-btn hover:text-purple-600 p-1 text-slate-400 cursor-pointer shrink-0" data-clipboard-target="#admin-website" title="Copy Website">
+                                                <i class="fas fa-copy text-xs"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Address Info Card -->
+                                <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+                                    <div class="flex items-center gap-2 border-b border-slate-100 pb-2">
+                                        <i class="fas fa-map-location-dot text-purple-600 text-xs"></i>
+                                        <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Address Details</h4>
+                                    </div>
+                                    <div class="space-y-3.5">
+                                        <!-- Street Address -->
+                                        <div>
+                                            <span class="block text-[9px] font-bold text-gray-500 tracking-wider uppercase">Street Address</span>
+                                            <span id="admin-address" class="text-xs font-semibold text-slate-700 leading-relaxed">-</span>
+                                        </div>
+                                        <!-- State -->
+                                        <div>
+                                            <span class="block text-[9px] font-bold text-gray-500 tracking-wider uppercase">State / Region</span>
+                                            <span id="admin-state" class="text-xs font-semibold text-slate-700">-</span>
+                                        </div>
+                                        <!-- GSTIN Identifier -->
+                                        <div class="flex justify-between items-start gap-4 pt-1 border-t border-slate-100/50">
+                                            <div>
+                                                <span class="block text-[9px] font-bold text-gray-500 tracking-wider uppercase">GSTIN Identifier</span>
+                                                <div class="flex items-center gap-1.5 mt-0.5">
+                                                    <span id="admin-gstin" class="inline-flex items-center py-0.5 px-2 rounded bg-purple-50 text-[10px] font-bold text-purple-700 border border-purple-100/60 shadow-sm">-</span>
+                                                </div>
+                                            </div>
+                                            <button class="copy-btn hover:text-purple-600 p-1 text-slate-400 cursor-pointer shrink-0" data-clipboard-target="#admin-gstin" title="Copy GSTIN">
+                                                <i class="fas fa-copy text-xs"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- EDIT MODE FOR COMPANY DETAILS -->
+                        <div id="company-edit-mode" class="space-y-6 hidden bg-white rounded-xl border border-slate-200 p-5">
+                            <div class="flex items-center gap-2 border-b border-slate-100 pb-3 mb-4">
+                                <i class="fas fa-pen-to-square text-purple-600 text-xs"></i>
+                                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Edit General Information</h4>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div class="md:col-span-2">
+                                    <label class="block text-[9px] font-bold text-gray-500 mb-1 uppercase tracking-wider">Company Name</label>
+                                    <input type="text" id="edit-company" readonly
+                                        class="w-full px-3 py-2 text-xs bg-slate-100 border border-slate-200 rounded-lg focus:outline-none cursor-not-allowed opacity-60 font-semibold text-slate-500">
+                                    <p class="text-[9px] text-slate-400 mt-1">Company name is locked to business registration and cannot be modified.</p>
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-500 mb-1 uppercase tracking-wider">Address Line 1</label>
+                                    <input type="text" id="edit-address-line1"
+                                        class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition duration-150">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-500 mb-1 uppercase tracking-wider">Address Line 2</label>
+                                    <input type="text" id="edit-address-line2"
+                                        class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition duration-150">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-500 mb-1 uppercase tracking-wider">City</label>
+                                    <input type="text" id="edit-address-city"
+                                        class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition duration-150">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-500 mb-1 uppercase tracking-wider">Pincode</label>
+                                    <input type="text" id="edit-address-pincode" maxlength="6"
+                                        class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition duration-150">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-500 mb-1 uppercase tracking-wider">State / Region</label>
+                                    <input type="text" id="edit-state"
+                                        class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition duration-150">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-500 mb-1 uppercase tracking-wider">GSTIN</label>
+                                    <input type="text" id="edit-gstin" maxlength="15"
+                                        class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition duration-150">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-500 mb-1 uppercase tracking-wider">Phone 1</label>
+                                    <input type="tel" id="edit-phone1" maxlength="10"
+                                        class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition duration-150">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-500 mb-1 uppercase tracking-wider">Phone 2</label>
+                                    <input type="tel" id="edit-phone2" maxlength="10"
+                                        class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition duration-150">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-500 mb-1 uppercase tracking-wider">Email Address</label>
+                                    <input type="email" id="edit-email"
+                                        class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition duration-150">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-500 mb-1 uppercase tracking-wider">Website URL</label>
+                                    <input type="url" id="edit-website"
+                                        class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition duration-150">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Banking Details (Right side, 1 col) -->
+                    <div class="lg:col-span-1 flex flex-col">
+                        <!-- VIEW MODE FOR BANK DETAILS -->
+                        <div id="bank-view-mode" class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm flex-1 flex flex-col">
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-university text-purple-600 text-xs"></i>
+                                    <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Banking Details</h4>
+                                </div>
+                            </div>
+                            <div class="pt-1 flex-1 flex flex-col justify-between mt-4">
+                                <div>
+                                    <span class="block text-[9px] font-bold text-gray-500 tracking-wider uppercase">Bank Name</span>
+                                    <div class="flex items-center gap-1.5 mt-0.5 mb-3">
+                                        <span id="bank-name" class="text-xs font-bold text-slate-800">-</span>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <span class="block text-[9px] font-bold text-gray-500 tracking-wider uppercase">Account Holder</span>
+                                    <span id="account-holder" class="text-xs font-semibold text-slate-700">-</span>
+                                </div>
+                                <div class="flex justify-between items-start gap-4 pt-2 border-t border-slate-100/50 mb-3">
+                                    <div>
+                                        <span class="block text-[9px] font-bold text-gray-500 tracking-wider uppercase">Account Number</span>
+                                        <div class="flex items-center gap-2 mt-0.5">
+                                            <span id="account-number" class="text-xs font-bold font-mono tracking-wide text-slate-850"></span>
+                                            <button id="toggle-account-mask-btn" type="button" class="text-slate-400 hover:text-slate-600 transition cursor-pointer" title="Toggle Visibility">
+                                                <i id="account-mask-icon" class="fas fa-eye text-[10px]"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button class="copy-btn hover:text-purple-600 p-1 text-slate-400 cursor-pointer shrink-0" data-clipboard-target="#account-number" title="Copy Account Number">
+                                        <i class="fas fa-copy text-xs"></i>
+                                    </button>
+                                </div>
+                                <div class="flex justify-between items-start gap-4 pt-2 border-t border-slate-100/50 mb-3">
+                                    <div>
+                                        <span class="block text-[9px] font-bold text-gray-500 tracking-wider uppercase">IFSC Code</span>
+                                        <span id="ifsc-code" class="inline-flex items-center py-0.5 px-2 mt-0.5 rounded bg-purple-50 text-[10px] font-bold text-purple-700 border border-purple-100/60 shadow-sm">-</span>
+                                    </div>
+                                    <button class="copy-btn hover:text-purple-600 p-1 text-slate-400 cursor-pointer shrink-0" data-clipboard-target="#ifsc-code" title="Copy IFSC">
+                                        <i class="fas fa-copy text-xs"></i>
+                                    </button>
+                                </div>
+                                <div>
+                                    <span class="block text-[9px] font-bold text-gray-500 tracking-wider uppercase">Branch Location</span>
+                                    <span id="branch-name" class="text-xs font-semibold text-slate-700 leading-relaxed">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- EDIT MODE FOR BANK DETAILS -->
+                        <div id="bank-edit-mode" class="hidden bg-white rounded-xl border border-slate-200 p-5 flex-1 flex flex-col justify-between">
+                            <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
+                                <i class="fas fa-pen-to-square text-purple-600 text-xs"></i>
+                                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Edit Payout Details</h4>
+                            </div>
+                            <div class="space-y-3.5 mt-4">
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-500 mb-1 uppercase tracking-wider">Bank Name</label>
+                                    <input type="text" id="edit-bank-name"
+                                        class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition duration-150">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-500 mb-1 uppercase tracking-wider">Account Holder</label>
+                                    <input type="text" id="edit-account-holder"
+                                        class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition duration-150">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-500 mb-1 uppercase tracking-wider">Account Number</label>
+                                    <input type="text" id="edit-account-number"
+                                        class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition duration-150">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-500 mb-1 uppercase tracking-wider">IFSC Code</label>
+                                    <input type="text" id="edit-ifsc"
+                                        class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition duration-150">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-500 mb-1 uppercase tracking-wider">Branch</label>
+                                    <input type="text" id="edit-branch"
+                                        class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition duration-150">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../../dist/public/ts/shared/core/utils.js"></script>
+    <script src="../../dist/public/ts/shared/documents/calculations.js"></script>
+    <script src="../../dist/public/ts/shared/core/ipc.js"></script>
+    <script src="../../dist/public/ts/shared/core/keyboardNavigation.js"></script>
+    <script src="../../dist/public/ts/shared/core/globalScript.js"></script>
+    <script src="../../dist/public/ts/shared/core/validation.js"></script>
+
+    <!-- Settings module scripts (load in order, compiled from TypeScript) -->
+    <script src="../../dist/public/settings/src/types/settings.types.js"></script>
+    <script src="../../dist/public/settings/src/services/settingsApi.js"></script>
+    <script src="../../dist/public/settings/src/utils/settingsUtils.js"></script>
+    <script src="../../dist/public/settings/src/components/settingsAdmin.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if (typeof window.settingsAdmin !== 'undefined') {
+                window.settingsAdmin.init();
+                window.settingsAdmin.fetchAdminInfo();
+            } else if (typeof settingsAdmin !== 'undefined') {
+                settingsAdmin.init();
+                settingsAdmin.fetchAdminInfo();
+            }
+        });
+    </script>
+</body>
+
+</html>

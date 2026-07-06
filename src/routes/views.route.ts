@@ -48,6 +48,7 @@ const pages: Array<{ route: string; file: string }> = [
     { route: '/analytics', file: 'analytics/analytics.html' },
     { route: '/calculations', file: 'calculations/calculations.html' },
     { route: '/settings', file: 'settings/settings.html' },
+    { route: '/company-info', file: 'settings/company.html' },
     { route: '/backup', file: 'settings/backup.html' },
     { route: '/import-export', file: 'settings/import-export.html' },
     { route: '/document', file: 'document/document.html' },

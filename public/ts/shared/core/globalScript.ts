@@ -341,6 +341,7 @@ function setupCollapsibleSidebar() {
       name: 'Administration',
       icon: 'fa-solid fa-sliders',
       items: [
+        { id: 'companyInfo', label: 'Company Info', path: '/company-info', icon: 'fa-solid fa-building' },
         { id: 'settings', label: 'Settings', path: '/settings', icon: 'fa-solid fa-cog' },
         { id: 'backup', label: 'Backup', path: '/backup', icon: 'fa-solid fa-hdd' },
         { id: 'importExport', label: 'Import/Export', path: '/import-export', icon: 'fa-solid fa-file-import' }
