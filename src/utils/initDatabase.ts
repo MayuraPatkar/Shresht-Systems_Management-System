@@ -23,6 +23,21 @@ async function initializeDatabase(): Promise<void> {
                 await db.dropCollection('reports');
                 logger.info("✓ Dropped reports collection successfully");
             }
+
+            // Drop duplicate/legacy unique index quotation_id_1 from quotations collection if present
+            try {
+                const quotationsCollection = db.collection("quotations");
+                const indexes = await quotationsCollection.indexes();
+                const hasQuotationIdIndex = indexes.some((idx: any) => idx.name === "quotation_id_1");
+                if (hasQuotationIdIndex) {
+                    logger.info("Dropping legacy unique index quotation_id_1 from quotations collection...");
+                    await quotationsCollection.dropIndex("quotation_id_1");
+                    logger.info("✓ Successfully dropped legacy unique index quotation_id_1");
+                }
+            } catch (err: unknown) {
+                const msg = err instanceof Error ? err.message : String(err);
+                logger.warn(`Non-fatal warning when checking/dropping quotation_id_1 index: ${msg}`);
+            }
         }
 
         // Read the info.json file
