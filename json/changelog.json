@@ -1,6 +1,25 @@
 {
   "versions": [
     {
+      "version": "4.2.0",
+      "date": "2026-07-07",
+      "title": "Administration Enhancements & Critical Bug Fixes",
+      "changes": [
+        {
+          "type": "feature",
+          "description": "Company Information Management: Separated company profile and payout banking details into a dedicated 'Company Info' section under Administration before Settings for a cleaner layout."
+        },
+        {
+          "type": "improvement",
+          "description": "Invoice & Purchase Listings: Removed the 10-record limit constraint in public invoice and purchase lists, allowing them to load and display all records."
+        },
+        {
+          "type": "bugfix",
+          "description": "Quotation Index Conflict: Added database initialization logic to drop the legacy unique index on quotation_id to prevent E11000 duplicate key errors when saving new quotations."
+        }
+      ]
+    },
+    {
       "version": "4.0.0",
       "date": "2026-06-29",
       "title": "TypeScript Rewrite & Next-Generation Foundation",

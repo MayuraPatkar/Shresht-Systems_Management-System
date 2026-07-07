@@ -1,6 +1,6 @@
 {
   "name": "shresht-systems-management-system",
-  "version": "4.2.0",
+  "version": "4.2.1",
   "description": "Shresht Systems Management System (SSMS) is a comprehensive ERP platform for managing customers, quotations, invoices, inventory, payments, reporting, and overall business operations.",
   "main": "dist/main.js",
   "scripts": {
