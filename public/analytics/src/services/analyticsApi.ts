@@ -117,6 +117,40 @@ class AnalyticsApi {
         const url = `/analytics/inventory-data?${queryParams.toString()}`;
         return this.fetchJson(url);
     }
+
+    /**
+     * Fetch finance filters dropdown lists
+     */
+    async getFinanceFiltersOptions(): Promise<any> {
+        return this.fetchJson('/analytics/finance/filters');
+    }
+
+    /**
+     * Fetch finance analytics data consolidated report
+     */
+    async getFinanceData(filters: {
+        dateRange?: string;
+        startDate?: string;
+        endDate?: string;
+        branch?: string;
+        paymentMethod?: string;
+        customer?: string;
+        supplier?: string;
+        voucherType?: string;
+        gstType?: string;
+        account?: string;
+    }): Promise<any> {
+        const queryParams = new URLSearchParams();
+        
+        Object.entries(filters).forEach(([key, val]) => {
+            if (val) {
+                queryParams.append(key, val);
+            }
+        });
+
+        const url = `/analytics/finance-data?${queryParams.toString()}`;
+        return this.fetchJson(url);
+    }
 }
 
 declare var analyticsApi: any;

@@ -20,6 +20,7 @@ const SSMS_MODULES = [
   { id: 'salesanalytics', label: 'Sales Analytics', patterns: ['/sales-analytics', '/sales-analytics/'] },
   { id: 'procurementanalytics', label: 'Procurement Analytics', patterns: ['/procurement-analytics', '/procurement-analytics/'] },
   { id: 'inventoryanalytics', label: 'Inventory Analytics', patterns: ['/inventory-analytics', '/inventory-analytics/'] },
+  { id: 'financeanalytics', label: 'Finance Analytics', patterns: ['/finance-analytics', '/finance-analytics/'] },
   { id: 'calculations', label: 'Calculations', patterns: ['/calculations', '/calculations/'] },
   { id: 'settings', label: 'Settings', patterns: ['/settings', '/settings/'] }
 ];
@@ -339,6 +340,7 @@ function setupCollapsibleSidebar() {
         { id: 'salesAnalytics', label: 'Sales Analytics', path: '/sales-analytics', icon: 'fa-solid fa-chart-simple' },
         { id: 'procurementAnalytics', label: 'Procurement Analytics', path: '/procurement-analytics', icon: 'fa-solid fa-chart-column' },
         { id: 'inventoryAnalytics', label: 'Inventory Analytics', path: '/inventory-analytics', icon: 'fa-solid fa-chart-pie' },
+        { id: 'financeAnalytics', label: 'Finance Analytics', path: '/finance-analytics', icon: 'fa-solid fa-scale-balanced' },
         { id: 'dataWorksheet', label: 'Data Worksheet', path: '/data-worksheet', icon: 'fa-solid fa-table-list' },
         { id: 'calculations', label: 'Calculations', path: '/calculations', icon: 'fa-solid fa-calculator' }
       ]
@@ -511,6 +513,7 @@ document.addEventListener('DOMContentLoaded', () => {
     '/sales-analytics': 'salesAnalytics',
     '/procurement-analytics': 'procurementAnalytics',
     '/inventory-analytics': 'inventoryAnalytics',
+    '/finance-analytics': 'financeAnalytics',
     '/calculations': 'calculations',
     '/settings': 'settings',
     '/backup': 'backup',

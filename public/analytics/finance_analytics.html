@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance Analytics - Shresht Systems</title>
+    <link rel="stylesheet" href="../css/tailwind.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;850&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            overflow: hidden;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .sidebar {
+            width: 240px;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            border-right: 1px solid #e2e8f0;
+        }
+
+        main {
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        /* Custom scrollbar styling */
+        *::-webkit-scrollbar { width: 6px; height: 6px; }
+        *::-webkit-scrollbar-track { background: transparent; }
+        *::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        *::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Skeleton pulse */
+        .skeleton {
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+        }
+
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Heatmap Grid Styles */
+        .heatmap-cell {
+            transition: all 0.2s ease;
+        }
+        .heatmap-cell:hover {
+            transform: scale(1.15);
+            z-index: 10;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Tooltips */
+        .chart-tooltip {
+            position: absolute;
+            background: rgba(15, 23, 42, 0.95);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 500;
+            pointer-events: none;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+            transition: opacity 0.15s ease;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Print formatting */
+        @media print {
+            body { background: white; color: black; overflow: visible; }
+            header, aside, #filter-panel, #export-buttons, .pagination-controls { display: none !important; }
+            .sidebar { display: none !important; }
+            main { overflow: visible !important; height: auto !important; padding: 0 !important; }
+            .pt-24 { padding-top: 0 !important; }
+            .grid { display: block !important; }
+            .card, .chart-panel { break-inside: avoid; margin-bottom: 2rem; border: 1px solid #ccc !important; box-shadow: none !important; }
+            svg { max-width: 100% !important; height: auto !important; }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-30 h-24 flex items-center px-4">
+        <div class="flex items-center w-full gap-4">
+            <div class="flex items-center gap-3 flex-shrink-0" style="min-width:200px;">
+                <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
+                <h1 class="text-xl font-bold text-gray-800">Finance Analytics</h1>
+            </div>
+            
+            <div class="flex-1 flex justify-center">
+                <!-- Search Placeholder -->
+            </div>
+
+            <div class="flex items-center gap-2 pr-2 flex-shrink-0" style="min-width:100px;justify-content:flex-end;">
+                <i id="header-user-role-icon" class="fas fa-user-shield text-slate-400 text-sm"></i>
+                <span id="header-user-role" class="text-sm font-bold uppercase tracking-wider bg-slate-50 text-slate-700 px-2.5 py-1 rounded-md border border-slate-200">Admin</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Layout Wrapper -->
+    <div class="flex pt-24 h-screen w-full overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar bg-white h-full flex flex-col border-r border-gray-200 flex-shrink-0" style="width: 240px;">
+            <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
+                <div class="flex items-center justify-center h-full">
+                    <i class="fas fa-spinner fa-spin text-blue-500 text-xl"></i>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 h-full overflow-y-auto px-6 py-6 bg-slate-50/50 no-select pb-24 md:pb-8 flex flex-col">
+            <div class="max-w-6xl w-full mx-auto flex-1 flex flex-col min-h-0 space-y-6 fade-in" id="dashboard-content">
+                
+                <!-- Page Title & Export Buttons -->
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400">Financial intelligence, profitability & forecasts</h2>
+                        <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight mt-1">CFO Financial Dashboard</h1>
+                    </div>
+                    
+                    <!-- Export panel -->
+                    <div class="flex items-center gap-3" id="export-buttons">
+                        <button id="btn-export-pdf" class="flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2.5 rounded-xl font-semibold text-sm shadow-sm transition-all active:scale-95">
+                            <i class="fas fa-file-pdf text-red-500"></i>
+                            <span>Export PDF</span>
+                        </button>
+                        <button id="btn-export-excel" class="flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2.5 rounded-xl font-semibold text-sm shadow-sm transition-all active:scale-95">
+                            <i class="fas fa-file-excel text-green-600"></i>
+                            <span>Export Excel</span>
+                        </button>
+                        <button id="btn-export-csv" class="flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2.5 rounded-xl font-semibold text-sm shadow-sm transition-all active:scale-95">
+                            <i class="fas fa-file-csv text-blue-500"></i>
+                            <span>Export CSV</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ERROR ALERTS -->
+                <div id="error-banner" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-2xl p-4 flex items-center gap-3">
+                    <i class="fas fa-exclamation-triangle text-xl"></i>
+                    <div>
+                        <p class="font-bold">System Connection Issue</p>
+                        <p class="text-sm text-red-650" id="error-message">Failed to load finance analytics. Please check your network connection or server status.</p>
+                    </div>
+                </div>
+
+                <!-- FILTER BAR PANEL -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4" id="filter-panel">
+                    <!-- Predefined Date Ranges -->
+                    <div class="flex flex-wrap items-center gap-2 pb-3 border-b border-slate-100">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400 mr-2">Date Filter:</span>
+                        <button class="btn-date-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white" data-range="thismonth">This Month</button>
+                        <button class="btn-date-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-50 text-slate-650 hover:bg-slate-100" data-range="today">Today</button>
+                        <button class="btn-date-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-50 text-slate-650 hover:bg-slate-100" data-range="yesterday">Yesterday</button>
+                        <button class="btn-date-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-50 text-slate-650 hover:bg-slate-100" data-range="7days">Last 7 Days</button>
+                        <button class="btn-date-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-50 text-slate-650 hover:bg-slate-100" data-range="lastmonth">Last Month</button>
+                        <button class="btn-date-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-50 text-slate-650 hover:bg-slate-100" data-range="quarter">Quarter</button>
+                        <button class="btn-date-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-50 text-slate-650 hover:bg-slate-100" data-range="year">Year</button>
+                        <button class="btn-date-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-50 text-slate-650 hover:bg-slate-100" data-range="custom">Custom Range</button>
+                    </div>
+
+                    <!-- Custom Range Inputs -->
+                    <div id="custom-date-container" class="hidden items-center gap-4 flex-wrap bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs font-bold text-slate-500">From:</label>
+                            <input type="date" id="filter-start-date" class="px-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs font-bold text-slate-500">To:</label>
+                            <input type="date" id="filter-end-date" class="px-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                        </div>
+                        <button id="btn-apply-custom-date" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-1.5 rounded-lg shadow-sm transition-all">Apply Range</button>
+                    </div>
+
+                    <!-- Advanced Dropdown Filters -->
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                        <!-- Branch select -->
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Branch</label>
+                            <select id="filter-branch" class="px-2.5 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700">
+                                <option value="">All Branches</option>
+                            </select>
+                        </div>
+
+                        <!-- Payment Method select -->
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Payment Method</label>
+                            <select id="filter-paymentMethod" class="px-2.5 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700">
+                                <option value="">All Methods</option>
+                            </select>
+                        </div>
+
+                        <!-- Customer select -->
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Customer</label>
+                            <select id="filter-customer" class="px-2.5 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700">
+                                <option value="">All Customers</option>
+                            </select>
+                        </div>
+
+                        <!-- Supplier select -->
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Supplier</label>
+                            <select id="filter-supplier" class="px-2.5 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700">
+                                <option value="">All Suppliers</option>
+                            </select>
+                        </div>
+
+                        <!-- Account select -->
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Account</label>
+                            <select id="filter-account" class="px-2.5 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700">
+                                <option value="">All Accounts</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EMPTY STATE BANNER -->
+                <div id="empty-state" class="hidden bg-white border border-slate-200 rounded-3xl p-16 flex flex-col items-center justify-center text-center space-y-4 shadow-sm">
+                    <div class="p-6 bg-slate-50 text-slate-400 rounded-full h-24 w-24 flex items-center justify-center border border-slate-100">
+                        <i class="fas fa-indian-rupee-sign text-4xl"></i>
+                    </div>
+                    <div class="max-w-md">
+                        <h2 class="text-xl font-bold text-slate-800">No Financial Logs Found</h2>
+                        <p class="text-slate-500 text-sm mt-2">
+                            We couldn't find any financial invoices, purchases, or payments matching your active combination of filters. Try adjusting your query parameters.
+                        </p>
+                    </div>
+                    <button id="btn-reset-filters" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-6 py-2.5 rounded-xl shadow-sm transition-all active:scale-95">
+                        <i class="fas fa-redo mr-2"></i>Reset All Filters
+                    </button>
+                </div>
+
+                <!-- 14 EXECUTIVE KPI CARDS -->
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4" id="kpi-container">
+                    <!-- Total Revenue Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-revenue">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Total Revenue</span>
+                            <div class="h-7 w-7 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center"><i class="fas fa-wallet text-xs"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-revenue">₹0</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-revenue" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Expenses Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-expenses">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Total Expenses</span>
+                            <div class="h-7 w-7 bg-red-50 text-red-650 rounded-lg flex items-center justify-center"><i class="fas fa-credit-card text-xs"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-expenses">₹0</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-expenses" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gross Profit Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-gross-profit">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Gross Profit</span>
+                            <div class="h-7 w-7 bg-emerald-50 text-emerald-650 rounded-lg flex items-center justify-center"><i class="fas fa-calculator text-xs"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-gross-profit">₹0</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-gross-profit" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Net Profit Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-net-profit">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Net Profit</span>
+                            <div class="h-7 w-7 bg-teal-50 text-teal-650 rounded-lg flex items-center justify-center"><i class="fas fa-vault text-xs"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-net-profit">₹0</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-net-profit" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cash in Hand Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-cash-hand">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Cash in Hand</span>
+                            <div class="h-7 w-7 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center"><i class="fas fa-coins text-xs"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-cash-hand">₹0</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-cash-hand" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bank Balance Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-bank-balance">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Bank Balance</span>
+                            <div class="h-7 w-7 bg-sky-50 text-sky-600 rounded-lg flex items-center justify-center"><i class="fas fa-landmark text-xs"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-bank-balance">₹0</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-bank-balance" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Outstanding Receivables Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-receivables">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Receivables</span>
+                            <div class="h-7 w-7 bg-purple-50 text-purple-650 rounded-lg flex items-center justify-center"><i class="fas fa-arrow-down-long text-xs"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-receivables">₹0</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-receivables" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-rose-600 bg-rose-50"><i class="fas fa-caret-up"></i> 0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Outstanding Payables Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-payables">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Payables</span>
+                            <div class="h-7 w-7 bg-indigo-50 text-indigo-650 rounded-lg flex items-center justify-center"><i class="fas fa-arrow-up-long text-xs"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-payables">₹0</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-payables" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-rose-600 bg-rose-50"><i class="fas fa-caret-up"></i> 0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GST Payable Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-gst-payable">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">GST Payable</span>
+                            <div class="h-7 w-7 bg-cyan-50 text-cyan-650 rounded-lg flex items-center justify-center"><i class="fas fa-scale-balanced text-xs"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-gst-payable">₹0</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-gst-payable" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-down"></i> 0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GST Collected Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-gst-collected">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">GST Collected</span>
+                            <div class="h-7 w-7 bg-yellow-50 text-yellow-600 rounded-lg flex items-center justify-center"><i class="fas fa-receipt text-xs"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-gst-collected">₹0</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-gst-collected" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profit Margin % Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-profit-margin">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Profit Margin</span>
+                            <div class="h-7 w-7 bg-pink-50 text-pink-650 rounded-lg flex items-center justify-center"><i class="fas fa-percentage text-xs"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-profit-margin">0%</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-profit-margin" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Expense Ratio % Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-expense-ratio">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Expense Ratio</span>
+                            <div class="h-7 w-7 bg-orange-50 text-orange-650 rounded-lg flex items-center justify-center"><i class="fas fa-chart-pie text-xs"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-expense-ratio">0%</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-expense-ratio" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-down"></i> 0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cash Flow Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-cash-flow">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Net Cash Flow</span>
+                            <div class="h-7 w-7 bg-violet-50 text-violet-650 rounded-lg flex items-center justify-center"><i class="fas fa-arrows-spin text-xs"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-cash-flow">₹0</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-cash-flow" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Working Capital Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-working-capital">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Working Capital</span>
+                            <div class="h-7 w-7 bg-fuchsia-50 text-fuchsia-650 rounded-lg flex items-center justify-center"><i class="fas fa-bridge text-xs"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-working-capital">₹0</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-working-capital" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- INSIGHTS SECTION -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                        <i class="fas fa-lightbulb text-amber-500"></i>
+                        <span>AI Financial Insights</span>
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="insights-grid">
+                        <div class="skeleton h-16 rounded-xl"></div>
+                        <div class="skeleton h-16 rounded-xl"></div>
+                        <div class="skeleton h-16 rounded-xl"></div>
+                        <div class="skeleton h-16 rounded-xl"></div>
+                    </div>
+                </div>
+
+                <!-- REVENUE & EXPENSES LINE/BAR + CASH FLOW WATERFALL -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Revenue vs Expense -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[340px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Revenue vs Expense Comparison</span>
+                            <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Monthly Trend</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[260px] relative" id="chart-revenue-expense">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+
+                    <!-- Cash Flow Inflow vs Outflow -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[340px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Cash Flow (Inflow vs Outflow)</span>
+                            <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Double Line</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[260px] relative" id="chart-cash-flow">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RECEIVABLE vs PAYABLE AGING ROW -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Receivables aging -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[300px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Accounts Receivables Aging (Customer Dues)</span>
+                            <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Donut Chart</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[220px] relative" id="chart-receivable-aging">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+
+                    <!-- Payables aging -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[300px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Accounts Payables Aging (Vendor Dues)</span>
+                            <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Donut Chart</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[220px] relative" id="chart-payable-aging">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GST ANALYTICS + BUDGET VARIANCE -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- GST Collected vs Paid -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[320px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">GST Collected vs Input Credit Paid</span>
+                            <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Double Line</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[240px] relative" id="chart-gst">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+
+                    <!-- Budget Variance -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[320px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Department Budget Variance (Spent vs Budget)</span>
+                            <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Bar Chart</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[240px] relative" id="chart-budgets">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FINANCIAL RATIOS CARD GRID -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 pb-3 border-b border-slate-100 flex items-center gap-2">
+                        <i class="fas fa-chart-line text-indigo-500"></i>
+                        <span>Key Financial Ratios & Performance Indexes</span>
+                    </h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4" id="box-financial-ratios">
+                        <!-- Current Ratio -->
+                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex flex-col justify-between">
+                            <span class="text-[10px] font-bold uppercase text-slate-400 block">Current Ratio</span>
+                            <h2 class="text-lg font-bold text-slate-800 mt-1" id="ratio-current">2.1x</h2>
+                            <p class="text-[9px] text-slate-450 mt-0.5">Liquidity (Target: 1.5 - 2.5)</p>
+                        </div>
+                        <!-- Quick Ratio -->
+                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex flex-col justify-between">
+                            <span class="text-[10px] font-bold uppercase text-slate-400 block">Quick Ratio</span>
+                            <h2 class="text-lg font-bold text-slate-800 mt-1" id="ratio-quick">1.5x</h2>
+                            <p class="text-[9px] text-slate-450 mt-0.5">Immediate cash cover (Target > 1.0)</p>
+                        </div>
+                        <!-- Gross Margin -->
+                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex flex-col justify-between">
+                            <span class="text-[10px] font-bold uppercase text-slate-400 block">Gross Profit Margin</span>
+                            <h2 class="text-lg font-bold text-slate-800 mt-1" id="ratio-gross-margin">30.0%</h2>
+                            <p class="text-[9px] text-slate-450 mt-0.5">Markup profitability</p>
+                        </div>
+                        <!-- Net Margin -->
+                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex flex-col justify-between">
+                            <span class="text-[10px] font-bold uppercase text-slate-400 block">Net Profit Margin</span>
+                            <h2 class="text-lg font-bold text-slate-800 mt-1" id="ratio-net-margin">18.5%</h2>
+                            <p class="text-[9px] text-slate-450 mt-0.5">CFO net rate</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PAYMENT ACTIVITY HEATMAP -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[320px] chart-panel">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Receipts & Payments Ledger Heatmap (Day vs Hour Frequency)</span>
+                        <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Activity Map</span>
+                    </div>
+                    <div class="flex-1 flex flex-col min-h-[240px] pt-4 overflow-x-auto justify-center" id="heatmap-container">
+                        <div class="skeleton h-full w-full rounded-lg"></div>
+                    </div>
+                </div>
+
+                <!-- FORECASTING & PLANNING -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Forecast Chart -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm md:col-span-2 flex flex-col justify-between min-h-[320px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Revenue & Profit Forecasts</span>
+                            <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">Linear Regression</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[240px] relative" id="chart-forecast">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+
+                    <!-- Forecast Cards -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[320px]">
+                        <div class="pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Financial Planning Forecasts</span>
+                            <p class="text-[10px] text-slate-500 mt-0.5" id="lbl-forecast-month">Predicting next month...</p>
+                        </div>
+                        <div class="flex-1 flex flex-col justify-around py-2">
+                            <!-- Revenue Forecast -->
+                            <div class="flex items-center gap-4 bg-blue-50/50 border border-blue-100 rounded-xl p-3.5">
+                                <div class="h-10 w-10 rounded-lg bg-blue-600 text-white flex items-center justify-center text-lg"><i class="fas fa-indian-rupee-sign"></i></div>
+                                <div>
+                                    <span class="text-[10px] font-bold uppercase text-slate-400 block">Forecasted Monthly Sales</span>
+                                    <h3 class="text-lg font-bold text-slate-800" id="val-forecast-revenue">₹0</h3>
+                                </div>
+                            </div>
+                            <!-- Expenses Forecast -->
+                            <div class="flex items-center gap-4 bg-indigo-50/50 border border-indigo-100 rounded-xl p-3.5">
+                                <div class="h-10 w-10 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-lg"><i class="fas fa-credit-card"></i></div>
+                                <div>
+                                    <span class="text-[10px] font-bold uppercase text-slate-400 block">Projected Expenses</span>
+                                    <h3 class="text-lg font-bold text-slate-800" id="val-forecast-expenses">₹0</h3>
+                                </div>
+                            </div>
+                            <!-- Profit Forecast -->
+                            <div class="flex items-center gap-4 bg-emerald-50/50 border border-emerald-100 rounded-xl p-3.5">
+                                <div class="h-10 w-10 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-lg"><i class="fas fa-vault"></i></div>
+                                <div>
+                                    <span class="text-[10px] font-bold uppercase text-slate-400 block">Expected Net Profit</span>
+                                    <h3 class="text-lg font-bold text-slate-800" id="val-forecast-profit">₹0</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TOP REVENUE CUSTOMERS & VENODR EXPENSES -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Top Customers -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[340px]">
+                        <div>
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 pb-3 border-b border-slate-100 flex items-center justify-between">
+                                <span>Top Billing Customer Accounts</span>
+                                <i class="fas fa-circle-user text-blue-500"></i>
+                            </h3>
+                            <div class="overflow-x-auto mt-3">
+                                <table class="w-full text-xs text-left border-collapse">
+                                    <thead>
+                                        <tr class="text-[9px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                                            <th class="py-2.5 pr-2">Customer</th>
+                                            <th class="py-2.5 px-2 text-right">Total Revenue (₹)</th>
+                                            <th class="py-2.5 px-2 text-right">Outstanding (₹)</th>
+                                            <th class="py-2.5 pl-2 text-right">Invoice Count</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-customers-rows">
+                                        <tr><td colspan="4" class="py-3"><div class="skeleton h-24 rounded-lg"></div></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-3 border-t border-slate-150 pagination-controls" id="pag-customers">
+                            <span class="text-[10px] text-slate-500 font-medium">Page 1 of 1</span>
+                            <div class="flex items-center gap-1">
+                                <button class="btn-prev px-2.5 py-1 bg-slate-50 hover:bg-slate-100 rounded text-slate-650 border border-slate-200 font-semibold text-[10px] transition-all">Prev</button>
+                                <button class="btn-next px-2.5 py-1 bg-slate-50 hover:bg-slate-100 rounded text-slate-650 border border-slate-200 font-semibold text-[10px] transition-all">Next</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vendor Expenses -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[340px]">
+                        <div>
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 pb-3 border-b border-slate-100 flex items-center justify-between">
+                                <span>Vendor Expenses & Liabilities</span>
+                                <i class="fas fa-truck text-indigo-500"></i>
+                            </h3>
+                            <div class="overflow-x-auto mt-3">
+                                <table class="w-full text-xs text-left border-collapse">
+                                    <thead>
+                                        <tr class="text-[9px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                                            <th class="py-2.5 pr-2">Supplier</th>
+                                            <th class="py-2.5 px-2 text-right">Total Expenses (₹)</th>
+                                            <th class="py-2.5 px-2 text-right">Outstanding (₹)</th>
+                                            <th class="py-2.5 pl-2 text-right">Bill Count</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-vendors-rows">
+                                        <tr><td colspan="4" class="py-3"><div class="skeleton h-24 rounded-lg"></div></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-3 border-t border-slate-150 pagination-controls" id="pag-vendors">
+                            <span class="text-[10px] text-slate-500 font-medium">Page 1 of 1</span>
+                            <div class="flex items-center gap-1">
+                                <button class="btn-prev px-2.5 py-1 bg-slate-50 hover:bg-slate-100 rounded text-slate-650 border border-slate-200 font-semibold text-[10px] transition-all">Prev</button>
+                                <button class="btn-next px-2.5 py-1 bg-slate-50 hover:bg-slate-100 rounded text-slate-650 border border-slate-200 font-semibold text-[10px] transition-all">Next</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../../dist/public/ts/shared/core/globalScript.js"></script>
+    <script src="../../dist/public/analytics/src/services/analyticsApi.js"></script>
+    <script src="../../dist/public/analytics/src/components/chartRenderer.js"></script>
+    <script src="../../dist/public/analytics/src/components/financeAnalyticsUI.js"></script>
+    <script src="../../dist/public/analytics/src/financeMain.js"></script>
+</body>
+
+</html>

@@ -690,21 +690,21 @@ class InventoryAnalyticsUI {
         // 3. Category Stock Share Donut
         chartRenderer.renderPieOrDonutChart(
             'chart-category-distribution', 
-            (charts.categoryChart || []).map((d: any) => ({ label: d.name, value: d.stockVal })), 
+            (charts.categoryChart || []).map((d: any) => ({ name: d.name, value: d.stockVal })), 
             { isDonut: true }
         );
 
         // 4. Warehouse Stock distribution
         chartRenderer.renderBarChart(
             'chart-warehouse-distribution', 
-            (charts.warehouseStock || []).map((w: any) => ({ label: w.name, value: w.units })), 
+            (charts.warehouseStock || []).map((w: any) => ({ name: w.name, value: w.units })), 
             { color: '#6366f1', unit: 'units' }
         );
 
         // 5. Top Brands Value
         chartRenderer.renderHorizontalBarChart(
             'chart-brand-value', 
-            (charts.brandChart || []).map((b: any) => ({ label: b.name, value: b.stockVal })), 
+            (charts.brandChart || []).map((b: any) => ({ name: b.name, value: b.stockVal })), 
             { color: '#ec4899' }
         );
 
