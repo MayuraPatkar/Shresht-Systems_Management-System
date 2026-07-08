@@ -46,6 +46,7 @@ const pages: Array<{ route: string; file: string }> = [
     { route: '/employee/details', file: 'hr/employee_details.html' },
     { route: '/sales-analytics', file: 'analytics/sales_analytics.html' },
     { route: '/procurement-analytics', file: 'analytics/procurement_analytics.html' },
+    { route: '/inventory-analytics', file: 'analytics/inventory_analytics.html' },
     { route: '/calculations', file: 'calculations/calculations.html' },
     { route: '/settings', file: 'settings/settings.html' },
     { route: '/company-info', file: 'settings/company.html' },

@@ -19,6 +19,7 @@ const SSMS_MODULES = [
   { id: 'reports', label: 'Reports', patterns: ['/reports', '/reports/'] },
   { id: 'salesanalytics', label: 'Sales Analytics', patterns: ['/sales-analytics', '/sales-analytics/'] },
   { id: 'procurementanalytics', label: 'Procurement Analytics', patterns: ['/procurement-analytics', '/procurement-analytics/'] },
+  { id: 'inventoryanalytics', label: 'Inventory Analytics', patterns: ['/inventory-analytics', '/inventory-analytics/'] },
   { id: 'calculations', label: 'Calculations', patterns: ['/calculations', '/calculations/'] },
   { id: 'settings', label: 'Settings', patterns: ['/settings', '/settings/'] }
 ];
@@ -337,6 +338,7 @@ function setupCollapsibleSidebar() {
       items: [
         { id: 'salesAnalytics', label: 'Sales Analytics', path: '/sales-analytics', icon: 'fa-solid fa-chart-simple' },
         { id: 'procurementAnalytics', label: 'Procurement Analytics', path: '/procurement-analytics', icon: 'fa-solid fa-chart-column' },
+        { id: 'inventoryAnalytics', label: 'Inventory Analytics', path: '/inventory-analytics', icon: 'fa-solid fa-chart-pie' },
         { id: 'dataWorksheet', label: 'Data Worksheet', path: '/data-worksheet', icon: 'fa-solid fa-table-list' },
         { id: 'calculations', label: 'Calculations', path: '/calculations', icon: 'fa-solid fa-calculator' }
       ]
@@ -508,6 +510,7 @@ document.addEventListener('DOMContentLoaded', () => {
     '/reports': 'reports',
     '/sales-analytics': 'salesAnalytics',
     '/procurement-analytics': 'procurementAnalytics',
+    '/inventory-analytics': 'inventoryAnalytics',
     '/calculations': 'calculations',
     '/settings': 'settings',
     '/backup': 'backup',
