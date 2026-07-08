@@ -378,8 +378,8 @@ class SalesAnalyticsUI {
 
         // 5. Render SVG Charts
         if (typeof chartRenderer !== 'undefined') {
-            chartRenderer.renderLineOrAreaChart('chart-monthly-revenue', data.charts.monthlyRevenue, { isArea: false, label1: 'Revenue' });
-            chartRenderer.renderLineOrAreaChart('chart-daily-sales', data.charts.dailySales, { isArea: true, label1: 'Sales' });
+            chartRenderer.renderLineOrAreaChart('chart-monthly-revenue', data.charts.monthlyRevenue.map((d: any) => ({ label: d.month, value: d.revenue })), { isArea: false, label1: 'Revenue' });
+            chartRenderer.renderLineOrAreaChart('chart-daily-sales', data.charts.dailySales.map((d: any) => ({ label: d.date, value: d.value })), { isArea: true, label1: 'Sales' });
             chartRenderer.renderBarChart('chart-category', data.charts.salesByCategory, { color: '#4f46e5' });
             chartRenderer.renderHorizontalBarChart('chart-products', data.charts.topSellingProducts, { color: '#0f172a' });
             chartRenderer.renderBarChart('chart-salesperson', data.charts.revenueBySalesperson, { color: '#10b981' });

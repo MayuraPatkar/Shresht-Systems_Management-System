@@ -254,7 +254,7 @@ async function setGoogleCredentials(creds: { clientId: string; clientSecret: str
 
     // Fallback: encrypted file
     try {
-        const f = fallbackSecretsPath();
+        const f = getFallbackFile();
         let json: Record<string, any> = {};
         if (fs.existsSync(f)) {
             try { json = JSON.parse(fs.readFileSync(f, "utf8")); } catch { /* ignore */ }
@@ -283,7 +283,7 @@ async function getGoogleCredentials(): Promise<{ clientId: string; clientSecret:
 
     // Fallback: encrypted file
     try {
-        const f = fallbackSecretsPath();
+        const f = getFallbackFile();
         if (fs.existsSync(f)) {
             const json = JSON.parse(fs.readFileSync(f, "utf8"));
             if (json[GOOGLE_CREDENTIALS_KEY]) {

@@ -1,4 +1,14 @@
 // @ts-nocheck
+(function() {
+  const nativeToLocaleString = Number.prototype.toLocaleString;
+  Number.prototype.toLocaleString = function(locales, options) {
+    if (!locales) {
+      return nativeToLocaleString.call(this, 'en-IN', options);
+    }
+    return nativeToLocaleString.call(this, locales, options);
+  };
+})();
+
 const SSMS_MODULE_NAV_CURRENT_KEY = 'ssms.currentModuleNavigation';
 const SSMS_MODULE_NAV_BACK_KEY = 'ssms.moduleBackTarget';
 const SSMS_MODULE_NAV_BACK_FLAG_KEY = 'ssms.moduleBackInProgress';
