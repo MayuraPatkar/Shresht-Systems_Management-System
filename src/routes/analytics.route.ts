@@ -25,10 +25,9 @@ router.get('/overview', async (req: Request, res: Response) => {
             payment_status: { $in: ['Unpaid', 'Partial'] }
         });
 
-        /* ────────────────────── Monthly invoice earnings (Paid) ───────────────── */
-        // Calculate total earned: Sum of payments received in current month only
-        // This shows revenue collected this month
-        const totalEarnedThisMonthResult = await InvoiceModel.aggregate([
+        /* ────────────────────── All-Time invoice earnings (Paid) ───────────────── */
+        // Calculate total earned: Sum of all payments received across all-time
+        const totalEarnedResult = await InvoiceModel.aggregate([
             {
                 $match: {
                     'deletion.is_deleted': false,
@@ -36,26 +35,16 @@ router.get('/overview', async (req: Request, res: Response) => {
                 }
             },
             { $unwind: { path: '$payments', preserveNullAndEmptyArrays: false } },
-            {
-                $match: {
-                    'payments.payment_date': { $gte: startOfMonth, $lt: startNextMon },
-                },
-            },
             { $group: { _id: null, total: { $sum: '$payments.paid_amount' } } },
         ]);
 
-        // Use this month's earnings for dashboard
-        const totalEarned = totalEarnedThisMonthResult.length > 0 ? totalEarnedThisMonthResult[0].total : 0;
+        const totalEarned = totalEarnedResult.length > 0 ? totalEarnedResult[0].total : 0;
 
-        /* ─────────────────────── Monthly purchase expenditure ─────────────────── */
-        // Use $or to match either purchase_date or createdAt within current month
+        /* ─────────────────────── All-Time purchase expenditure ─────────────────── */
         const [{ total: directExpenditure = 0 } = {}] = await PurchaseModel.aggregate([
             {
                 $match: {
-                    $or: [
-                        { purchase_date: { $gte: startOfMonth, $lt: startNextMon } },
-                        { createdAt: { $gte: startOfMonth, $lt: startNextMon } },
-                    ],
+                    'deletion.is_deleted': false,
                 },
             },
             { $group: { _id: null, total: { $sum: '$totals.grand_total' } } },
@@ -67,16 +56,58 @@ router.get('/overview', async (req: Request, res: Response) => {
                     'deletion.is_deleted': false,
                     is_archived: { $ne: true },
                     status: { $nin: ['Invoiced', 'Rejected'] },
-                    $or: [
-                        { purchase_date: { $gte: startOfMonth, $lt: startNextMon } },
-                        { createdAt: { $gte: startOfMonth, $lt: startNextMon } },
-                    ],
                 },
             },
             { $group: { _id: null, total: { $sum: '$totals.grand_total' } } },
         ]);
 
         const totalExpenditure = directExpenditure + orderExpenditure;
+
+        /* ─────────────────────── Active Pipeline Value Computation ─────────────── */
+        // Sum of remaining balance on active project invoices
+        const activeInvoicesResult = await InvoiceModel.aggregate([
+            {
+                $match: {
+                    'deletion.is_deleted': false,
+                    is_archived: { $ne: true },
+                    payment_status: { $ne: 'Paid' }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalValue: {
+                        $sum: {
+                            $subtract: [
+                                { $ifNull: ["$total_amount_duplicate", 0] },
+                                { $ifNull: ["$total_paid_amount", 0] }
+                            ]
+                        }
+                    }
+                }
+            }
+        ]);
+        const activeInvoicePipelineValue = activeInvoicesResult.length > 0 ? activeInvoicesResult[0].totalValue : 0;
+
+        // Sum of grand totals of active quotations (Draft, Sent, Approved)
+        const activeQuotationsResult = await QuotationModel.aggregate([
+            {
+                $match: {
+                    'deletion.is_deleted': false,
+                    is_archived: { $ne: true },
+                    quotation_status: { $in: ['Draft', 'Sent', 'Approved'] }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalValue: { $sum: { $ifNull: ["$totals.grand_total", 0] } }
+                }
+            }
+        ]);
+        const activeQuotationPipelineValue = activeQuotationsResult.length > 0 ? activeQuotationsResult[0].totalValue : 0;
+
+        const pipelineValue = activeInvoicePipelineValue + activeQuotationPipelineValue;
 
         /* ────────────────────── Pending services (invoices due for service) ───────────── */
         // Count invoices where service is due now (same logic as /service/get-service)
@@ -130,7 +161,8 @@ router.get('/overview', async (req: Request, res: Response) => {
             totalCustomers,
             activeCustomers,
             b2bCustomers,
-            b2cCustomers
+            b2cCustomers,
+            pipelineValue
         });
     } catch (err: unknown) {
         logger.error('Error fetching analytics:', err);

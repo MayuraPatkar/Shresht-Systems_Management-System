@@ -153,7 +153,7 @@ class DashboardUI {
                 const hasCashflow = (data.totalEarned || 0) > 0 || (data.totalExpenditure || 0) > 0;
                 this.drawSparkline("cashflow-sparkline", hasCashflow ? (netCashflow < 0 ? [217320, 180000, 195000, 210000, Math.abs(netCashflow)] : [70080, 90000, 85000, 110000, netCashflow]) : [0, 0, 0, 0, 0], netCashflow < 0 ? 'rgb(220, 38, 38)' : 'rgb(22, 163, 74)');
 
-                const pipelineValue = data.totalEarned || 0;
+                const pipelineValue = data.pipelineValue !== undefined ? data.pipelineValue : (data.totalEarned || 0);
                 const pipelineValEl = document.getElementById("pipeline-value");
                 if (pipelineValEl) {
                     pipelineValEl.textContent = `₹${(window as any).formatIndian(pipelineValue)}`;

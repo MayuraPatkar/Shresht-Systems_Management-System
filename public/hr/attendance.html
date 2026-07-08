@@ -13,6 +13,8 @@
         input, select { user-select: text; }
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-thumb { background: #2563eb; border-radius: 4px; }
+        .peer:checked + div .absent-label { display: none; }
+        .peer:not(:checked) + div .present-label { display: none; }
     </style>
 </head>
 <body class="bg-slate-100">
@@ -137,8 +139,8 @@
                         <label class="inline-flex items-center gap-1.5 cursor-pointer">
                             <input type="checkbox" checked id="status-${emp.emp_id}" class="sr-only peer status-checkbox" data-id="${emp.emp_id}">
                             <div class="px-3 py-1 rounded-full border text-xs font-bold transition-all peer-checked:bg-green-50 peer-checked:text-green-700 peer-checked:border-green-200 bg-red-50 text-red-700 border-red-200">
-                                <span class="peer-checked:hidden">Absent</span>
-                                <span class="hidden peer-checked:inline">Present</span>
+                                <span class="absent-label">Absent</span>
+                                <span class="present-label">Present</span>
                             </div>
                         </label>
                     </td>

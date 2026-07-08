@@ -12,6 +12,7 @@
 
   /* Prevent selection of UI elements - global */
   button,
+  a,
   label,
   h1,
   h2,
@@ -33,6 +34,17 @@
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
+  }
+
+  img, a {
+    -webkit-user-drag: none;
+  }
+
+  button,
+  [type="button"],
+  [type="reset"],
+  [type="submit"] {
+    cursor: pointer;
   }
 
   /* Custom scrollbar styling uniform across all modules */
