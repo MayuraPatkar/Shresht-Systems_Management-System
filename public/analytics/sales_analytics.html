@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Analytics - Business Intelligence</title>
+    <link rel="stylesheet" href="../css/tailwind.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;850&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            overflow: hidden;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .sidebar {
+            width: 240px;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            border-right: 1px solid #e2e8f0;
+        }
+
+        main {
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        /* Custom scrollbar styling */
+        *::-webkit-scrollbar { width: 6px; height: 6px; }
+        *::-webkit-scrollbar-track { background: transparent; }
+        *::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        *::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Skeleton pulse */
+        .skeleton {
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+        }
+
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Heatmap Grid Styles */
+        .heatmap-cell {
+            transition: all 0.2s ease;
+        }
+        .heatmap-cell:hover {
+            transform: scale(1.15);
+            z-index: 10;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Tooltips */
+        .chart-tooltip {
+            position: absolute;
+            background: rgba(15, 23, 42, 0.95);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 500;
+            pointer-events: none;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+            transition: opacity 0.15s ease;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Print formatting */
+        @media print {
+            body { background: white; color: black; overflow: visible; }
+            header, aside, #filter-panel, #export-buttons, .pagination-controls { display: none !important; }
+            .sidebar { display: none !important; }
+            main { overflow: visible !important; height: auto !important; padding: 0 !important; }
+            .pt-24 { padding-top: 0 !important; }
+            .grid { display: block !important; }
+            .card, .chart-panel { break-inside: avoid; margin-bottom: 2rem; border: 1px solid #ccc !important; box-shadow: none !important; }
+            svg { max-width: 100% !important; height: auto !important; }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-30 h-24 flex items-center px-4">
+        <div class="flex items-center w-full gap-4">
+            <div class="flex items-center gap-3 flex-shrink-0" style="min-width:200px;">
+                <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
+                <h1 class="text-xl font-bold text-gray-800">Sales Analytics</h1>
+            </div>
+            
+            <div class="flex-1 flex justify-center">
+                <!-- Search Placeholder -->
+            </div>
+
+            <div class="flex items-center gap-2 pr-2 flex-shrink-0" style="min-width:100px;justify-content:flex-end;">
+                <i id="header-user-role-icon" class="fas fa-user-shield text-slate-400 text-sm"></i>
+                <span id="header-user-role" class="text-sm font-bold uppercase tracking-wider bg-slate-50 text-slate-700 px-2.5 py-1 rounded-md border border-slate-200">Admin</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Layout Wrapper -->
+    <div class="flex pt-24 h-screen w-full overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar bg-white h-full flex flex-col border-r border-gray-200 flex-shrink-0" style="width: 240px;">
+            <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
+                <div class="flex items-center justify-center h-full">
+                    <i class="fas fa-spinner fa-spin text-blue-500 text-xl"></i>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 h-full overflow-y-auto px-6 py-6 bg-slate-50/50 no-select pb-24 md:pb-8 flex flex-col">
+            <div class="max-w-6xl w-full mx-auto flex-1 flex flex-col min-h-0 space-y-6 fade-in" id="dashboard-content">
+                
+                <!-- Page Title & Export Buttons -->
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400">Business Intelligence & Reporting</h2>
+                        <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight mt-1">Sales Performance Analytics</h1>
+                    </div>
+                    
+                    <!-- Export panel -->
+                    <div class="flex items-center gap-3" id="export-buttons">
+                        <button id="btn-export-pdf" class="flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2.5 rounded-xl font-semibold text-sm shadow-sm transition-all active:scale-95">
+                            <i class="fas fa-file-pdf text-red-500"></i>
+                            <span>Export PDF</span>
+                        </button>
+                        <button id="btn-export-excel" class="flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2.5 rounded-xl font-semibold text-sm shadow-sm transition-all active:scale-95">
+                            <i class="fas fa-file-excel text-green-600"></i>
+                            <span>Export Excel</span>
+                        </button>
+                        <button id="btn-export-csv" class="flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2.5 rounded-xl font-semibold text-sm shadow-sm transition-all active:scale-95">
+                            <i class="fas fa-file-csv text-blue-500"></i>
+                            <span>Export CSV</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ERROR ALERTS -->
+                <div id="error-banner" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-2xl p-4 flex items-center gap-3">
+                    <i class="fas fa-exclamation-triangle text-xl"></i>
+                    <div>
+                        <p class="font-bold">System Connection Issue</p>
+                        <p class="text-sm text-red-650" id="error-message">Failed to load analytics. Please check your network connection or server status.</p>
+                    </div>
+                </div>
+
+                <!-- FILTER BAR PANEL -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4" id="filter-panel">
+                    <!-- Predefined Date Ranges -->
+                    <div class="flex flex-wrap items-center gap-2 pb-3 border-b border-slate-100">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400 mr-2">Date Filter:</span>
+                        <button class="btn-date-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white" data-range="thismonth">This Month</button>
+                        <button class="btn-date-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-50 text-slate-650 hover:bg-slate-100" data-range="today">Today</button>
+                        <button class="btn-date-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-50 text-slate-650 hover:bg-slate-100" data-range="yesterday">Yesterday</button>
+                        <button class="btn-date-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-50 text-slate-650 hover:bg-slate-100" data-range="7days">Last 7 Days</button>
+                        <button class="btn-date-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-50 text-slate-650 hover:bg-slate-100" data-range="lastmonth">Last Month</button>
+                        <button class="btn-date-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-50 text-slate-650 hover:bg-slate-100" data-range="quarter">Quarter</button>
+                        <button class="btn-date-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-50 text-slate-650 hover:bg-slate-100" data-range="year">Year</button>
+                        <button class="btn-date-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-50 text-slate-650 hover:bg-slate-100" data-range="custom">Custom Range</button>
+                    </div>
+
+                    <!-- Custom Range Inputs (collapsible, visible only on Custom Range) -->
+                    <div id="custom-date-container" class="hidden items-center gap-4 flex-wrap bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs font-bold text-slate-500">From:</label>
+                            <input type="date" id="filter-start-date" class="px-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs font-bold text-slate-500">To:</label>
+                            <input type="date" id="filter-end-date" class="px-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                        </div>
+                        <button id="btn-apply-custom-date" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-1.5 rounded-lg shadow-sm transition-all">Apply Range</button>
+                    </div>
+
+                    <!-- Advanced Dropdown Filters -->
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                        <!-- Customer select -->
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Customer</label>
+                            <select id="filter-customer" class="px-2.5 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700">
+                                <option value="">All Customers</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Salesperson select -->
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Salesperson</label>
+                            <select id="filter-salesperson" class="px-2.5 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700">
+                                <option value="">All Salespersons</option>
+                            </select>
+                        </div>
+
+                        <!-- Product select -->
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Product</label>
+                            <select id="filter-product" class="px-2.5 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700">
+                                <option value="">All Products</option>
+                            </select>
+                        </div>
+
+                        <!-- Category select -->
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Category</label>
+                            <select id="filter-category" class="px-2.5 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700">
+                                <option value="">All Categories</option>
+                            </select>
+                        </div>
+
+                        <!-- Branch select -->
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Branch</label>
+                            <select id="filter-branch" class="px-2.5 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700">
+                                <option value="">All Branches</option>
+                            </select>
+                        </div>
+
+                        <!-- Status select -->
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Invoice Status</label>
+                            <select id="filter-status" class="px-2.5 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700">
+                                <option value="">All Statuses</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EMPTY STATE BANNER (Hidden by default) -->
+                <div id="empty-state" class="hidden bg-white border border-slate-200 rounded-3xl p-16 flex flex-col items-center justify-center text-center space-y-4 shadow-sm">
+                    <div class="p-6 bg-slate-50 text-slate-400 rounded-full h-24 w-24 flex items-center justify-center border border-slate-100">
+                        <i class="fas fa-folder-open text-4xl"></i>
+                    </div>
+                    <div class="max-w-md">
+                        <h2 class="text-xl font-bold text-slate-800">No Sales Data Found</h2>
+                        <p class="text-slate-500 text-sm mt-2">
+                            We couldn't find any transaction matching your active combination of date range and query filters. Try resetting the filters.
+                        </p>
+                    </div>
+                    <button id="btn-reset-filters" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-6 py-2.5 rounded-xl shadow-sm transition-all active:scale-95">
+                        <i class="fas fa-redo mr-2"></i>Reset All Filters
+                    </button>
+                </div>
+
+                <!-- KPI CARDS CONTAINER -->
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4" id="kpi-container">
+                    <!-- Total Revenue Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-revenue">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Total Revenue</span>
+                            <div class="h-7 w-7 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center"><i class="fas fa-indian-rupee-sign text-sm"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-revenue">₹0</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-revenue" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                                <span id="comp-revenue">vs last period</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Orders Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-orders">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Total Orders</span>
+                            <div class="h-7 w-7 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center"><i class="fas fa-file-invoice text-sm"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-orders">0</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-orders" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                                <span id="comp-orders">vs last period</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Quotations Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-quotations">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Total Quotations</span>
+                            <div class="h-7 w-7 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center"><i class="fas fa-file-contract text-sm"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-quotations">0</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-quotations" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                                <span id="comp-quotations">vs last period</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Conversion Rate Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-conversion">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Conversion Rate</span>
+                            <div class="h-7 w-7 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center"><i class="fas fa-percent text-sm"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-conversion">0.0%</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-conversion" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                                <span id="comp-conversion">vs last period</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Average Order Value (AOV) Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-aov">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Avg Order Value</span>
+                            <div class="h-7 w-7 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center"><i class="fas fa-calculator text-sm"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-aov">₹0</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-aov" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                                <span id="comp-aov">vs last period</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gross Profit Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-gross-profit">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Gross Profit</span>
+                            <div class="h-7 w-7 bg-cyan-50 text-cyan-600 rounded-lg flex items-center justify-center"><i class="fas fa-scale-balanced text-sm"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-gross-profit">₹0</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-gross-profit" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                                <span id="comp-gross-profit">vs last period</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Net Profit Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-net-profit">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Net Profit</span>
+                            <div class="h-7 w-7 bg-teal-50 text-teal-600 rounded-lg flex items-center justify-center"><i class="fas fa-wallet text-sm"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-net-profit">₹0</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-net-profit" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                                <span id="comp-net-profit">vs last period</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sales Growth % Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-growth">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Sales Growth %</span>
+                            <div class="h-7 w-7 bg-pink-50 text-pink-600 rounded-lg flex items-center justify-center"><i class="fas fa-arrow-trend-up text-sm"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-growth">0.0%</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-growth" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                                <span id="comp-growth">from prev month</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- New Customers Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-new-customers">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">New Customers</span>
+                            <div class="h-7 w-7 bg-rose-50 text-rose-600 rounded-lg flex items-center justify-center"><i class="fas fa-user-plus text-sm"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-new-customers">0</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-new-customers" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                                <span id="comp-new-customers">vs last period</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Returning Customers Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-returning-customers">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Returning Cust.</span>
+                            <div class="h-7 w-7 bg-sky-50 text-sky-600 rounded-lg flex items-center justify-center"><i class="fas fa-user-group text-sm"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-returning-customers">0</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-returning-customers" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                                <span id="comp-returning-customers">vs last period</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- INSIGHTS SECTION -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                        <i class="fas fa-lightbulb text-amber-500"></i>
+                        <span>Automated Business Insights</span>
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="insights-grid">
+                        <!-- Insights will be loaded dynamically -->
+                        <div class="skeleton h-16 rounded-xl"></div>
+                        <div class="skeleton h-16 rounded-xl"></div>
+                        <div class="skeleton h-16 rounded-xl"></div>
+                        <div class="skeleton h-16 rounded-xl"></div>
+                    </div>
+                </div>
+
+                <!-- CHARTS ROW 1 (Monthly Revenue & Daily Sales) -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Monthly Revenue -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[340px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Monthly Revenue Trend</span>
+                            <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Line Chart</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[260px] relative" id="chart-monthly-revenue">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+
+                    <!-- Daily Sales -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[340px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Daily Sales Distribution</span>
+                            <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Area Chart</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[260px] relative" id="chart-daily-sales">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CHARTS ROW 2 (Category & Product & Salesperson) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Sales by Category -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[300px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Sales by Category</span>
+                            <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Bar Chart</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[220px] relative" id="chart-category">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+
+                    <!-- Top Products -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[300px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Top Selling Products</span>
+                            <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Horizontal Bar</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[220px] relative" id="chart-products">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+
+                    <!-- Sales by Salesperson -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[300px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Revenue by Salesperson</span>
+                            <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Bar Chart</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[220px] relative" id="chart-salesperson">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CHARTS ROW 3 (Customers, Funnel, Growth, etc.) -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Sales by Customer (Donut) -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[320px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Sales by Customer Share</span>
+                            <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Donut Chart</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[240px] relative" id="chart-customer">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+
+                    <!-- Conversion Funnel -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[320px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Quote → Invoice Funnel</span>
+                            <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Funnel Chart</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[240px] relative" id="chart-funnel">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CHARTS ROW 4 (Revenue vs Profit, Payment Status, Monthly Growth) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Revenue vs Profit -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[300px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Revenue vs Net Profit</span>
+                            <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Double Line</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[220px] relative" id="chart-revenue-vs-profit">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Status -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[300px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Payment Status Share</span>
+                            <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Pie Chart</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[220px] relative" id="chart-payment-status">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+
+                    <!-- Monthly Growth % -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[300px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Monthly Growth % Trend</span>
+                            <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Line Chart</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[220px] relative" id="chart-monthly-growth">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HEATMAP SECTION -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[320px] chart-panel">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Sales Heatmap (Day of Week vs Hour)</span>
+                        <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Intensity Map</span>
+                    </div>
+                    <div class="flex-1 flex flex-col min-h-[240px] pt-4 overflow-x-auto justify-center" id="heatmap-container">
+                        <div class="skeleton h-full w-full rounded-lg"></div>
+                    </div>
+                </div>
+
+                <!-- FORECAST SECTION -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Forecast Chart -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm md:col-span-2 flex flex-col justify-between min-h-[320px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Sales Forecast (Historical vs Predictive)</span>
+                            <span class="text-[10px] font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded font-bold">Linear Regression</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[240px] relative" id="chart-forecast">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+
+                    <!-- Forecast Cards -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[320px]">
+                        <div class="pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Forecasted KPI Metrics</span>
+                            <p class="text-[10px] text-slate-500 mt-0.5" id="lbl-forecast-month">Predicting next month...</p>
+                        </div>
+                        <div class="flex-1 flex flex-col justify-around py-2">
+                            <!-- Revenue Forecast -->
+                            <div class="flex items-center gap-4 bg-blue-50/50 border border-blue-100 rounded-xl p-3.5">
+                                <div class="h-10 w-10 rounded-lg bg-blue-600 text-white flex items-center justify-center text-lg"><i class="fas fa-indian-rupee-sign"></i></div>
+                                <div>
+                                    <span class="text-[10px] font-bold uppercase text-slate-400 block">Forecasted Revenue</span>
+                                    <h3 class="text-lg font-bold text-slate-800" id="val-forecast-revenue">₹0</h3>
+                                </div>
+                            </div>
+                            <!-- Orders Forecast -->
+                            <div class="flex items-center gap-4 bg-indigo-50/50 border border-indigo-100 rounded-xl p-3.5">
+                                <div class="h-10 w-10 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-lg"><i class="fas fa-cart-shopping"></i></div>
+                                <div>
+                                    <span class="text-[10px] font-bold uppercase text-slate-400 block">Expected Orders</span>
+                                    <h3 class="text-lg font-bold text-slate-800" id="val-forecast-orders">0</h3>
+                                </div>
+                            </div>
+                            <!-- Growth Forecast -->
+                            <div class="flex items-center gap-4 bg-emerald-50/50 border border-emerald-100 rounded-xl p-3.5">
+                                <div class="h-10 w-10 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-lg"><i class="fas fa-arrow-trend-up"></i></div>
+                                <div>
+                                    <span class="text-[10px] font-bold uppercase text-slate-400 block">Projected Growth %</span>
+                                    <h3 class="text-lg font-bold text-slate-800" id="val-forecast-growth">0.0%</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COMPARISON SECTION -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                        <i class="fas fa-scale-balanced text-blue-500"></i>
+                        <span>Period-over-Period Performance Comparison</span>
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-100 text-[10px] font-bold uppercase tracking-wider text-slate-450">
+                                    <th class="py-3 pr-4">Performance Metric</th>
+                                    <th class="py-3 px-4 text-right">Current Selected Period</th>
+                                    <th class="py-3 px-4 text-right">Previous Reference Period</th>
+                                    <th class="py-3 pl-4 text-right">Delta (%)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="comparison-rows" class="font-medium text-slate-700">
+                                <!-- Loaded dynamically -->
+                                <tr class="border-b border-slate-50"><td class="py-3" colspan="4"><div class="skeleton h-6 rounded"></div></td></tr>
+                                <tr class="border-b border-slate-50"><td class="py-3" colspan="4"><div class="skeleton h-6 rounded"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TABLES CONTAINER -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Top Customers Table -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[380px]">
+                        <div>
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 pb-3 border-b border-slate-100 flex items-center justify-between">
+                                <span>Top Performing Customers</span>
+                                <i class="fas fa-users text-blue-500"></i>
+                            </h3>
+                            <div class="overflow-x-auto mt-3">
+                                <table class="w-full text-xs text-left border-collapse">
+                                    <thead>
+                                        <tr class="text-[9px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                                            <th class="py-2.5 pr-2">Customer</th>
+                                            <th class="py-2.5 px-2 text-right">Orders</th>
+                                            <th class="py-2.5 px-2 text-right">Revenue</th>
+                                            <th class="py-2.5 px-2 text-right">Profit</th>
+                                            <th class="py-2.5 pl-2 text-right">Outstanding</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-customers-rows">
+                                        <tr><td colspan="5" class="py-3"><div class="skeleton h-24 rounded-lg"></div></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-3 border-t border-slate-150 pagination-controls" id="pag-customers">
+                            <span class="text-[10px] text-slate-500 font-medium">Page 1 of 1</span>
+                            <div class="flex items-center gap-1">
+                                <button class="btn-prev px-2.5 py-1 bg-slate-50 hover:bg-slate-100 rounded text-slate-650 border border-slate-200 font-semibold text-[10px] transition-all">Prev</button>
+                                <button class="btn-next px-2.5 py-1 bg-slate-50 hover:bg-slate-100 rounded text-slate-650 border border-slate-200 font-semibold text-[10px] transition-all">Next</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top Products Table -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[380px]">
+                        <div>
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 pb-3 border-b border-slate-100 flex items-center justify-between">
+                                <span>Top Selling Products</span>
+                                <i class="fas fa-box text-indigo-500"></i>
+                            </h3>
+                            <div class="overflow-x-auto mt-3">
+                                <table class="w-full text-xs text-left border-collapse">
+                                    <thead>
+                                        <tr class="text-[9px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                                            <th class="py-2.5 pr-2">Product</th>
+                                            <th class="py-2.5 px-2 text-right">Qty</th>
+                                            <th class="py-2.5 px-2 text-right">Revenue</th>
+                                            <th class="py-2.5 px-2 text-right">Profit</th>
+                                            <th class="py-2.5 pl-2 text-right">Stock</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-products-rows">
+                                        <tr><td colspan="5" class="py-3"><div class="skeleton h-24 rounded-lg"></div></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-3 border-t border-slate-150 pagination-controls" id="pag-products">
+                            <span class="text-[10px] text-slate-500 font-medium">Page 1 of 1</span>
+                            <div class="flex items-center gap-1">
+                                <button class="btn-prev px-2.5 py-1 bg-slate-50 hover:bg-slate-100 rounded text-slate-650 border border-slate-200 font-semibold text-[10px] transition-all">Prev</button>
+                                <button class="btn-next px-2.5 py-1 bg-slate-50 hover:bg-slate-100 rounded text-slate-650 border border-slate-200 font-semibold text-[10px] transition-all">Next</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top Salespersons Table -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[380px]">
+                        <div>
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 pb-3 border-b border-slate-100 flex items-center justify-between">
+                                <span>Salespersons Ranking</span>
+                                <i class="fas fa-chart-line text-emerald-500"></i>
+                            </h3>
+                            <div class="overflow-x-auto mt-3">
+                                <table class="w-full text-xs text-left border-collapse">
+                                    <thead>
+                                        <tr class="text-[9px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                                            <th class="py-2.5 pr-2">Name</th>
+                                            <th class="py-2.5 px-2 text-right">Orders</th>
+                                            <th class="py-2.5 px-2 text-right">Revenue</th>
+                                            <th class="py-2.5 pl-2 text-right">Conv. Rate</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-salespersons-rows">
+                                        <tr><td colspan="4" class="py-3"><div class="skeleton h-24 rounded-lg"></div></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-3 border-t border-slate-150 pagination-controls" id="pag-salespersons">
+                            <span class="text-[10px] text-slate-500 font-medium">Page 1 of 1</span>
+                            <div class="flex items-center gap-1">
+                                <button class="btn-prev px-2.5 py-1 bg-slate-50 hover:bg-slate-100 rounded text-slate-650 border border-slate-200 font-semibold text-[10px] transition-all">Prev</button>
+                                <button class="btn-next px-2.5 py-1 bg-slate-50 hover:bg-slate-100 rounded text-slate-650 border border-slate-200 font-semibold text-[10px] transition-all">Next</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../../dist/public/ts/shared/core/globalScript.js"></script>
+    <script src="../../dist/public/analytics/src/services/analyticsApi.js"></script>
+    <script src="../../dist/public/analytics/src/components/chartRenderer.js"></script>
+    <script src="../../dist/public/analytics/src/components/salesAnalyticsUI.js"></script>
+    <script src="../../dist/public/analytics/src/salesMain.js"></script>
+</body>
+
+</html>

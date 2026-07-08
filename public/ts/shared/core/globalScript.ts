@@ -17,6 +17,8 @@ const SSMS_MODULES = [
   { id: 'stock', label: 'Stock', patterns: ['/stock', '/stock/'] },
   { id: 'comms', label: 'Comms', patterns: ['/comms', '/comms/'] },
   { id: 'reports', label: 'Reports', patterns: ['/reports', '/reports/'] },
+  { id: 'analyticsDashboard', label: 'Analytics Dashboard', patterns: ['/analytics', '/analytics/'] },
+  { id: 'salesanalytics', label: 'Sales Analytics', patterns: ['/sales-analytics', '/sales-analytics/'] },
   { id: 'calculations', label: 'Calculations', patterns: ['/calculations', '/calculations/'] },
   { id: 'settings', label: 'Settings', patterns: ['/settings', '/settings/'] }
 ];
@@ -333,6 +335,7 @@ function setupCollapsibleSidebar() {
       name: 'Analytics',
       icon: 'fa-solid fa-chart-line',
       items: [
+        { id: 'salesAnalytics', label: 'Sales Analytics', path: '/sales-analytics', icon: 'fa-solid fa-chart-simple' },
         { id: 'dataWorksheet', label: 'Data Worksheet', path: '/data-worksheet', icon: 'fa-solid fa-table-list' },
         { id: 'calculations', label: 'Calculations', path: '/calculations', icon: 'fa-solid fa-calculator' }
       ]
@@ -502,6 +505,8 @@ document.addEventListener('DOMContentLoaded', () => {
     '/payroll': 'payroll',
     '/comms': 'comms',
     '/reports': 'reports',
+    '/analytics': 'analyticsDashboard',
+    '/sales-analytics': 'salesAnalytics',
     '/calculations': 'calculations',
     '/settings': 'settings',
     '/backup': 'backup',
