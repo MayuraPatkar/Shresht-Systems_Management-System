@@ -369,7 +369,7 @@ const getPast6MonthsHistory = async (endDate: Date) => {
 router.get('/sales/filters', async (req: Request, res: Response) => {
     try {
         const customers = await CustomerModel.find({ 'deletion.is_deleted': false }, '_id customer').lean();
-        const customerList = customers.map((c: any) => ({ id: c._id.toString(), name: c.customer }));
+        const customerList = customers.map((c: any) => ({ id: c._id.toString(), name: c.customer?.name || c.customer?.first_name || 'Unnamed' }));
 
         const salespersonList = salespersons.map(name => ({ id: name, name }));
         const branchList = branches.map(name => ({ id: name, name }));

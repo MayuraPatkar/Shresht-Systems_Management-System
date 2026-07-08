@@ -196,15 +196,7 @@
                     </div>
 
                     <!-- Advanced Dropdown Filters -->
-                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-                        <!-- Warehouse select -->
-                        <div class="flex flex-col gap-1">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Warehouse</label>
-                            <select id="filter-warehouse" class="px-2.5 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700">
-                                <option value="">All Warehouses</option>
-                            </select>
-                        </div>
-
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                         <!-- Brand select -->
                         <div class="flex flex-col gap-1">
                             <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Brand</label>
@@ -242,14 +234,6 @@
                             <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Stock Status</label>
                             <select id="filter-status" class="px-2.5 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700">
                                 <option value="">All Statuses</option>
-                            </select>
-                        </div>
-
-                        <!-- Location select -->
-                        <div class="flex flex-col gap-1">
-                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Location</label>
-                            <select id="filter-location" class="px-2.5 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700">
-                                <option value="">All Locations</option>
                             </select>
                         </div>
                     </div>
@@ -493,7 +477,7 @@
                 </div>
 
                 <!-- CHARTS ROW 2 (Category & Warehouse utilization & Brand Value) -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Stock Distribution by Category -->
                     <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[300px] chart-panel">
                         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -501,17 +485,6 @@
                             <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Donut Chart</span>
                         </div>
                         <div class="flex-1 flex items-center justify-center min-h-[220px] relative" id="chart-category-distribution">
-                            <div class="skeleton h-full w-full rounded-lg"></div>
-                        </div>
-                    </div>
-
-                    <!-- Warehouse Stock Distribution -->
-                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[300px] chart-panel">
-                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Warehouse Stock Distribution</span>
-                            <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Bar Chart</span>
-                        </div>
-                        <div class="flex-1 flex items-center justify-center min-h-[220px] relative" id="chart-warehouse-distribution">
                             <div class="skeleton h-full w-full rounded-lg"></div>
                         </div>
                     </div>
@@ -626,16 +599,7 @@
                     </div>
                 </div>
 
-                <!-- WAREHOUSE ACTIVITY HEATMAP -->
-                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[320px] chart-panel">
-                    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Stock Movements Heatmap (Day vs Hour Frequency)</span>
-                        <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Activity Map</span>
-                    </div>
-                    <div class="flex-1 flex flex-col min-h-[240px] pt-4 overflow-x-auto justify-center" id="heatmap-container">
-                        <div class="skeleton h-full w-full rounded-lg"></div>
-                    </div>
-                </div>
+
 
                 <!-- FORECAST SECTION -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">

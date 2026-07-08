@@ -11,13 +11,11 @@ class InventoryAnalyticsUI {
         dateRange: 'thismonth',
         startDate: '',
         endDate: '',
-        warehouse: '',
         brand: '',
         category: '',
         supplier: '',
         product: '',
-        status: '',
-        location: ''
+        status: ''
     };
 
     private dashboardData: any = null;
@@ -109,7 +107,7 @@ class InventoryAnalyticsUI {
         });
 
         // Dropdown Filters
-        ['warehouse', 'brand', 'category', 'supplier', 'product', 'status', 'location'].forEach(field => {
+        ['brand', 'category', 'supplier', 'product', 'status'].forEach(field => {
             const el = document.getElementById(`filter-${field}`);
             el?.addEventListener('change', (e) => {
                 this.activeFilters[field] = (e.target as HTMLSelectElement).value;
@@ -188,13 +186,11 @@ class InventoryAnalyticsUI {
             dateRange: 'thismonth',
             startDate: '',
             endDate: '',
-            warehouse: '',
             brand: '',
             category: '',
             supplier: '',
             product: '',
-            status: '',
-            location: ''
+            status: ''
         };
 
         // Reset date pills
@@ -208,7 +204,7 @@ class InventoryAnalyticsUI {
         document.getElementById('custom-date-container')?.classList.add('hidden');
 
         // Reset selects
-        ['warehouse', 'brand', 'category', 'supplier', 'product', 'status', 'location'].forEach(field => {
+        ['brand', 'category', 'supplier', 'product', 'status'].forEach(field => {
             const el = document.getElementById(`filter-${field}`) as HTMLSelectElement;
             if (el) el.value = '';
         });
@@ -220,12 +216,10 @@ class InventoryAnalyticsUI {
         try {
             const opts = await analyticsApi.getInventoryFiltersOptions();
             
-            this.populateSelect('filter-warehouse', opts.warehouses);
             this.populateSelect('filter-brand', opts.brands);
             this.populateSelect('filter-category', opts.categories);
             this.populateSelect('filter-supplier', opts.suppliers);
             this.populateSelect('filter-product', opts.products);
-            this.populateSelect('filter-location', opts.locations);
         } catch (err) {
             console.error('Failed to load filters list:', err);
         }
@@ -694,21 +688,14 @@ class InventoryAnalyticsUI {
             { isDonut: true }
         );
 
-        // 4. Warehouse Stock distribution
-        chartRenderer.renderBarChart(
-            'chart-warehouse-distribution', 
-            (charts.warehouseStock || []).map((w: any) => ({ name: w.name, value: w.units })), 
-            { color: '#6366f1', unit: 'units' }
-        );
-
-        // 5. Top Brands Value
+        // 4. Top Brands Value
         chartRenderer.renderHorizontalBarChart(
             'chart-brand-value', 
             (charts.brandChart || []).map((b: any) => ({ name: b.name, value: b.stockVal })), 
             { color: '#ec4899' }
         );
 
-        // 6. Forecast Chart (linear regression predicted path)
+        // 5. Forecast Chart (linear regression predicted path)
         const histData = charts.monthlyMovement || [];
         const forecastObj = this.dashboardData.forecast;
 
@@ -728,9 +715,6 @@ class InventoryAnalyticsUI {
             predictedPoint, 
             { color: '#3b82f6', unit: 'units' }
         );
-
-        // 7. Warehouse Heatmap
-        chartRenderer.renderHeatmap('heatmap-container', this.dashboardData.heatmap || []);
     }
 
     private exportCSV() {

@@ -226,44 +226,10 @@ function getHsnItemLabel(input, index) {
 function validateHsnDuplicateFields(trigger, options = {}) {
   const scope = getHsnValidationScope(trigger);
   const inputs = getHsnInputsForScope(scope);
-  const hsnMap = new Map();
-  let firstInvalidInput = null;
 
   inputs.forEach(input => clearHsnDuplicateError(input));
 
-  inputs.forEach((input, index) => {
-    const hsn = normalizeHsnCode(input.value);
-    if (!hsn) return;
-
-    const entry = {
-      input,
-      index,
-      label: getHsnItemLabel(input, index)
-    };
-    const existing = hsnMap.get(hsn) || [];
-    existing.push(entry);
-    hsnMap.set(hsn, existing);
-  });
-
-  hsnMap.forEach((entries, hsn) => {
-    if (entries.length < 2) return;
-
-    entries.forEach(entry => {
-      const otherItems = entries
-        .filter(other => other.input !== entry.input)
-        .map(other => `Item #${other.label}`)
-        .join(', ');
-      showHsnDuplicateError(entry.input, `HSN/SAC "${hsn}" already exists in ${otherItems}.`);
-      if (!firstInvalidInput) firstInvalidInput = entry.input;
-    });
-  });
-
-  if (firstInvalidInput && options.focus) {
-    firstInvalidInput.focus();
-    firstInvalidInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-
-  return !firstInvalidInput;
+  return true;
 }
 
 function isHsnRelatedInput(target) {
