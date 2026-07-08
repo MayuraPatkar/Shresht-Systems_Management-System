@@ -93,6 +93,14 @@ class SettingsApi {
         return this.request("/settings/backup/manual", { method: "POST" });
     }
 
+    async getLocalBackups(): Promise<{ success: boolean; files: any[] }> {
+        return this.request("/settings/backup/local");
+    }
+
+    async deleteLocalBackup(filename: string): Promise<{ success: boolean; message: string }> {
+        return this.request(`/settings/backup/local/${filename}`, { method: "DELETE" });
+    }
+
     async updateWhatsAppPreferences(data: { phoneNumberId: string; verifyToken?: string; enabled: boolean }): Promise<{ success: boolean; message?: string }> {
         return this.request("/settings/preferences/whatsapp", {
             method: "PATCH",

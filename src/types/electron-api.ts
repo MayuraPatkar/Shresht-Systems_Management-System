@@ -142,4 +142,18 @@ interface ElectronAPI {
   getChangelog: () => Promise<ChangelogResult>;
   shouldShowChangelog: () => Promise<VersionCheckResult>;
   markChangelogSeen: () => Promise<MarkSeenResult>;
+  // Google Drive Cloud Backup APIs
+  googleDriveLogin: () => Promise<any>;
+  googleDriveDisconnect: () => Promise<any>;
+  googleDriveGetStatus: () => Promise<any>;
+  googleDriveBackup: (options?: { isCloudOnly?: boolean }) => Promise<any>;
+  googleDriveList: () => Promise<any>;
+  googleDriveRestore: (fileId: string, filename: string) => Promise<any>;
+  googleDriveDelete: (fileId: string) => Promise<any>;
+  googleDriveDownload: (fileId: string, filename: string) => Promise<any>;
+  googleDriveToggleAutoUpload: (enabled: boolean) => Promise<any>;
+  googleDriveToggleDestination: (dest: "local" | "google_drive" | "both") => Promise<any>;
+  onGoogleDriveProgress: (callback: (data: { progress: number; stage: string; error?: string }) => void) => void;
+  googleDriveSaveCredentials: (clientId: string, clientSecret: string) => Promise<any>;
+  googleDriveGetCredentials: () => Promise<any>;
 }

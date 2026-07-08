@@ -53,6 +53,12 @@ interface BackupPref {
     retention_days?: number;
     backup_location?: string;
     last_backup?: string;
+    backup_destination?: "local" | "google_drive" | "both";
+    google_drive_connected?: boolean;
+    google_drive_email?: string;
+    google_drive_folder_name?: string;
+    google_drive_last_backup?: string;
+    google_drive_auto_upload?: boolean;
 }
 
 interface SecurityPref {

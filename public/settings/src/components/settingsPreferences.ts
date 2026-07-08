@@ -154,7 +154,11 @@ class SettingsPreferences {
  
                     const backupRetentionInput = document.getElementById("backup-retention") as HTMLInputElement;
                     if (backupRetentionInput) backupRetentionInput.value = (s.backup?.retention_days || 30).toString();
- 
+
+                    const destination = s.backup?.backup_destination || 'local';
+                    const destRadio = document.querySelector(`input[name="backup-destination"][value="${destination}"]`) as HTMLInputElement;
+                    if (destRadio) destRadio.checked = true;
+
                     let location = s.backup?.backup_location || '';
                     if (location === './backups' || location === '.\\backups') {
                         location = '';
@@ -688,6 +692,9 @@ class SettingsPreferences {
             return;
         }
 
+        const destinationRadio = document.querySelector('input[name="backup-destination"]:checked') as HTMLInputElement;
+        const backupDestination = destinationRadio ? destinationRadio.value : 'local';
+
         saveButton.disabled = true;
         saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
@@ -695,7 +702,8 @@ class SettingsPreferences {
             backup: {
                 auto_backup_enabled: autoBackupEnabled,
                 backup_frequency: backupFrequency,
-                retention_days: retentionDays
+                retention_days: retentionDays,
+                backup_destination: backupDestination
             }
         };
 

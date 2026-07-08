@@ -171,6 +171,141 @@
                     </div>
                 </div>
 
+                <!-- Cloud Backup Card -->
+                <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+                    <div class="flex items-center gap-3.5 mb-1">
+                        <div class="w-9 h-9 bg-purple-50 rounded-lg flex items-center justify-center text-purple-500 border border-purple-100/50">
+                            <i class="fab fa-google-drive text-sm"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800 tracking-tight">Cloud Backup</h2>
+                            <p class="text-xs text-slate-400 font-medium">Backup database archives securely to Google Drive</p>
+                        </div>
+                    </div>
+                    <!-- API Credentials Setup -->
+                    <div id="gdrive-credentials-section" class="border border-slate-200 rounded-lg overflow-hidden">
+                        <div class="flex items-center justify-between bg-slate-50 px-4 py-3 border-b border-slate-200 cursor-pointer select-none" id="gdrive-credentials-toggle">
+                            <div class="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                <i class="fas fa-key text-purple-500"></i>
+                                <span>API Credentials</span>
+                                <span id="gdrive-creds-status-badge" class="hidden px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[9px] font-bold">Configured</span>
+                            </div>
+                            <i id="gdrive-creds-chevron" class="fas fa-chevron-down text-slate-400 text-xs transition-transform duration-200"></i>
+                        </div>
+                        <div id="gdrive-credentials-body" class="hidden p-4 space-y-3 bg-white">
+                            <p class="text-xs text-slate-500 leading-relaxed">
+                                Enter your Google Cloud OAuth credentials. 
+                                <a href="#" id="gdrive-setup-guide-link" class="text-purple-600 font-semibold hover:underline">View setup guide →</a>
+                            </p>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Client ID</label>
+                                <input type="text" id="gdrive-client-id" placeholder="xxxxxxxxx.apps.googleusercontent.com"
+                                    class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition font-mono text-slate-700">
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Client Secret</label>
+                                <div class="relative">
+                                    <input type="password" id="gdrive-client-secret" placeholder="GOCSPX-••••••••••••••••"
+                                        class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition font-mono text-slate-700 pr-10">
+                                    <button type="button" id="gdrive-toggle-secret" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer transition">
+                                        <i class="fas fa-eye text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 pt-1">
+                                <button type="button" id="gdrive-save-credentials-btn"
+                                    class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 active:scale-[0.98] transition font-semibold text-xs shadow-sm cursor-pointer flex items-center gap-1.5">
+                                    <i class="fas fa-save"></i>
+                                    <span>Save Credentials</span>
+                                </button>
+                                <p id="gdrive-creds-save-status" class="text-xs font-medium text-slate-400 hidden"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Not Connected State -->
+                    <div id="gdrive-not-connected-state" class="space-y-4 hidden">
+                        <div class="bg-slate-50 border border-slate-200 p-4 rounded-lg flex items-center justify-between">
+                            <div>
+                                <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Google Account</h3>
+                                <p class="text-xs font-semibold text-slate-650 flex items-center gap-1.5">
+                                    <i class="far fa-circle text-slate-400"></i> Status: Not Connected
+                                </p>
+                            </div>
+                            <button type="button" id="gdrive-connect-btn"
+                                class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 active:scale-[0.98] transition font-semibold text-xs shadow-sm cursor-pointer flex items-center gap-1.5">
+                                <i class="fab fa-google"></i>
+                                <span>Connect Google Account</span>
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold text-slate-755">
+                            <div>
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Backup Destination</span>
+                                <span>Google Drive</span>
+                            </div>
+                            <div>
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Folder</span>
+                                <span>MyApp Backups</span>
+                            </div>
+                            <div>
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Last Cloud Backup</span>
+                                <span id="gdrive-notconnected-last-backup">Never</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="gdrive-notconnected-auto-upload" class="rounded border-slate-200 text-purple-600 focus:ring-purple-500">
+                                <label for="gdrive-notconnected-auto-upload" class="font-semibold text-slate-650 cursor-pointer">Upload every backup to Google Drive</label>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2 pt-2 border-t border-slate-100">
+                            <button type="button" id="gdrive-backup-btn" disabled class="px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 active:scale-[0.98] transition text-xs opacity-50 cursor-not-allowed flex items-center gap-1.5">
+                                <i class="fas fa-cloud-upload-alt"></i> Backup to Cloud
+                            </button>
+                            <button type="button" id="gdrive-restore-btn" disabled class="px-4 py-2 bg-slate-100 text-slate-700 border border-slate-200 rounded-lg font-semibold hover:bg-slate-200 active:scale-[0.98] transition text-xs opacity-50 cursor-not-allowed flex items-center gap-1.5">
+                                <i class="fas fa-cloud-download-alt"></i> Restore from Cloud
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Connected State -->
+                    <div id="gdrive-connected-state" class="space-y-4">
+                        <div class="bg-slate-50 border border-slate-200 p-4 rounded-lg flex items-center justify-between">
+                            <div>
+                                <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Google Account</h3>
+                                <p class="text-xs font-semibold text-slate-650">
+                                    Connected as: <span id="gdrive-email" class="font-bold text-purple-600">user@gmail.com</span>
+                                </p>
+                            </div>
+                            <button type="button" id="gdrive-disconnect-btn"
+                                class="px-4 py-2 bg-red-50 text-red-650 border border-red-200 rounded-lg hover:bg-red-100 active:scale-[0.98] transition font-semibold text-xs cursor-pointer flex items-center gap-1.5">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Disconnect</span>
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-semibold text-slate-755">
+                            <div>
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Folder</span>
+                                <span id="gdrive-folder-name">MyApp Backups</span>
+                            </div>
+                            <div>
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Storage Used</span>
+                                <span id="gdrive-storage-used">0 MB</span>
+                            </div>
+                            <div>
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Last Upload</span>
+                                <span id="gdrive-connected-last-backup">Never</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-2 pt-2">
+                            <input type="checkbox" id="gdrive-connected-auto-upload" class="rounded border-slate-200 text-purple-600 focus:ring-purple-500">
+                            <label for="gdrive-connected-auto-upload" class="font-semibold text-slate-650 cursor-pointer">Upload every backup to Google Drive automatically</label>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Automatic Backup Schedule Card -->
                 <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -208,6 +343,24 @@
                                 class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition duration-150 font-semibold text-slate-700">
                         </div>
                     </div>
+                    <!-- Backup Destination Selection -->
+                    <div class="flex flex-col gap-1.5 pt-2">
+                        <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Backup Destination</label>
+                        <div class="flex gap-6 text-xs font-semibold text-slate-755">
+                            <label class="flex items-center gap-2 cursor-pointer select-none">
+                                <input type="radio" name="backup-destination" value="local" checked class="text-purple-650 focus:ring-purple-500">
+                                <span>Local</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer select-none">
+                                <input type="radio" name="backup-destination" value="google_drive" class="text-purple-650 focus:ring-purple-500">
+                                <span>Google Drive</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer select-none">
+                                <input type="radio" name="backup-destination" value="both" class="text-purple-650 focus:ring-purple-500">
+                                <span>Both</span>
+                            </label>
+                        </div>
+                    </div>
                     <div class="flex justify-end gap-2 pt-1 border-t border-slate-100 pt-4">
                         <button type="button" id="restore-backup-schedule-defaults-button"
                             class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-700 border border-slate-200 rounded-lg font-semibold transition text-xs cursor-pointer flex items-center gap-1.5 h-[38px]">
@@ -234,11 +387,21 @@
                         </div>
                     </div>
                     <div class="space-y-3.5">
-                        <div class="flex gap-3 pt-1">
+                        <div class="flex flex-wrap gap-3 pt-1">
                             <button type="button" id="manual-backup-button"
                                 class="px-4 py-2.5 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 active:scale-[0.98] transition shadow-sm hover:shadow-purple-500/20 text-xs cursor-pointer flex items-center gap-1.5">
                                 <i class="fas fa-hdd"></i>
-                                <span>Create Manual Backup</span>
+                                <span>Local Backup</span>
+                            </button>
+                            <button type="button" id="manual-backup-cloud"
+                                class="px-4 py-2.5 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 active:scale-[0.98] transition shadow-sm hover:shadow-purple-500/20 text-xs cursor-pointer flex items-center gap-1.5">
+                                <i class="fas fa-cloud"></i>
+                                <span>Cloud Backup</span>
+                            </button>
+                            <button type="button" id="manual-backup-both"
+                                class="px-4 py-2.5 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 active:scale-[0.98] transition shadow-sm hover:shadow-purple-500/20 text-xs cursor-pointer flex items-center gap-1.5">
+                                <i class="fas fa-save-all"></i>
+                                <span>Backup Both</span>
                             </button>
                             <button type="button" id="manual-backup-open-folder"
                                 class="px-4 py-2.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-lg font-semibold hover:bg-slate-200 active:scale-[0.98] transition text-xs cursor-pointer flex items-center gap-1.5">
@@ -246,10 +409,149 @@
                                 <span>Open Backup Folder</span>
                             </button>
                         </div>
+                        
+                        <!-- Real-time progress bar -->
+                        <div id="gdrive-progress-wrapper" class="hidden bg-slate-50 border border-slate-200 p-4 rounded-lg space-y-2.5">
+                            <div class="flex items-center justify-between text-xs font-semibold text-slate-700">
+                                <span id="gdrive-progress-stage">Uploading...</span>
+                                <span id="gdrive-progress-pct">0%</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div id="gdrive-progress-bar" class="bg-purple-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                        </div>
+
                         <p class="text-[10px] text-slate-400 mt-2 flex items-center gap-1.5 font-medium">
                             <i class="fas fa-info-circle text-slate-400"></i>
                             <span>Note: Installing MongoDB Database Tools enables native mongodump backup. Otherwise backup may fail.</span>
                         </p>
+                    </div>
+                </div>
+
+                <!-- Restore Card -->
+                <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+                    <div class="flex items-center gap-3.5 mb-1">
+                        <div class="w-9 h-9 bg-purple-50 rounded-lg flex items-center justify-center text-purple-500 border border-purple-100/50">
+                            <i class="fas fa-undo text-sm"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800 tracking-tight">Restore</h2>
+                            <p class="text-xs text-slate-400 font-medium">Restore database from a local file or Google Drive cloud backup</p>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex gap-6 text-xs font-semibold text-slate-755 border-b border-slate-100 pb-3">
+                            <label class="flex items-center gap-2 cursor-pointer select-none">
+                                <input type="radio" name="restore-source" value="local" checked class="text-purple-650 focus:ring-purple-500">
+                                <span>Local</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer select-none">
+                                <input type="radio" name="restore-source" value="google_drive" class="text-purple-650 focus:ring-purple-500">
+                                <span>Google Drive</span>
+                            </label>
+                        </div>
+
+                        <!-- Local Restore Section -->
+                        <div id="restore-local-section" class="space-y-4">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Select Database Backup File</label>
+                                <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg p-1.5">
+                                    <label class="cursor-pointer px-3 py-1.5 bg-white hover:bg-slate-100 text-purple-650 border border-slate-200 hover:border-purple-300 rounded-md text-[11px] font-bold flex items-center gap-1.5 transition active:scale-[0.98] shrink-0 shadow-sm">
+                                        <i class="fas fa-folder-open text-purple-500"></i>
+                                        <span>Choose File</span>
+                                        <input type="file" id="restore-database-file" accept=".gz,.zip,.json,.bson" class="hidden">
+                                    </label>
+                                    <span id="restore-database-file-name" class="text-xs text-slate-500 font-medium italic truncate max-w-[220px]">No file selected</span>
+                                </div>
+                            </div>
+                            <button type="button" id="restore-database-button" disabled
+                                class="w-full px-4 py-2.5 bg-red-650 text-white rounded-lg font-semibold hover:bg-red-700 active:scale-[0.98] transition shadow-sm hover:shadow-red-500/20 text-xs cursor-pointer flex items-center justify-center gap-1.5 opacity-50 pointer-events-none">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <span>Restore Database</span>
+                            </button>
+                        </div>
+
+                        <!-- Google Drive Restore Section -->
+                        <div id="restore-gdrive-section" class="space-y-4 hidden">
+                            <div class="overflow-x-auto border border-slate-200 rounded-lg">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="bg-slate-55 border-b border-slate-200 text-[10px] font-bold text-slate-450 uppercase tracking-wider">
+                                            <th class="py-3 px-4">Filename</th>
+                                            <th class="py-3 px-4">Upload Date</th>
+                                            <th class="py-3 px-4">Size</th>
+                                            <th class="py-3 px-4 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="gdrive-restore-list" class="divide-y divide-slate-200 text-xs font-medium text-slate-700">
+                                        <tr>
+                                            <td colspan="4" class="py-6 text-center text-slate-400 font-medium">Loading cloud backups...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Backup History Card -->
+                <div class="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-9 h-9 bg-purple-50 rounded-lg flex items-center justify-center text-purple-500 border border-purple-100/50">
+                                <i class="fas fa-history text-sm"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-lg font-bold text-slate-800 tracking-tight">Backup History</h2>
+                                <p class="text-xs text-slate-400 font-medium">View and manage history of backups stored locally or in Google Drive</p>
+                            </div>
+                        </div>
+                        <div class="flex bg-slate-105 rounded-lg p-0.5" id="history-tabs">
+                            <button type="button" data-tab="local" class="px-3.5 py-1.5 text-xs font-semibold rounded-md bg-white text-slate-805 shadow-sm cursor-pointer transition">Local</button>
+                            <button type="button" data-tab="cloud" class="px-3.5 py-1.5 text-xs font-semibold rounded-md text-slate-650 cursor-pointer transition">Cloud</button>
+                        </div>
+                    </div>
+
+                    <!-- Local History Tab Content -->
+                    <div id="history-local-content" class="space-y-4">
+                        <div class="overflow-x-auto border border-slate-200 rounded-lg">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-55 border-b border-slate-200 text-[10px] font-bold text-slate-450 uppercase tracking-wider">
+                                        <th class="py-3 px-4">Filename</th>
+                                        <th class="py-3 px-4">Creation Date</th>
+                                        <th class="py-3 px-4">Size</th>
+                                        <th class="py-3 px-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="local-backups-history-list" class="divide-y divide-slate-200 text-xs font-medium text-slate-700">
+                                    <tr>
+                                        <td colspan="4" class="py-6 text-center text-slate-400 font-medium">Loading local backups...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Cloud History Tab Content -->
+                    <div id="history-cloud-content" class="space-y-4 hidden">
+                        <div class="overflow-x-auto border border-slate-200 rounded-lg">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-55 border-b border-slate-200 text-[10px] font-bold text-slate-450 uppercase tracking-wider">
+                                        <th class="py-3 px-4">Filename</th>
+                                        <th class="py-3 px-4">Upload Date</th>
+                                        <th class="py-3 px-4">Size</th>
+                                        <th class="py-3 px-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cloud-backups-history-list" class="divide-y divide-slate-200 text-xs font-medium text-slate-700">
+                                    <tr>
+                                        <td colspan="4" class="py-6 text-center text-slate-400 font-medium">Loading cloud backups...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </section>

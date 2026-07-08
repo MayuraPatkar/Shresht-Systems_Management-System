@@ -70,6 +70,12 @@ interface SettingsBackupConfig {
     retention_days?: number;
     backup_location?: string;
     last_backup?: Date;
+    backup_destination?: "local" | "google_drive" | "both";
+    google_drive_connected?: boolean;
+    google_drive_email?: string;
+    google_drive_folder_name?: string;
+    google_drive_last_backup?: Date;
+    google_drive_auto_upload?: boolean;
 }
 
 interface SettingsDoc extends Document {
@@ -135,16 +141,47 @@ async function scheduleFromSettings(settings: SettingsDoc | null): Promise<void>
                     if (!Number.isNaN(retention))
                         process.env.BACKUP_RETENTION_DAYS = String(retention);
 
-                    await Promise.resolve(autoBackup(location));
+                    const info = await Promise.resolve(autoBackup(location));
 
-                    // Update settings.last_backup timestamp
+                    // Update settings.last_backup timestamp and upload to Google Drive if configured
                     try {
                         const s = await SettingsModel.findOne();
                         if (s) {
                             if (!s.backup) {
                                 (s as unknown as Record<string, unknown>).backup = {};
                             }
-                            (s.backup as SettingsBackupConfig).last_backup = new Date();
+                            const backupCfg = s.backup as SettingsBackupConfig;
+                            backupCfg.last_backup = new Date();
+
+                            const dest = backupCfg.backup_destination || "local";
+                            const connected = !!backupCfg.google_drive_connected;
+                            const autoUpload = !!backupCfg.google_drive_auto_upload;
+
+                            if (connected && (dest === "google_drive" || dest === "both" || autoUpload)) {
+                                logger.info("Uploading scheduled backup to Google Drive...", { service: "backup" });
+                                try {
+                                    const { GoogleDriveService } = require("./googleDriveService");
+                                    const client = await GoogleDriveService.getOAuthClientWithTokens();
+                                    const folderId = await GoogleDriveService.getOrCreateFolder(client, "MyApp Backups");
+                                    await GoogleDriveService.uploadBackupFile(client, info.backupPath, folderId);
+                                    
+                                    backupCfg.google_drive_last_backup = new Date();
+                                    
+                                    // Delete local file if destination is cloud-only
+                                    if (dest === "google_drive") {
+                                        try {
+                                            const fsMod = require("fs");
+                                            fsMod.unlinkSync(info.backupPath);
+                                            logger.info("Scheduled local backup file cleaned up (cloud-only destination)", { service: "backup" });
+                                        } catch (unlinkErr) { /* ignore */ }
+                                    }
+                                    
+                                    logger.info("Scheduled backup successfully uploaded to Google Drive", { service: "backup" });
+                                } catch (uploadErr: any) {
+                                    logger.error("Scheduled backup failed to upload to Google Drive:", { service: "backup", error: uploadErr.message });
+                                }
+                            }
+
                             await s.save();
                         }
                     } catch (err: unknown) {

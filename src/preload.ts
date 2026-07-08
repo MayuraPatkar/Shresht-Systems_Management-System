@@ -158,6 +158,49 @@ const electronAPI: ElectronAPI = {
     markChangelogSeen: (): Promise<MarkSeenResult> => {
         return ipcRenderer.invoke('mark-changelog-seen');
     },
+
+    // Google Drive Cloud Backup APIs
+    googleDriveLogin: (): Promise<any> => {
+        return ipcRenderer.invoke('google-drive:login');
+    },
+    googleDriveDisconnect: (): Promise<any> => {
+        return ipcRenderer.invoke('google-drive:disconnect');
+    },
+    googleDriveGetStatus: (): Promise<any> => {
+        return ipcRenderer.invoke('google-drive:status');
+    },
+    googleDriveBackup: (options?: { isCloudOnly?: boolean }): Promise<any> => {
+        return ipcRenderer.invoke('google-drive:backup', options);
+    },
+    googleDriveList: (): Promise<any> => {
+        return ipcRenderer.invoke('google-drive:list-backups');
+    },
+    googleDriveRestore: (fileId: string, filename: string): Promise<any> => {
+        return ipcRenderer.invoke('google-drive:restore', fileId, filename);
+    },
+    googleDriveDelete: (fileId: string): Promise<any> => {
+        return ipcRenderer.invoke('google-drive:delete', fileId);
+    },
+    googleDriveDownload: (fileId: string, filename: string): Promise<any> => {
+        return ipcRenderer.invoke('google-drive:download', fileId, filename);
+    },
+    googleDriveToggleAutoUpload: (enabled: boolean): Promise<any> => {
+        return ipcRenderer.invoke('google-drive:toggle-auto-upload', enabled);
+    },
+    googleDriveToggleDestination: (dest: "local" | "google_drive" | "both"): Promise<any> => {
+        return ipcRenderer.invoke('google-drive:toggle-destination', dest);
+    },
+    onGoogleDriveProgress: (callback: (data: { progress: number; stage: string; error?: string }) => void): void => {
+        if (isValidCallback(callback)) {
+            ipcRenderer.on('google-drive:progress', (_event: IpcRendererEvent, data: any) => callback(data));
+        }
+    },
+    googleDriveSaveCredentials: (clientId: string, clientSecret: string): Promise<any> => {
+        return ipcRenderer.invoke('google-drive:save-credentials', clientId, clientSecret);
+    },
+    googleDriveGetCredentials: (): Promise<any> => {
+        return ipcRenderer.invoke('google-drive:get-credentials');
+    },
 };
 
 // Expose the API to the renderer process

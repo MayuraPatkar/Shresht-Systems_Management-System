@@ -20,6 +20,12 @@ export interface IBackup {
     retention_days?: number;
     last_backup?: Date;
     backup_location?: string;
+    backup_destination?: "local" | "google_drive" | "both";
+    google_drive_connected?: boolean;
+    google_drive_email?: string;
+    google_drive_folder_name?: string;
+    google_drive_last_backup?: Date;
+    google_drive_auto_upload?: boolean;
 }
 
 /**
@@ -257,6 +263,12 @@ const backupSchema = new Schema<IBackup>(
         retention_days: { type: Number, default: 30 },
         last_backup: { type: Date, default: null },
         backup_location: { type: String, default: null },
+        backup_destination: { type: String, enum: ["local", "google_drive", "both"], default: "local" },
+        google_drive_connected: { type: Boolean, default: false },
+        google_drive_email: { type: String, default: "" },
+        google_drive_folder_name: { type: String, default: "MyApp Backups" },
+        google_drive_last_backup: { type: Date, default: null },
+        google_drive_auto_upload: { type: Boolean, default: false },
     },
     { _id: false }
 );

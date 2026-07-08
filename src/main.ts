@@ -34,6 +34,7 @@ import { handlePrintEvent } from './utils/printHandler';
 import { setupQuotationHandlers } from './utils/quotationPrintHandler';
 import autoBackup from './utils/backup';
 import './utils/alertHandler';
+import { setupGoogleDriveHandlers } from './utils/googleDriveIpc';
 
 // Import package.json for version info
 import packageJson from '../package.json';
@@ -694,6 +695,7 @@ async function createWindow(): Promise<void> {
 app.whenReady().then(async () => {
     // Setup IPC handlers FIRST before anything else loads
     setupIPCHandlers();
+    setupGoogleDriveHandlers();
 
     // Start Express server with proper error handling
     try {

@@ -276,6 +276,61 @@ router.get("/backup/status", asyncHandler(async (req: Request, res: Response) =>
     }
 }));
 
+// Get local backups list
+router.get("/backup/local", asyncHandler(async (req: Request, res: Response) => {
+    try {
+        const settings = await SettingsModel.findOne();
+        const backupLocation = settings?.backup?.backup_location;
+        if (!backupLocation) {
+            return res.json({ success: true, files: [] });
+        }
+        
+        if (!fs.existsSync(backupLocation)) {
+            return res.json({ success: true, files: [] });
+        }
+        
+        const files = fs.readdirSync(backupLocation);
+        const backupFiles = files
+            .filter(f => f.startsWith("backup-") && (f.endsWith(".gz") || f.endsWith(".zip") || f.endsWith(".bson")))
+            .map(f => {
+                const fullPath = path.join(backupLocation, f);
+                const stat = fs.statSync(fullPath);
+                return {
+                    name: f,
+                    path: fullPath,
+                    size: stat.size,
+                    createdTime: stat.mtime
+                };
+            })
+            .sort((a, b) => b.createdTime.getTime() - a.createdTime.getTime());
+            
+        res.json({ success: true, files: backupFiles });
+    } catch (err: any) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+}));
+
+// Delete local backup
+router.delete("/backup/local/:filename", asyncHandler(async (req: Request, res: Response) => {
+    try {
+        const settings = await SettingsModel.findOne();
+        const backupLocation = settings?.backup?.backup_location;
+        if (!backupLocation) return res.status(400).json({ success: false, message: "Backup location not configured" });
+        
+        const filename = String(req.params.filename);
+        const fullPath = path.join(String(backupLocation), filename);
+        
+        if (fs.existsSync(fullPath)) {
+            fs.unlinkSync(fullPath);
+            res.json({ success: true, message: "Local backup deleted successfully" });
+        } else {
+            res.status(404).json({ success: false, message: "File not found" });
+        }
+    } catch (err: any) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+}));
+
 // ==================== SYSTEM SETTINGS MANAGEMENT ====================
 
 router.get("/preferences", asyncHandler(async (req: Request, res: Response) => {
