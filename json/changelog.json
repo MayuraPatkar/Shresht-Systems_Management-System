@@ -1,6 +1,37 @@
 {
   "versions": [
     {
+      "version": "4.3.0",
+      "date": "2026-07-08",
+      "title": "Cloud Backup & Advanced Business Intelligence",
+      "changes": [
+        {
+          "type": "feature",
+          "description": "Google Drive Cloud Backup: Added support for secure Google Drive cloud backups. Users can enter Google Client Credentials manually and perform manual, automated, or hybrid local/cloud database backups."
+        },
+        {
+          "type": "feature",
+          "description": "Inventory Analytics Dashboard: Added a brand new inventory intelligence module with metrics for top products, trending brands, inventory valuation, reorder alerts, and monthly demand forecasting."
+        },
+        {
+          "type": "feature",
+          "description": "Finance Analytics Dashboard: Added professional financial analytics including EBITDA tracking, budget vs expense tracking, GST analysis, and accounts receivable/payable aging ledger heatmaps."
+        },
+        {
+          "type": "improvement",
+          "description": "Indian Currency Formatting: Enforced Indian English locale formatting (Lakhs/Crores grouping) for all financial numbers and metrics across all analytics dashboards."
+        },
+        {
+          "type": "bugfix",
+          "description": "Monthly Revenue Trend Fix: Resolved rendering conflict where the Monthly Revenue chart was loading with 'NaN' values due to mismatched chart parameter mappings."
+        },
+        {
+          "type": "bugfix",
+          "description": "Heatmap Grid Stability: Addressed hover vibration/shaking feedback loop on all analytics heatmaps by shifting cell hover visuals from geometric transformations to stroke outline styling."
+        }
+      ]
+    },
+    {
       "version": "4.2.0",
       "date": "2026-07-07",
       "title": "Administration Enhancements & Critical Bug Fixes",
