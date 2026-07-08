@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procurement Analytics - Supplier Intelligence</title>
+    <link rel="stylesheet" href="../css/tailwind.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;850&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            overflow: hidden;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .sidebar {
+            width: 240px;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            border-right: 1px solid #e2e8f0;
+        }
+
+        main {
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        /* Custom scrollbar styling */
+        *::-webkit-scrollbar { width: 6px; height: 6px; }
+        *::-webkit-scrollbar-track { background: transparent; }
+        *::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        *::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Skeleton pulse */
+        .skeleton {
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+        }
+
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Heatmap Grid Styles */
+        .heatmap-cell {
+            transition: all 0.2s ease;
+        }
+        .heatmap-cell:hover {
+            transform: scale(1.15);
+            z-index: 10;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Tooltips */
+        .chart-tooltip {
+            position: absolute;
+            background: rgba(15, 23, 42, 0.95);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 500;
+            pointer-events: none;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+            transition: opacity 0.15s ease;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Print formatting */
+        @media print {
+            body { background: white; color: black; overflow: visible; }
+            header, aside, #filter-panel, #export-buttons, .pagination-controls { display: none !important; }
+            .sidebar { display: none !important; }
+            main { overflow: visible !important; height: auto !important; padding: 0 !important; }
+            .pt-24 { padding-top: 0 !important; }
+            .grid { display: block !important; }
+            .card, .chart-panel { break-inside: avoid; margin-bottom: 2rem; border: 1px solid #ccc !important; box-shadow: none !important; }
+            svg { max-width: 100% !important; height: auto !important; }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-30 h-24 flex items-center px-4">
+        <div class="flex items-center w-full gap-4">
+            <div class="flex items-center gap-3 flex-shrink-0" style="min-width:200px;">
+                <img src="../assets/icon.png" alt="Shresht Management Icon" class="h-10 w-10 object-contain">
+                <h1 class="text-xl font-bold text-gray-800">Procurement Analytics</h1>
+            </div>
+            
+            <div class="flex-1 flex justify-center">
+                <!-- Search Placeholder -->
+            </div>
+
+            <div class="flex items-center gap-2 pr-2 flex-shrink-0" style="min-width:100px;justify-content:flex-end;">
+                <i id="header-user-role-icon" class="fas fa-user-shield text-slate-400 text-sm"></i>
+                <span id="header-user-role" class="text-sm font-bold uppercase tracking-wider bg-slate-50 text-slate-700 px-2.5 py-1 rounded-md border border-slate-200">Admin</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Layout Wrapper -->
+    <div class="flex pt-24 h-screen w-full overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar bg-white h-full flex flex-col border-r border-gray-200 flex-shrink-0" style="width: 240px;">
+            <nav class="flex-1 p-4 overflow-y-auto" id="sidebar-nav">
+                <div class="flex items-center justify-center h-full">
+                    <i class="fas fa-spinner fa-spin text-blue-500 text-xl"></i>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 h-full overflow-y-auto px-6 py-6 bg-slate-50/50 no-select pb-24 md:pb-8 flex flex-col">
+            <div class="max-w-6xl w-full mx-auto flex-1 flex flex-col min-h-0 space-y-6 fade-in" id="dashboard-content">
+                
+                <!-- Page Title & Export Buttons -->
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400">Supplier Performance & Purchasing Intelligence</h2>
+                        <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight mt-1">Procurement Analytics Dashboard</h1>
+                    </div>
+                    
+                    <!-- Export panel -->
+                    <div class="flex items-center gap-3" id="export-buttons">
+                        <button id="btn-export-pdf" class="flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2.5 rounded-xl font-semibold text-sm shadow-sm transition-all active:scale-95">
+                            <i class="fas fa-file-pdf text-red-500"></i>
+                            <span>Export PDF</span>
+                        </button>
+                        <button id="btn-export-excel" class="flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2.5 rounded-xl font-semibold text-sm shadow-sm transition-all active:scale-95">
+                            <i class="fas fa-file-excel text-green-600"></i>
+                            <span>Export Excel</span>
+                        </button>
+                        <button id="btn-export-csv" class="flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2.5 rounded-xl font-semibold text-sm shadow-sm transition-all active:scale-95">
+                            <i class="fas fa-file-csv text-blue-500"></i>
+                            <span>Export CSV</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ERROR ALERTS -->
+                <div id="error-banner" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-2xl p-4 flex items-center gap-3">
+                    <i class="fas fa-exclamation-triangle text-xl"></i>
+                    <div>
+                        <p class="font-bold">System Connection Issue</p>
+                        <p class="text-sm text-red-650" id="error-message">Failed to load procurement analytics. Please check your network connection or server status.</p>
+                    </div>
+                </div>
+
+                <!-- FILTER BAR PANEL -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4" id="filter-panel">
+                    <!-- Predefined Date Ranges -->
+                    <div class="flex flex-wrap items-center gap-2 pb-3 border-b border-slate-100">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400 mr-2">Date Filter:</span>
+                        <button class="btn-date-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white" data-range="thismonth">This Month</button>
+                        <button class="btn-date-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-50 text-slate-650 hover:bg-slate-100" data-range="today">Today</button>
+                        <button class="btn-date-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-50 text-slate-650 hover:bg-slate-100" data-range="yesterday">Yesterday</button>
+                        <button class="btn-date-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-50 text-slate-650 hover:bg-slate-100" data-range="7days">Last 7 Days</button>
+                        <button class="btn-date-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-50 text-slate-650 hover:bg-slate-100" data-range="lastmonth">Last Month</button>
+                        <button class="btn-date-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-50 text-slate-650 hover:bg-slate-100" data-range="quarter">Quarter</button>
+                        <button class="btn-date-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-50 text-slate-650 hover:bg-slate-100" data-range="year">Year</button>
+                        <button class="btn-date-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-50 text-slate-650 hover:bg-slate-100" data-range="custom">Custom Range</button>
+                    </div>
+
+                    <!-- Custom Range Inputs (collapsible, visible only on Custom Range) -->
+                    <div id="custom-date-container" class="hidden items-center gap-4 flex-wrap bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs font-bold text-slate-500">From:</label>
+                            <input type="date" id="filter-start-date" class="px-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs font-bold text-slate-500">To:</label>
+                            <input type="date" id="filter-end-date" class="px-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                        </div>
+                        <button id="btn-apply-custom-date" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-1.5 rounded-lg shadow-sm transition-all">Apply Range</button>
+                    </div>
+
+                    <!-- Advanced Dropdown Filters -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                        <!-- Supplier select -->
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Supplier</label>
+                            <select id="filter-supplier" class="px-2.5 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700">
+                                <option value="">All Suppliers</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Product select -->
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Product</label>
+                            <select id="filter-product" class="px-2.5 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700">
+                                <option value="">All Products</option>
+                            </select>
+                        </div>
+
+                        <!-- Product Category select -->
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Category</label>
+                            <select id="filter-category" class="px-2.5 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700">
+                                <option value="">All Categories</option>
+                            </select>
+                        </div>
+
+                        <!-- PO Status select -->
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">PO Status</label>
+                            <select id="filter-status" class="px-2.5 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700">
+                                <option value="">All Statuses</option>
+                            </select>
+                        </div>
+
+                        <!-- Branch select -->
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Branch</label>
+                            <select id="filter-branch" class="px-2.5 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700">
+                                <option value="">All Branches</option>
+                            </select>
+                        </div>
+
+                        <!-- Warehouse select -->
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Warehouse</label>
+                            <select id="filter-warehouse" class="px-2.5 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700">
+                                <option value="">All Warehouses</option>
+                            </select>
+                        </div>
+
+                        <!-- Buyer/Procurement Officer select -->
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Buyer/Officer</label>
+                            <select id="filter-buyer" class="px-2.5 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700">
+                                <option value="">All Buyers</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EMPTY STATE BANNER (Hidden by default) -->
+                <div id="empty-state" class="hidden bg-white border border-slate-200 rounded-3xl p-16 flex flex-col items-center justify-center text-center space-y-4 shadow-sm">
+                    <div class="p-6 bg-slate-50 text-slate-400 rounded-full h-24 w-24 flex items-center justify-center border border-slate-100">
+                        <i class="fas fa-cubes text-4xl"></i>
+                    </div>
+                    <div class="max-w-md">
+                        <h2 class="text-xl font-bold text-slate-800">No Procurement Records Found</h2>
+                        <p class="text-slate-500 text-sm mt-2">
+                            We couldn't find any purchases or purchase orders matching your selected date ranges and filters. Try adjusting your search query.
+                        </p>
+                    </div>
+                    <button id="btn-reset-filters" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-6 py-2.5 rounded-xl shadow-sm transition-all active:scale-95">
+                        <i class="fas fa-redo mr-2"></i>Reset All Filters
+                    </button>
+                </div>
+
+                <!-- KPI CARDS CONTAINER -->
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4" id="kpi-container">
+                    <!-- Total Purchase Value Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-purchase-value">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Total Purchases</span>
+                            <div class="h-7 w-7 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center"><i class="fas fa-indian-rupee-sign text-sm"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-purchase-value">₹0</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-purchase-value" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                                <span id="comp-purchase-value">vs last period</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Purchase Orders Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-purchase-orders">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Purchase Orders</span>
+                            <div class="h-7 w-7 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center"><i class="fas fa-file-invoice text-sm"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-purchase-orders">0</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-purchase-orders" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                                <span id="comp-purchase-orders">vs last period</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Average Purchase Cost Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-avg-purchase-cost">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Avg Order Cost</span>
+                            <div class="h-7 w-7 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center"><i class="fas fa-calculator text-sm"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-avg-purchase-cost">₹0</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-avg-purchase-cost" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                                <span id="comp-avg-purchase-cost">vs last period</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Suppliers Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-active-suppliers">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Active Suppliers</span>
+                            <div class="h-7 w-7 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center"><i class="fas fa-truck-field text-sm"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-active-suppliers">0</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-active-suppliers" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                                <span id="comp-active-suppliers">vs last period</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pending Purchase Orders Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-pending-orders">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Pending POs</span>
+                            <div class="h-7 w-7 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center"><i class="fas fa-hourglass-half text-sm"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-pending-orders">0</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-pending-orders" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                                <span id="comp-pending-orders">vs last period</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Completed Purchase Orders Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-completed-orders">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Completed POs</span>
+                            <div class="h-7 w-7 bg-cyan-50 text-cyan-600 rounded-lg flex items-center justify-center"><i class="fas fa-square-check text-sm"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-completed-orders">0</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-completed-orders" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                                <span id="comp-completed-orders">vs last period</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Average Delivery Lead Time Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-avg-delivery-time">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Avg Lead Time</span>
+                            <div class="h-7 w-7 bg-teal-50 text-teal-600 rounded-lg flex items-center justify-center"><i class="fas fa-clock text-sm"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-avg-delivery-time">0.0 days</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-avg-delivery-time" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-down"></i> 0%</span>
+                                <span id="comp-avg-delivery-time">vs last period</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Purchase Growth % Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-purchase-growth">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Purchase Growth</span>
+                            <div class="h-7 w-7 bg-pink-50 text-pink-600 rounded-lg flex items-center justify-center"><i class="fas fa-arrow-trend-up text-sm"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-purchase-growth">0.0%</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-purchase-growth" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                                <span id="comp-purchase-growth">from prev month</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Procurement Savings Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-procurement-savings">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Neg. Savings (Est)</span>
+                            <div class="h-7 w-7 bg-rose-50 text-rose-600 rounded-lg flex items-center justify-center"><i class="fas fa-piggy-bank text-sm"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-procurement-savings">₹0</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-procurement-savings" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                                <span id="comp-procurement-savings">vs last period</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Supplier On-Time Delivery % Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[110px]" id="kpi-supplier-otd">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Supplier OTD %</span>
+                            <div class="h-7 w-7 bg-sky-50 text-sky-600 rounded-lg flex items-center justify-center"><i class="fas fa-truck-fast text-sm"></i></div>
+                        </div>
+                        <div class="mt-2.5">
+                            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight" id="val-supplier-otd">0.0%</h2>
+                            <div class="flex items-center gap-1.5 mt-1 text-[10px] font-medium text-slate-500">
+                                <span id="badge-supplier-otd" class="flex items-center gap-0.5 px-1 py-0.5 rounded text-emerald-600 bg-emerald-50"><i class="fas fa-caret-up"></i> 0%</span>
+                                <span id="comp-supplier-otd">vs last period</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- INSIGHTS SECTION -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                        <i class="fas fa-lightbulb text-amber-500"></i>
+                        <span>AI Procurement Insights</span>
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="insights-grid">
+                        <div class="skeleton h-16 rounded-xl"></div>
+                        <div class="skeleton h-16 rounded-xl"></div>
+                        <div class="skeleton h-16 rounded-xl"></div>
+                        <div class="skeleton h-16 rounded-xl"></div>
+                    </div>
+                </div>
+
+                <!-- STOCK REORDER WARNING ALERTS -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="stock-alerts-row">
+                    <!-- Out of Stock Box -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[160px]">
+                        <div>
+                            <span class="text-[10px] font-bold uppercase text-red-500 flex items-center gap-1.5"><i class="fas fa-circle-exclamation text-xs"></i> Out of Stock Items</span>
+                            <div class="mt-3 space-y-2" id="box-out-stock">
+                                <div class="skeleton h-4 rounded w-full"></div>
+                                <div class="skeleton h-4 rounded w-4/5"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Near Reorder Level Box -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[160px]">
+                        <div>
+                            <span class="text-[10px] font-bold uppercase text-amber-600 flex items-center gap-1.5"><i class="fas fa-triangle-exclamation text-xs"></i> Near Reorder Level</span>
+                            <div class="mt-3 space-y-2" id="box-near-reorder">
+                                <div class="skeleton h-4 rounded w-full"></div>
+                                <div class="skeleton h-4 rounded w-4/5"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Replenishment Cost Estimate Box -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[160px] bg-gradient-to-br from-slate-900 to-slate-950 text-white border-0">
+                        <div class="flex flex-col justify-between h-full">
+                            <span class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Replenishment Cost Estimate</span>
+                            <div class="my-3">
+                                <h2 class="text-2xl font-extrabold tracking-tight" id="val-replenish-cost">₹0</h2>
+                                <p class="text-[9px] text-slate-400 mt-1 leading-relaxed">Estimated purchase capital required to replenish all stock items currently below min thresholds back to reorder quantities.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CHARTS ROW 1 (Monthly Purchase & Daily POs) -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Monthly Purchase Trend -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[340px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Monthly Purchase Trend</span>
+                            <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Line Chart</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[260px] relative" id="chart-monthly-purchase">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+
+                    <!-- Daily Purchase Orders -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[340px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Daily Purchase Distribution</span>
+                            <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Area Chart</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[260px] relative" id="chart-daily-pos">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CHARTS ROW 2 (Category & Cost Donut & Supplier Value) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Purchase by Category -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[300px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Purchase by Category</span>
+                            <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Bar Chart</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[220px] relative" id="chart-category">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+
+                    <!-- Purchase Cost Distribution -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[300px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Supplier Spending Share</span>
+                            <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Donut Chart</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[220px] relative" id="chart-cost-distribution">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+
+                    <!-- Supplier Purchase Value -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[300px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Top Suppliers Value</span>
+                            <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Horizontal Bar</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[220px] relative" id="chart-supplier-value">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CHARTS ROW 3 (Top Products & PO Status) -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Top Purchased Products -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[320px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Top Purchased Products</span>
+                            <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Bar Chart</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[240px] relative" id="chart-top-products">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+
+                    <!-- Purchase Order Status -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[320px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Purchase Order Status</span>
+                            <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Pie Chart</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[240px] relative" id="chart-po-status">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CHARTS ROW 4 (Cost vs Budget, Monthly growth, Supplier OTD) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Purchase Cost vs Budget -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[300px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Spending vs Budget</span>
+                            <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Double Line</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[220px] relative" id="chart-cost-vs-budget">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+
+                    <!-- Monthly Procurement Growth -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[300px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">MoM Purchasing Growth %</span>
+                            <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Line Chart</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[220px] relative" id="chart-monthly-growth">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+
+                    <!-- Supplier Delivery Performance -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[300px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Supplier On-Time Delivery %</span>
+                            <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Column Chart</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[220px] relative" id="chart-supplier-delivery">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HEATMAP SECTION -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[320px] chart-panel">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Procurement Activity Heatmap (Day vs Hour)</span>
+                        <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">Activity Map</span>
+                    </div>
+                    <div class="flex-1 flex flex-col min-h-[240px] pt-4 overflow-x-auto justify-center" id="heatmap-container">
+                        <div class="skeleton h-full w-full rounded-lg"></div>
+                    </div>
+                </div>
+
+                <!-- FORECAST SECTION -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Forecast Chart -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm md:col-span-2 flex flex-col justify-between min-h-[320px] chart-panel">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Procurement Value Forecast (Regression)</span>
+                            <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">Linear Regression</span>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center min-h-[240px] relative" id="chart-forecast">
+                            <div class="skeleton h-full w-full rounded-lg"></div>
+                        </div>
+                    </div>
+
+                    <!-- Forecast Cards -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[320px]">
+                        <div class="pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Forecasted KPIs</span>
+                            <p class="text-[10px] text-slate-500 mt-0.5" id="lbl-forecast-month">Predicting next month...</p>
+                        </div>
+                        <div class="flex-1 flex flex-col justify-around py-2">
+                            <!-- Revenue Forecast -->
+                            <div class="flex items-center gap-4 bg-blue-50/50 border border-blue-100 rounded-xl p-3.5">
+                                <div class="h-10 w-10 rounded-lg bg-blue-600 text-white flex items-center justify-center text-lg"><i class="fas fa-indian-rupee-sign"></i></div>
+                                <div>
+                                    <span class="text-[10px] font-bold uppercase text-slate-400 block">Forecasted Purchases</span>
+                                    <h3 class="text-lg font-bold text-slate-800" id="val-forecast-revenue">₹0</h3>
+                                </div>
+                            </div>
+                            <!-- Orders Forecast -->
+                            <div class="flex items-center gap-4 bg-indigo-50/50 border border-indigo-100 rounded-xl p-3.5">
+                                <div class="h-10 w-10 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-lg"><i class="fas fa-cart-shopping"></i></div>
+                                <div>
+                                    <span class="text-[10px] font-bold uppercase text-slate-400 block">Expected POs</span>
+                                    <h3 class="text-lg font-bold text-slate-800" id="val-forecast-orders">0</h3>
+                                </div>
+                            </div>
+                            <!-- Growth Forecast -->
+                            <div class="flex items-center gap-4 bg-emerald-50/50 border border-emerald-100 rounded-xl p-3.5">
+                                <div class="h-10 w-10 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-lg"><i class="fas fa-arrow-trend-up"></i></div>
+                                <div>
+                                    <span class="text-[10px] font-bold uppercase text-slate-400 block">Projected Growth %</span>
+                                    <h3 class="text-lg font-bold text-slate-800" id="val-forecast-growth">0.0%</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COMPARISON SECTION -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                        <i class="fas fa-scale-balanced text-blue-500"></i>
+                        <span>Period-over-Period Procurement Performance</span>
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-100 text-[10px] font-bold uppercase tracking-wider text-slate-455">
+                                    <th class="py-3 pr-4">Procurement Metric</th>
+                                    <th class="py-3 px-4 text-right">Current Selected Period</th>
+                                    <th class="py-3 px-4 text-right">Previous Reference Period</th>
+                                    <th class="py-3 pl-4 text-right">Delta (%)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="comparison-rows" class="font-medium text-slate-700">
+                                <tr class="border-b border-slate-50"><td class="py-3" colspan="4"><div class="skeleton h-6 rounded"></div></td></tr>
+                                <tr class="border-b border-slate-50"><td class="py-3" colspan="4"><div class="skeleton h-6 rounded"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TABLES CONTAINER -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Top Suppliers Table -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[380px]">
+                        <div>
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 pb-3 border-b border-slate-100 flex items-center justify-between">
+                                <span>Top Suppliers Ranking</span>
+                                <i class="fas fa-truck text-blue-500"></i>
+                            </h3>
+                            <div class="overflow-x-auto mt-3">
+                                <table class="w-full text-xs text-left border-collapse">
+                                    <thead>
+                                        <tr class="text-[9px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                                            <th class="py-2.5 pr-2">Supplier</th>
+                                            <th class="py-2.5 px-2 text-right">Orders</th>
+                                            <th class="py-2.5 px-2 text-right">Spent (₹)</th>
+                                            <th class="py-2.5 px-2 text-right">Avg Lead</th>
+                                            <th class="py-2.5 pl-2 text-right">Rating</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-suppliers-rows">
+                                        <tr><td colspan="5" class="py-3"><div class="skeleton h-24 rounded-lg"></div></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-3 border-t border-slate-150 pagination-controls" id="pag-suppliers">
+                            <span class="text-[10px] text-slate-500 font-medium">Page 1 of 1</span>
+                            <div class="flex items-center gap-1">
+                                <button class="btn-prev px-2.5 py-1 bg-slate-50 hover:bg-slate-100 rounded text-slate-650 border border-slate-200 font-semibold text-[10px] transition-all">Prev</button>
+                                <button class="btn-next px-2.5 py-1 bg-slate-50 hover:bg-slate-100 rounded text-slate-650 border border-slate-200 font-semibold text-[10px] transition-all">Next</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top Purchased Products Table -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[380px]">
+                        <div>
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 pb-3 border-b border-slate-100 flex items-center justify-between">
+                                <span>Top Purchased Products</span>
+                                <i class="fas fa-box text-indigo-500"></i>
+                            </h3>
+                            <div class="overflow-x-auto mt-3">
+                                <table class="w-full text-xs text-left border-collapse">
+                                    <thead>
+                                        <tr class="text-[9px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                                            <th class="py-2.5 pr-2">Product</th>
+                                            <th class="py-2.5 px-2 text-right">Qty</th>
+                                            <th class="py-2.5 px-2 text-right">Cost (₹)</th>
+                                            <th class="py-2.5 px-2 text-right">Supplier</th>
+                                            <th class="py-2.5 pl-2 text-right">Stock</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-products-rows">
+                                        <tr><td colspan="5" class="py-3"><div class="skeleton h-24 rounded-lg"></div></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-3 border-t border-slate-150 pagination-controls" id="pag-products">
+                            <span class="text-[10px] text-slate-500 font-medium">Page 1 of 1</span>
+                            <div class="flex items-center gap-1">
+                                <button class="btn-prev px-2.5 py-1 bg-slate-50 hover:bg-slate-100 rounded text-slate-650 border border-slate-200 font-semibold text-[10px] transition-all">Prev</button>
+                                <button class="btn-next px-2.5 py-1 bg-slate-50 hover:bg-slate-100 rounded text-slate-650 border border-slate-200 font-semibold text-[10px] transition-all">Next</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Purchase Orders Table -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[380px]">
+                        <div>
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 pb-3 border-b border-slate-100 flex items-center justify-between">
+                                <span>Recent Purchase Orders</span>
+                                <i class="fas fa-file-lines text-emerald-500"></i>
+                            </h3>
+                            <div class="overflow-x-auto mt-3">
+                                <table class="w-full text-xs text-left border-collapse">
+                                    <thead>
+                                        <tr class="text-[9px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                                            <th class="py-2.5 pr-2">PO Number</th>
+                                            <th class="py-2.5 px-2 text-right">Supplier</th>
+                                            <th class="py-2.5 px-2 text-right">Amount (₹)</th>
+                                            <th class="py-2.5 pl-2 text-right">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-recent-rows">
+                                        <tr><td colspan="4" class="py-3"><div class="skeleton h-24 rounded-lg"></div></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-3 border-t border-slate-150 pagination-controls" id="pag-recent">
+                            <span class="text-[10px] text-slate-500 font-medium">Page 1 of 1</span>
+                            <div class="flex items-center gap-1">
+                                <button class="btn-prev px-2.5 py-1 bg-slate-50 hover:bg-slate-100 rounded text-slate-650 border border-slate-200 font-semibold text-[10px] transition-all">Prev</button>
+                                <button class="btn-next px-2.5 py-1 bg-slate-50 hover:bg-slate-100 rounded text-slate-650 border border-slate-200 font-semibold text-[10px] transition-all">Next</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../../dist/public/ts/shared/core/globalScript.js"></script>
+    <script src="../../dist/public/analytics/src/services/analyticsApi.js"></script>
+    <script src="../../dist/public/analytics/src/components/chartRenderer.js"></script>
+    <script src="../../dist/public/analytics/src/components/procurementAnalyticsUI.js"></script>
+    <script src="../../dist/public/analytics/src/procurementMain.js"></script>
+</body>
+
+</html>

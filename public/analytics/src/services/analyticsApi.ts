@@ -49,6 +49,40 @@ class AnalyticsApi {
         const url = `/analytics/sales-data?${queryParams.toString()}`;
         return this.fetchJson(url);
     }
+
+    /**
+     * Fetch procurement filters dropdown lists
+     */
+    async getProcurementFiltersOptions(): Promise<any> {
+        return this.fetchJson('/analytics/procurement/filters');
+    }
+
+    /**
+     * Fetch procurement analytics data consolidated report
+     */
+    async getProcurementData(filters: {
+        dateRange?: string;
+        startDate?: string;
+        endDate?: string;
+        supplier?: string;
+        product?: string;
+        category?: string;
+        status?: string;
+        branch?: string;
+        warehouse?: string;
+        buyer?: string;
+    }): Promise<any> {
+        const queryParams = new URLSearchParams();
+        
+        Object.entries(filters).forEach(([key, val]) => {
+            if (val) {
+                queryParams.append(key, val);
+            }
+        });
+
+        const url = `/analytics/procurement-data?${queryParams.toString()}`;
+        return this.fetchJson(url);
+    }
 }
 
 declare var analyticsApi: any;
