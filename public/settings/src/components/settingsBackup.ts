@@ -52,35 +52,105 @@ class SettingsBackup {
         // Register Google Drive progress handler
         (window as any).electronAPI.onGoogleDriveProgress((data: any) => this.handleProgressUpdate(data));
 
-        // Custom File Upload Visuals
+        // Export collections checkboxes change events setup
+        const exportCheckboxes = document.querySelectorAll('input[name="export-data"]');
+        exportCheckboxes.forEach(cb => {
+            cb.addEventListener("change", (e) => {
+                const checkbox = e.target as HTMLInputElement;
+                const card = checkbox.closest('.collection-card');
+                if (card) {
+                    card.classList.toggle('selected', checkbox.checked);
+                }
+                this.updateExportButtonState();
+            });
+        });
+        this.updateExportButtonState();
+
+        // Restore Collection Form interactivity
+        const collectionSelect = document.getElementById("collection-select") as HTMLSelectElement;
+        collectionSelect?.addEventListener("change", () => this.updateRestoreCollectionButtonState());
+
         const collFileInput = document.getElementById("restore-collection-file") as HTMLInputElement;
         const collFileName = document.getElementById("restore-collection-file-name");
+        const collFileRemove = document.getElementById("restore-collection-file-remove");
+        const collFileIcon = document.querySelector("#restore-collection-file-name")?.closest('.flex')?.querySelector("i");
         collFileInput?.addEventListener("change", () => {
             if (collFileInput.files && collFileInput.files.length > 0) {
-                if (collFileName) collFileName.textContent = collFileInput.files[0].name;
+                const file = collFileInput.files[0];
+                if (collFileName) collFileName.textContent = `📄 ${file.name}`;
+                if (collFileRemove) collFileRemove.classList.remove("hidden");
+                const sizeKb = (file.size / 1024).toFixed(1);
+                const sizeEl = document.getElementById("restore-collection-file-size");
+                if (sizeEl) sizeEl.textContent = `${sizeKb} KB`;
+                if (collFileIcon) {
+                    collFileIcon.className = "fas fa-file-code text-purple-500 text-sm";
+                }
             } else {
                 if (collFileName) collFileName.textContent = "No file selected";
+                if (collFileRemove) collFileRemove.classList.add("hidden");
+                const sizeEl = document.getElementById("restore-collection-file-size");
+                if (sizeEl) sizeEl.textContent = "";
+                if (collFileIcon) {
+                    collFileIcon.className = "fas fa-file-code text-sm";
+                }
             }
+            this.updateRestoreCollectionButtonState();
         });
 
+        collFileRemove?.addEventListener("click", () => {
+            if (collFileInput) collFileInput.value = "";
+            if (collFileName) collFileName.textContent = "No file selected";
+            collFileRemove.classList.add("hidden");
+            const sizeEl = document.getElementById("restore-collection-file-size");
+            if (sizeEl) sizeEl.textContent = "";
+            if (collFileIcon) {
+                collFileIcon.className = "fas fa-file-code text-sm";
+            }
+            this.updateRestoreCollectionButtonState();
+        });
+
+        // Restore Database Form interactivity
         const dbFileInput = document.getElementById("restore-database-file") as HTMLInputElement;
         const dbFileName = document.getElementById("restore-database-file-name");
-        const dbRestoreButton = document.getElementById("restore-database-button") as HTMLButtonElement;
+        const dbFileRemove = document.getElementById("restore-database-file-remove");
+        const dbFileIcon = document.querySelector("#restore-database-file-name")?.closest('.flex')?.querySelector("i");
         dbFileInput?.addEventListener("change", () => {
             if (dbFileInput.files && dbFileInput.files.length > 0) {
-                if (dbFileName) dbFileName.textContent = dbFileInput.files[0].name;
-                if (dbRestoreButton) {
-                    dbRestoreButton.disabled = false;
-                    dbRestoreButton.classList.remove("opacity-50", "pointer-events-none");
+                const file = dbFileInput.files[0];
+                if (dbFileName) dbFileName.textContent = `📄 ${file.name}`;
+                if (dbFileRemove) dbFileRemove.classList.remove("hidden");
+                const sizeKb = (file.size / 1024).toFixed(1);
+                const sizeEl = document.getElementById("restore-database-file-size");
+                if (sizeEl) sizeEl.textContent = `${sizeKb} KB`;
+                if (dbFileIcon) {
+                    dbFileIcon.className = "fas fa-database text-purple-500 text-sm";
                 }
             } else {
                 if (dbFileName) dbFileName.textContent = "No file selected";
-                if (dbRestoreButton) {
-                    dbRestoreButton.disabled = true;
-                    dbRestoreButton.classList.add("opacity-50", "pointer-events-none");
+                if (dbFileRemove) dbFileRemove.classList.add("hidden");
+                const sizeEl = document.getElementById("restore-database-file-size");
+                if (sizeEl) sizeEl.textContent = "";
+                if (dbFileIcon) {
+                    dbFileIcon.className = "fas fa-database text-sm";
                 }
             }
+            this.updateRestoreDatabaseButtonState();
         });
+
+        dbFileRemove?.addEventListener("click", () => {
+            if (dbFileInput) dbFileInput.value = "";
+            if (dbFileName) dbFileName.textContent = "No file selected";
+            dbFileRemove.classList.add("hidden");
+            const sizeEl = document.getElementById("restore-database-file-size");
+            if (sizeEl) sizeEl.textContent = "";
+            if (dbFileIcon) {
+                dbFileIcon.className = "fas fa-database text-sm";
+            }
+            this.updateRestoreDatabaseButtonState();
+        });
+
+        this.updateRestoreCollectionButtonState();
+        this.updateRestoreDatabaseButtonState();
 
         // === Credentials accordion toggle ===
         const credsToggle = document.getElementById("gdrive-credentials-toggle");
@@ -180,13 +250,18 @@ class SettingsBackup {
         const exportButton = document.getElementById("export-data-button") as HTMLButtonElement;
 
         if (checkedElements.length === 0) {
-            (window as any).electronAPI.showAlert1("Please select at least one data type to export.");
+            this.showToast("Please select at least one data type to export.", "error");
             return;
         }
 
         const originalContent = exportButton.innerHTML;
         exportButton.disabled = true;
         exportButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
+
+        let loadingToast: HTMLElement | null = null;
+        const progressTimeout = setTimeout(() => {
+            loadingToast = this.showLoadingToast("Exporting selected collections... please wait.");
+        }, 1000);
 
         const displayNames: Record<string, string> = {
             'customers': 'Customers', 'quotations': 'Quotation', 'suppliers': 'Suppliers',
@@ -223,16 +298,22 @@ class SettingsBackup {
                 }
 
                 if (parts.length > 0) {
-                    (window as any).electronAPI.showAlert1(parts.join(' '));
+                    const hasFailures = failedExports.length > 0;
+                    this.showToast(parts.join(' '), hasFailures ? 'error' : 'success');
                 }
             })
             .catch((err: any) => {
-                (window as any).electronAPI.showAlert1(`Export failed: ${err.message}`);
+                this.showToast(`Export failed: ${err.message}`, 'error');
                 console.error('Export error:', err);
             })
             .finally(() => {
+                clearTimeout(progressTimeout);
+                if (loadingToast) {
+                    loadingToast.remove();
+                }
                 exportButton.disabled = false;
                 exportButton.innerHTML = originalContent;
+                this.updateExportButtonState();
             });
     }
 
@@ -240,7 +321,7 @@ class SettingsBackup {
         const fileInput = document.getElementById("restore-collection-file") as HTMLInputElement;
 
         if (!fileInput.files || fileInput.files.length === 0) {
-            (window as any).electronAPI.showAlert1("Please select a backup file.");
+            this.showToast("Please select a backup file.", "error");
             return;
         }
 
@@ -249,18 +330,18 @@ class SettingsBackup {
         const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
 
         if (!allowedExtensions.includes(fileExtension)) {
-            (window as any).electronAPI.showAlert1(`Invalid file type. Allowed types: ${allowedExtensions.join(', ')}`);
+            this.showToast(`Invalid file type. Allowed types: ${allowedExtensions.join(', ')}`, "error");
             return;
         }
 
         if (file.size > 100 * 1024 * 1024) {
-            (window as any).electronAPI.showAlert1("File size exceeds 100MB limit.");
+            this.showToast("File size exceeds 100MB limit.", "error");
             return;
         }
 
         const collectionSelect = document.getElementById("collection-select") as HTMLSelectElement;
         if (!collectionSelect || !collectionSelect.value || collectionSelect.value === "Choose collection") {
-            (window as any).electronAPI.showAlert1("Please select a collection to restore.");
+            this.showToast("Please select a collection to restore.", "error");
             return;
         }
 
@@ -274,6 +355,11 @@ class SettingsBackup {
         restoreButton.disabled = true;
         restoreButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Restoring...';
 
+        let loadingToast: HTMLElement | null = null;
+        const progressTimeout = setTimeout(() => {
+            loadingToast = this.showLoadingToast(`Restoring collection "${collectionSelect.value}"... please wait.`);
+        }, 1000);
+
         settingsApi.restoreCollection(formData)
             .then((data: { success: boolean; message: string; fileSize?: number }) => {
                 if (data.success) {
@@ -281,19 +367,34 @@ class SettingsBackup {
                     if (data.fileSize) {
                         msg += ` (${(data.fileSize / 1024).toFixed(2)} KB processed)`;
                     }
-                    (window as any).electronAPI.showAlert1(msg);
+                    this.showToast(msg, "success");
                     fileInput.value = "";
+                    const collFileName = document.getElementById("restore-collection-file-name");
+                    const collFileRemove = document.getElementById("restore-collection-file-remove");
+                    const sizeEl = document.getElementById("restore-collection-file-size");
+                    if (collFileName) collFileName.textContent = "No file selected";
+                    if (collFileRemove) collFileRemove.classList.add("hidden");
+                    if (sizeEl) sizeEl.textContent = "";
+                    const fileIcon = document.querySelector("#restore-collection-file-name")?.closest('.flex')?.querySelector("i");
+                    if (fileIcon) {
+                        fileIcon.className = "fas fa-file-code text-sm";
+                    }
                 } else {
-                    (window as any).electronAPI.showAlert1(`Restore failed: ${data.message}`);
+                    this.showToast(`Restore failed: ${data.message}`, "error");
                 }
             })
             .catch((err: any) => {
-                (window as any).electronAPI.showAlert1(`Restore failed: ${err.message}`);
+                this.showToast(`Restore failed: ${err.message}`, "error");
                 console.error('Restore error:', err);
             })
             .finally(() => {
+                clearTimeout(progressTimeout);
+                if (loadingToast) {
+                    loadingToast.remove();
+                }
                 restoreButton.disabled = false;
                 restoreButton.innerHTML = originalContent;
+                this.updateRestoreCollectionButtonState();
             });
     }
 
@@ -301,7 +402,7 @@ class SettingsBackup {
         const fileInput = document.getElementById("restore-database-file") as HTMLInputElement;
 
         if (!fileInput.files || fileInput.files.length === 0) {
-            (window as any).electronAPI.showAlert1("Please select a backup file.");
+            this.showToast("Please select a backup file.", "error");
             return;
         }
 
@@ -310,21 +411,24 @@ class SettingsBackup {
         const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
 
         if (!allowedExtensions.includes(fileExtension)) {
-            (window as any).electronAPI.showAlert1(`Invalid file type for database restore. Allowed types: ${allowedExtensions.join(', ')}`);
+            this.showToast(`Invalid file type for database restore. Allowed types: ${allowedExtensions.join(', ')}`, "error");
             return;
         }
 
         if (file.size > 100 * 1024 * 1024) {
-            (window as any).electronAPI.showAlert1("File size exceeds 100MB limit.");
+            this.showToast("File size exceeds 100MB limit.", "error");
             return;
         }
 
-        (window as any).electronAPI.showAlert2(
-            "Are you sure you want to restore the entire database? This will replace ALL existing data!"
-        );
-
-        (window as any).electronAPI.receiveAlertResponse((response: string | boolean) => {
-            if (response === 'Yes' || response === true) {
+        (window as any).electronAPI.showMessageBox({
+            type: "warning",
+            title: "Restore Database?",
+            message: "This operation will permanently replace all existing data.\n\nThis action cannot be undone.",
+            buttons: ["Cancel", "Restore Database"],
+            cancelId: 0,
+            defaultId: 1
+        }).then((choice: any) => {
+            if (choice.response === 1) {
                 this.performDatabaseRestore(file);
             }
         });
@@ -341,6 +445,11 @@ class SettingsBackup {
             restoreButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Restoring...';
         }
 
+        let loadingToast: HTMLElement | null = null;
+        const progressTimeout = setTimeout(() => {
+            loadingToast = this.showLoadingToast("Restoring database... please wait.");
+        }, 1000);
+
         settingsApi.restoreDatabase(formData)
             .then((data: { success: boolean; message: string; warning?: string; fileSize?: number }) => {
                 if (data.success) {
@@ -351,22 +460,37 @@ class SettingsBackup {
                     if (data.fileSize) {
                         msg += ` (${(data.fileSize / 1024).toFixed(2)} KB processed)`;
                     }
-                    (window as any).electronAPI.showAlert1(msg);
+                    this.showToast(msg, "success");
                     const fileInput = document.getElementById("restore-database-file") as HTMLInputElement;
                     if (fileInput) fileInput.value = "";
+                    const dbFileName = document.getElementById("restore-database-file-name");
+                    const dbFileRemove = document.getElementById("restore-database-file-remove");
+                    const sizeEl = document.getElementById("restore-database-file-size");
+                    if (dbFileName) dbFileName.textContent = "No file selected";
+                    if (dbFileRemove) dbFileRemove.classList.add("hidden");
+                    if (sizeEl) sizeEl.textContent = "";
+                    const fileIcon = document.querySelector("#restore-database-file-name")?.closest('.flex')?.querySelector("i");
+                    if (fileIcon) {
+                        fileIcon.className = "fas fa-database text-sm";
+                    }
                 } else {
-                    (window as any).electronAPI.showAlert1(`Database restore failed: ${data.message}`);
+                    this.showToast(`Database restore failed: ${data.message}`, "error");
                 }
             })
             .catch((err: any) => {
-                (window as any).electronAPI.showAlert1(`Database restore failed: ${err.message}`);
+                this.showToast(`Database restore failed: ${err.message}`, "error");
                 console.error('Database restore error:', err);
             })
             .finally(() => {
+                clearTimeout(progressTimeout);
+                if (loadingToast) {
+                    loadingToast.remove();
+                }
                 if (restoreButton) {
                     restoreButton.disabled = false;
                     restoreButton.innerHTML = originalContent;
                 }
+                this.updateRestoreDatabaseButtonState();
             });
     }
 
@@ -1035,6 +1159,122 @@ class SettingsBackup {
                     statusEl?.classList.add("hidden");
                 }, 5000);
             });
+    }
+
+    updateExportButtonState(): void {
+        const checkedElements = Array.from(document.querySelectorAll('input[name="export-data"]:checked')) as HTMLInputElement[];
+        const exportButton = document.getElementById("export-data-button") as HTMLButtonElement;
+        const btnText = document.getElementById("export-btn-text");
+        
+        if (exportButton) {
+            if (checkedElements.length === 0) {
+                exportButton.disabled = true;
+                exportButton.classList.add("opacity-50", "pointer-events-none");
+                if (btnText) btnText.textContent = "Export Selected Data";
+            } else {
+                exportButton.disabled = false;
+                exportButton.classList.remove("opacity-50", "pointer-events-none");
+                const count = checkedElements.length;
+                if (btnText) {
+                    btnText.textContent = `Export ${count} Collection${count > 1 ? 's' : ''}`;
+                }
+            }
+        }
+    }
+
+    updateRestoreCollectionButtonState(): void {
+        const collectionSelect = document.getElementById("collection-select") as HTMLSelectElement;
+        const fileInput = document.getElementById("restore-collection-file") as HTMLInputElement;
+        const restoreButton = document.getElementById("restore-collection-button") as HTMLButtonElement;
+        
+        const isCollectionSelected = collectionSelect && collectionSelect.value && collectionSelect.value !== "";
+        const isFileSelected = fileInput && fileInput.files && fileInput.files.length > 0;
+        
+        if (restoreButton) {
+            if (isCollectionSelected && isFileSelected) {
+                restoreButton.disabled = false;
+                restoreButton.classList.remove("opacity-50", "pointer-events-none");
+                restoreButton.className = "w-full px-4 py-2.5 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 active:scale-[0.98] transition shadow-sm hover:shadow-purple-500/20 text-xs cursor-pointer flex items-center justify-center gap-1.5 btn-transition";
+            } else {
+                restoreButton.disabled = true;
+                restoreButton.classList.add("opacity-50", "pointer-events-none");
+                restoreButton.className = "w-full px-4 py-2.5 bg-transparent text-purple-650 border border-purple-200 hover:bg-purple-50/50 rounded-lg font-semibold transition text-xs cursor-pointer flex items-center justify-center gap-1.5 opacity-50 pointer-events-none btn-transition";
+            }
+        }
+    }
+
+    updateRestoreDatabaseButtonState(): void {
+        const fileInput = document.getElementById("restore-database-file") as HTMLInputElement;
+        const restoreButton = document.getElementById("restore-database-button") as HTMLButtonElement;
+        
+        const isFileSelected = fileInput && fileInput.files && fileInput.files.length > 0;
+        
+        if (restoreButton) {
+            if (isFileSelected) {
+                restoreButton.disabled = false;
+                restoreButton.classList.remove("opacity-50", "pointer-events-none");
+                restoreButton.className = "w-full px-4 py-2.5 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 active:scale-[0.98] transition shadow-sm hover:shadow-red-500/20 text-xs cursor-pointer flex items-center justify-center gap-1.5 btn-transition";
+            } else {
+                restoreButton.disabled = true;
+                restoreButton.classList.add("opacity-50", "pointer-events-none");
+                restoreButton.className = "w-full px-4 py-2.5 bg-transparent text-red-650 border border-red-200 hover:bg-red-50/50 rounded-lg font-semibold transition text-xs cursor-pointer flex items-center justify-center gap-1.5 opacity-50 pointer-events-none btn-transition";
+            }
+        }
+    }
+
+    showToast(message: string, type: 'success' | 'error' = 'success'): void {
+        const existingToast = document.getElementById('global-toast');
+        if (existingToast) {
+            existingToast.remove();
+        }
+        const toast = document.createElement('div');
+        toast.id = 'global-toast';
+        toast.className = 'fixed bottom-5 right-5 z-[9999] flex items-center gap-2 px-5 py-3 rounded-xl text-white font-semibold text-sm shadow-xl transition-all duration-200';
+        
+        if (type === 'error') {
+            toast.style.background = '#ef4444';
+            toast.innerHTML = `<i class="fas fa-exclamation-circle text-base"></i><span>${message}</span>`;
+        } else {
+            toast.style.background = '#10b981';
+            toast.innerHTML = `<i class="fas fa-check-circle text-base"></i><span>${message}</span>`;
+        }
+        
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        document.body.appendChild(toast);
+        
+        // Force reflow
+        toast.offsetHeight;
+        
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(10px)';
+            setTimeout(() => {
+                toast.remove();
+            }, 200);
+        }, 3000);
+    }
+
+    showLoadingToast(message: string): HTMLElement {
+        const existingToast = document.getElementById('global-toast');
+        if (existingToast) {
+            existingToast.remove();
+        }
+        const toast = document.createElement('div');
+        toast.id = 'global-toast';
+        toast.className = 'fixed bottom-5 right-5 z-[9999] flex items-center gap-2 px-5 py-3 rounded-xl text-white font-semibold text-sm shadow-xl transition-all duration-200 bg-purple-650';
+        toast.innerHTML = `<i class="fas fa-spinner fa-spin text-base"></i><span>${message}</span>`;
+        
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        document.body.appendChild(toast);
+        toast.offsetHeight;
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
+        return toast;
     }
 }
 
