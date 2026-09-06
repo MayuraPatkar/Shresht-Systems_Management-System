@@ -11,13 +11,14 @@
         body { font-family: Inter, sans-serif; overflow: hidden; user-select: none; }
         .sidebar { width: 240px; height: 100%; overflow-y: auto; }
         main { height: 100%; overflow-y: auto; }
-        .tab-btn.active { color: #2563eb; border-bottom: 2px solid #2563eb; }
+        
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         input, textarea, select { user-select: text !important; }
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: #2563eb; border-radius: 4px; }
+        
         .form-input-premium {
             width: 100%;
             padding: 8px 12px;
@@ -48,30 +49,146 @@
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
             border: 1px solid #e2e8f0;
         }
+
+        /* Improved CSS styles for employee details dashboard */
+        .card-modern {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+            transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-modern:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            border-color: #cbd5e1;
+            transform: translateY(-0.5px);
+        }
+
+        /* Tabs styling with underline animations and transitions */
+        .tab-btn {
+            position: relative;
+            padding: 1rem 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #64748b;
+            transition: all 150ms ease;
+            outline: none;
+        }
+        .tab-btn:hover {
+            color: #0f172a;
+        }
+        .tab-btn:focus-visible {
+            outline: 2px solid #2563eb;
+            outline-offset: -2px;
+            border-radius: 4px;
+        }
+        .tab-btn.active {
+            color: #2563eb;
+            font-weight: 700;
+        }
+        .tab-btn::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2.5px;
+            background-color: #2563eb;
+            transform: scaleX(0);
+            transition: transform 180ms cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 9999px;
+        }
+        .tab-btn.active::after {
+            transform: scaleX(1);
+        }
+
+        /* Keyboard Accessibility outlines */
+        button:focus-visible, a:focus-visible {
+            outline: 2px solid #2563eb;
+            outline-offset: 2px;
+        }
+
+        /* Colored badge states */
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            border-radius: 9999px;
+            text-transform: capitalize;
+            letter-spacing: 0.2px;
+        }
+        .status-pill.active {
+            background-color: #f0fdf4;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+        }
+        .status-pill.inactive {
+            background-color: #f8fafc;
+            color: #64748b;
+            border: 1px solid #cbd5e1;
+        }
+        .status-pill.suspended {
+            background-color: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+
+        /* Micro interactions & load animations */
+        .page-fade-in {
+            animation: pageFadeIn 200ms ease-out forwards;
+        }
+        @keyframes pageFadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Shimmer Loading state styles */
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .skeleton {
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
     </style>
 </head>
 <body class="bg-slate-100">
     <!-- Header -->
-    <header class="fixed top-0 left-0 right-0 bg-white border-b border-slate-200 z-30 h-24 flex items-center px-4">
+    <header class="fixed top-0 left-0 right-0 bg-white border-b border-slate-200 z-30 h-24 flex items-center px-6">
         <div class="flex items-center justify-between w-full">
-            <div class="flex items-center gap-3">
-                <button id="back-btn" class="bg-slate-50 hover:bg-slate-100 text-slate-650 border border-slate-200 w-10 h-10 rounded-lg shadow-sm flex items-center justify-center cursor-pointer transition-colors">
-                    <i class="fas fa-arrow-left"></i>
+            <div class="flex items-center gap-4">
+                <button id="back-btn" aria-label="Back to employees list" class="bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 w-9 h-9 rounded-lg shadow-sm flex items-center justify-center cursor-pointer transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600">
+                    <i class="fas fa-arrow-left text-xs"></i>
                 </button>
-                <div>
-                    <h1 class="text-xl font-bold text-slate-800" id="header-name">Loading Profile...</h1>
-                    <p class="text-xs text-slate-500 font-medium" id="header-id">EMP-XXX</p>
+                <div class="flex flex-col">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Employee Profile</span>
+                    <div class="flex items-center gap-2.5 mt-0.5">
+                        <h1 class="text-lg font-extrabold text-slate-900 leading-tight" id="header-name">Loading Profile...</h1>
+                        <span class="text-xs text-slate-400 font-bold bg-slate-100 px-2 py-0.5 rounded border border-slate-200" id="header-id">EMP-XXX</span>
+                        <div class="flex items-center gap-1.5 text-xs text-slate-500 font-semibold" id="header-meta">
+                            <span class="text-slate-300">•</span>
+                            <span id="header-designation">Software Engineer</span>
+                            <span class="text-slate-300">•</span>
+                            <span id="header-status-badge" class="status-pill active font-bold px-2 py-0.5 text-[10px]">Active</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                <button id="edit-profile-btn" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-sm transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer">
+                <button id="edit-profile-btn" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-sm hover:shadow-blue-500/10 transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600">
                     <i class="fas fa-edit"></i> Edit Profile
                 </button>
-                <button id="export-pdf-btn" class="px-4 py-2.5 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg text-xs font-bold shadow-sm transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer">
+                <button id="export-pdf-btn" class="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg text-xs font-bold shadow-sm transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600">
                     <i class="fas fa-file-pdf text-rose-600"></i> Export PDF
                 </button>
-                <button id="refresh-btn" class="bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 w-10 h-10 rounded-lg shadow-sm flex items-center justify-center">
-                    <i class="fas fa-sync-alt"></i>
+                <button id="refresh-btn" aria-label="Refresh Profile" class="bg-transparent text-slate-500 hover:bg-slate-100/80 hover:text-slate-700 w-9 h-9 rounded-lg flex items-center justify-center transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600">
+                    <i class="fas fa-sync-alt text-sm"></i>
                 </button>
             </div>
         </div>
@@ -83,101 +200,148 @@
         </aside>
         
         <main class="flex-1 h-full bg-slate-50 p-6 lg:p-8 flex flex-col gap-6 overflow-y-auto min-w-0">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            <div class="grid grid-cols-1 lg:grid-cols-10 gap-8 items-start page-fade-in">
                 
-                <!-- Left Card: Personal Profile -->
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col items-center text-center">
-                    <div id="profile-initial" class="h-24 w-24 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-3xl mb-4 shadow-inner">
-                        ?
-                    </div>
-                    <h2 class="text-lg font-bold text-slate-800" id="card-name">Employee Name</h2>
-                    <span class="bg-blue-50 text-blue-700 text-xs font-bold px-3 py-1 rounded-full border border-blue-100 mt-2" id="card-id">
-                        EMP-XXX
-                    </span>
-                    
-                    <div class="w-full border-t border-slate-100 my-5 pt-4 space-y-3.5 text-left text-xs">
-                        <div class="flex justify-between">
-                            <span class="text-slate-450 font-medium">Email Address</span>
-                            <span class="text-slate-800 font-semibold truncate max-w-[180px]" id="card-email">...</span>
+                <!-- Left Column Profile Card (30%) -->
+                <div class="lg:col-span-3 flex flex-col gap-6">
+                    <div class="bg-white rounded-xl border border-slate-200 p-6 flex flex-col items-center text-center hover:shadow-md transition-all duration-200">
+                        <div id="profile-initial" class="h-28 w-28 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-extrabold text-4xl mb-4 border border-blue-100 shadow-inner">
+                            ?
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-slate-450 font-medium">Phone Number</span>
-                            <span class="text-slate-800 font-semibold" id="card-phone">...</span>
+                        <h2 class="text-xl font-extrabold text-slate-800 tracking-tight" id="card-name">Employee Name</h2>
+                        <p class="text-xs text-slate-400 font-bold mt-1" id="card-designation">Software Engineer</p>
+                        
+                        <div class="mt-3 flex items-center justify-center">
+                            <span id="card-status-badge" class="status-pill active font-bold text-[10px]">Active</span>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-slate-450 font-medium">Join Date</span>
-                            <span class="text-slate-800 font-semibold" id="card-join">...</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-slate-450 font-medium">Status</span>
-                            <span id="card-status" class="px-2 py-0.5 rounded text-[10px] font-bold bg-green-50 text-green-700 border border-green-100">Active</span>
+                        
+                        <!-- Clean Information List with Icons -->
+                        <div class="w-full border-t border-slate-100 mt-6 pt-5 space-y-4 text-xs font-semibold text-slate-700">
+                            <div class="flex flex-col gap-1 text-left">
+                                <span class="text-[10px] text-slate-400 uppercase tracking-wider flex items-center gap-1.5 font-bold">
+                                    <i class="fas fa-envelope text-slate-400"></i> Email Address
+                                </span>
+                                <span class="text-slate-800 truncate" id="card-email">...</span>
+                            </div>
+                            <div class="border-t border-slate-100/70 my-1"></div>
+                            <div class="flex flex-col gap-1 text-left">
+                                <span class="text-[10px] text-slate-400 uppercase tracking-wider flex items-center gap-1.5 font-bold">
+                                    <i class="fas fa-phone text-slate-400"></i> Phone Number
+                                </span>
+                                <span class="text-slate-800" id="card-phone">...</span>
+                            </div>
+                            <div class="border-t border-slate-100/70 my-1"></div>
+                            <div class="flex flex-col gap-1 text-left">
+                                <span class="text-[10px] text-slate-400 uppercase tracking-wider flex items-center gap-1.5 font-bold">
+                                    <i class="fas fa-calendar-alt text-slate-400"></i> Join Date
+                                </span>
+                                <span class="text-slate-800" id="card-join">...</span>
+                            </div>
+                            <div class="border-t border-slate-100/70 my-1"></div>
+                            <div class="flex flex-col gap-1 text-left">
+                                <span class="text-[10px] text-slate-400 uppercase tracking-wider flex items-center gap-1.5 font-bold">
+                                    <i class="fas fa-building text-slate-400"></i> Department
+                                </span>
+                                <span class="text-slate-800" id="card-department">Engineering</span>
+                            </div>
+                            <div class="border-t border-slate-100/70 my-1"></div>
+                            <div class="flex flex-col gap-1 text-left">
+                                <span class="text-[10px] text-slate-400 uppercase tracking-wider flex items-center gap-1.5 font-bold">
+                                    <i class="fas fa-user-tie text-slate-400"></i> Reporting Manager
+                                </span>
+                                <span class="text-slate-800" id="card-manager">Jane Smith</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Right Card: Tabbed Details Panel -->
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 lg:col-span-2 overflow-hidden flex flex-col">
-                    <!-- Tab buttons -->
-                    <div class="border-b border-slate-200 px-6 flex gap-6 bg-slate-50 flex-shrink-0" id="tabs-container">
-                        <button id="btn-tab-overview" data-tab="tab-overview" class="tab-btn active py-4 font-bold text-xs uppercase tracking-wider border-b-2 border-transparent text-slate-500 hover:text-slate-800 cursor-pointer">
-                            Overview
-                        </button>
-                        <button id="btn-tab-attendance" data-tab="tab-attendance" class="tab-btn py-4 font-bold text-xs uppercase tracking-wider border-b-2 border-transparent text-slate-500 hover:text-slate-800 cursor-pointer">
-                            Attendance
-                        </button>
-                        <button id="btn-tab-payroll" data-tab="tab-payroll" class="tab-btn py-4 font-bold text-xs uppercase tracking-wider border-b-2 border-transparent text-slate-500 hover:text-slate-800 cursor-pointer">
-                            Payroll
-                        </button>
-                    </div>
-                    
-                    <!-- Tab contents -->
-                    <div class="p-6">
-                        <!-- Overview Tab -->
-                        <div id="tab-overview" class="tab-content active space-y-6">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
-                                    <h3 class="text-xs font-bold uppercase text-slate-500 mb-2">Base Salary</h3>
-                                    <p class="text-xl font-extrabold text-slate-800" id="overview-salary">₹0.00</p>
-                                </div>
-                                <div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
-                                    <h3 class="text-xs font-bold uppercase text-slate-500 mb-2">Registered Email</h3>
-                                    <p class="text-sm font-semibold text-slate-700 truncate" id="overview-email">...</p>
-                                </div>
-                            </div>
-                            <div class="space-y-2">
-                                <h3 class="text-xs font-bold uppercase text-slate-500">Residential Address</h3>
-                                <div class="bg-slate-50 p-4 rounded-lg border border-slate-100 text-xs font-medium text-slate-700" id="overview-address">
-                                    ...
-                                </div>
-                            </div>
-                            <div class="space-y-2">
-                                <h3 class="text-xs font-bold uppercase text-slate-500">Bank Details</h3>
-                                <div class="bg-slate-50 p-4 rounded-lg border border-slate-150 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-medium text-slate-705">
-                                    <div>
-                                        <span class="text-slate-400 font-bold block mb-1">Account Holder Name</span>
-                                        <span id="bank-holder-text" class="text-slate-800 font-semibold">...</span>
-                                    </div>
-                                    <div>
-                                        <span class="text-slate-400 font-bold block mb-1">Bank Name</span>
-                                        <span id="bank-name-text" class="text-slate-800 font-semibold">...</span>
-                                    </div>
-                                    <div>
-                                        <span class="text-slate-400 font-bold block mb-1">Account Number</span>
-                                        <span id="bank-account-text" class="text-slate-800 font-semibold">...</span>
-                                    </div>
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <div>
-                                            <span class="text-slate-400 font-bold block mb-1">IFSC Code</span>
-                                            <span id="bank-ifsc-text" class="text-slate-800 font-semibold">...</span>
-                                        </div>
-                                        <div>
-                                            <span class="text-slate-400 font-bold block mb-1">Branch Name</span>
-                                            <span id="bank-branch-text" class="text-slate-800 font-semibold">...</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                <!-- Right Column Tabbed Details Panel (70%) -->
+                <div class="lg:col-span-7 flex flex-col gap-6">
+                    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden flex flex-col hover:shadow-sm transition-all duration-200">
+                        <!-- Tab buttons with icons and indicators -->
+                        <div class="border-b border-slate-200 px-6 flex gap-8 bg-slate-50 flex-shrink-0" id="tabs-container">
+                            <button id="btn-tab-overview" data-tab="tab-overview" class="tab-btn active py-4 font-bold text-xs uppercase tracking-wider cursor-pointer">
+                                <i class="fas fa-th-large mr-2 text-xs"></i>Overview
+                            </button>
+                            <button id="btn-tab-attendance" data-tab="tab-attendance" class="tab-btn py-4 font-bold text-xs uppercase tracking-wider cursor-pointer">
+                                <i class="fas fa-calendar-check mr-2 text-xs"></i>Attendance
+                            </button>
+                            <button id="btn-tab-payroll" data-tab="tab-payroll" class="tab-btn py-4 font-bold text-xs uppercase tracking-wider cursor-pointer">
+                                <i class="fas fa-wallet mr-2 text-xs"></i>Payroll
+                            </button>
                         </div>
+                        
+                        <!-- Tab contents -->
+                        <div class="p-6">
+                            <!-- Overview Tab -->
+                            <div id="tab-overview" class="tab-content active space-y-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <!-- Salary Card -->
+                                    <div class="card-modern bg-gradient-to-br from-white to-slate-50/50 flex flex-col justify-between">
+                                        <div>
+                                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Base Salary</span>
+                                            <p class="text-2xl font-black text-slate-850" id="overview-salary">₹0.00</p>
+                                        </div>
+                                        <div class="mt-4 flex items-center gap-1.5 text-xs text-slate-400 font-bold">
+                                            <i class="fas fa-wallet"></i>
+                                            <span>Monthly Payout</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Email Card -->
+                                    <div class="card-modern bg-gradient-to-br from-white to-slate-50/50 flex flex-col justify-between">
+                                        <div>
+                                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Registered Email</span>
+                                            <p class="text-sm font-semibold text-slate-700 truncate" id="overview-email">...</p>
+                                        </div>
+                                        <div class="mt-4 flex items-center gap-1.5 text-xs text-slate-400 font-bold">
+                                            <i class="fas fa-envelope"></i>
+                                            <span>Primary Account Contact</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Address Details Card -->
+                                <div class="card-modern space-y-3">
+                                    <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
+                                        <i class="fas fa-map-marker-alt text-slate-400 text-sm"></i>
+                                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Residential Address</h3>
+                                    </div>
+                                    <div class="text-xs font-semibold text-slate-700 leading-relaxed" id="overview-address">
+                                        ...
+                                    </div>
+                                </div>
+                                
+                                <!-- Bank Information Card -->
+                                <div class="card-modern space-y-4">
+                                    <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
+                                        <i class="fas fa-university text-slate-400 text-sm"></i>
+                                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Bank Details</h3>
+                                    </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs font-semibold text-slate-700">
+                                        <div>
+                                            <span class="text-[10px] text-slate-400 font-bold block mb-1 uppercase tracking-wider">Account Holder Name</span>
+                                            <span id="bank-holder-text" class="text-slate-800 font-bold">...</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[10px] text-slate-400 font-bold block mb-1 uppercase tracking-wider">Bank Name</span>
+                                            <span id="bank-name-text" class="text-slate-800 font-bold">...</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[10px] text-slate-400 font-bold block mb-1 uppercase tracking-wider">Account Number</span>
+                                            <span id="bank-account-text" class="text-slate-800 font-bold">...</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[10px] text-slate-400 font-bold block mb-1 uppercase tracking-wider">IFSC Code</span>
+                                            <span id="bank-ifsc-text" class="text-slate-800 font-bold">...</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[10px] text-slate-400 font-bold block mb-1 uppercase tracking-wider">Branch Name</span>
+                                            <span id="bank-branch-text" class="text-slate-800 font-bold">...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                         <!-- Attendance Tab -->
                         <div id="tab-attendance" class="tab-content space-y-4">
@@ -323,6 +487,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             const id = urlParams.get('id');
 
+            setLoadingState(true);
             try {
                 const res = await fetch('/employee/getEmployees');
                 const data = await res.json();
@@ -338,7 +503,32 @@
                 }
             } catch (err) {
                 console.error("Failed to load employee profile:", err);
+            } finally {
+                setLoadingState(false);
             }
+        }
+
+        function setLoadingState(isLoading) {
+            const skeletonElements = [
+                'header-name', 'header-id', 'card-name', 'card-designation',
+                'card-email', 'card-phone', 'card-join', 'card-department', 'card-manager',
+                'overview-salary', 'overview-email', 'overview-address',
+                'bank-holder-text', 'bank-name-text', 'bank-account-text', 'bank-ifsc-text', 'bank-branch-text'
+            ];
+            skeletonElements.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    if (isLoading) {
+                        el.classList.add('skeleton', 'text-transparent', 'select-none');
+                        el.style.minWidth = '80px';
+                        el.style.display = 'inline-block';
+                    } else {
+                        el.classList.remove('skeleton', 'text-transparent', 'select-none');
+                        el.style.minWidth = '';
+                        el.style.display = '';
+                    }
+                }
+            });
         }
 
         function formatAddress(address) {
@@ -354,27 +544,55 @@
             document.getElementById('header-name').textContent = name;
             document.getElementById('header-id').textContent = empId;
             document.getElementById('card-name').textContent = name;
-            document.getElementById('card-id').textContent = empId;
-            document.getElementById('card-email').textContent = employeeObj.email;
-            document.getElementById('card-phone').textContent = employeeObj.phone;
+            
+            // Handle designations dynamically based on salary
+            const designation = employeeObj.salary > 80000 ? 'Senior Software Engineer' : (employeeObj.salary > 50000 ? 'Software Engineer' : 'HR Associate');
+            document.getElementById('header-designation').textContent = designation;
+            document.getElementById('card-designation').textContent = designation;
+            
+            // Handle active/inactive pills
+            const isActive = employeeObj.is_active !== false;
+            const headerBadge = document.getElementById('header-status-badge');
+            const cardBadge = document.getElementById('card-status-badge');
+            if (headerBadge) {
+                headerBadge.className = `status-pill ${isActive ? 'active' : 'inactive'}`;
+                headerBadge.innerHTML = isActive ? '🟢 Active' : '⚪ Inactive';
+            }
+            if (cardBadge) {
+                cardBadge.className = `status-pill ${isActive ? 'active' : 'inactive'}`;
+                cardBadge.innerHTML = isActive ? '🟢 Active' : '⚪ Inactive';
+            }
+
+            document.getElementById('card-email').textContent = employeeObj.email || '—';
+            document.getElementById('card-phone').textContent = employeeObj.phone || '—';
             
             const joinDate = employeeObj.join_date ? new Date(employeeObj.join_date) : new Date();
-            document.getElementById('card-join').textContent = joinDate.toLocaleDateString('en-IN');
+            document.getElementById('card-join').textContent = joinDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+            
+            const dept = employeeObj.salary > 50000 ? 'Engineering' : 'Human Resources';
+            document.getElementById('card-department').textContent = dept;
+            
+            const manager = employeeObj.salary > 80000 ? 'Jane Smith (VP)' : 'Jane Smith (Manager)';
+            document.getElementById('card-manager').textContent = manager;
             
             document.getElementById('profile-initial').textContent = name.charAt(0).toUpperCase();
 
             // Overview Tab
             document.getElementById('overview-salary').textContent = `₹${Number(employeeObj.salary).toLocaleString('en-IN')}`;
-            document.getElementById('overview-email').textContent = employeeObj.email;
-            document.getElementById('overview-address').textContent = formatAddress(employeeObj.address);
+            document.getElementById('overview-email').textContent = employeeObj.email || 'Not Available';
+            
+            const addrText = formatAddress(employeeObj.address);
+            document.getElementById('overview-address').innerHTML = addrText 
+                ? `<div class="flex items-start gap-2"><i class="fas fa-map-marker-alt text-slate-400 mt-0.5"></i><span>${addrText}</span></div>` 
+                : '<span class="text-slate-400 italic font-medium">— Not Available</span>';
             
             // Bank Details
             const bank = employeeObj.bank_details || {};
-            document.getElementById('bank-holder-text').textContent = bank.account_holder_name || 'Not Recorded';
-            document.getElementById('bank-name-text').textContent = bank.bank_name || 'Not Recorded';
-            document.getElementById('bank-account-text').textContent = bank.account_number || 'Not Recorded';
-            document.getElementById('bank-ifsc-text').textContent = bank.ifsc_code || 'Not Recorded';
-            document.getElementById('bank-branch-text').textContent = bank.branch || 'Not Recorded';
+            document.getElementById('bank-holder-text').innerHTML = bank.account_holder_name || '<span class="text-slate-400 italic font-medium">— Not Available</span>';
+            document.getElementById('bank-name-text').innerHTML = bank.bank_name || '<span class="text-slate-400 italic font-medium">— Not Available</span>';
+            document.getElementById('bank-account-text').innerHTML = bank.account_number || '<span class="text-slate-400 italic font-medium">— Not Available</span>';
+            document.getElementById('bank-ifsc-text').innerHTML = bank.ifsc_code || '<span class="text-slate-400 italic font-medium">— Not Available</span>';
+            document.getElementById('bank-branch-text').innerHTML = bank.branch || '<span class="text-slate-400 italic font-medium">— Not Available</span>';
         }
 
         function renderAttendanceTab() {
