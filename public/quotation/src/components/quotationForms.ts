@@ -1359,7 +1359,7 @@ async function generatePreview() {
             <tr class="totals-row">
                 <td colspan="3" class="text-left">TOTAL</td>
                 <td class="text-right">${totalQtySum}</td>
-                <td class="text-right">₹&nbsp;${formatIndian(totalUnitPriceSum, 2)}</td>
+                <td></td>
                 <td class="text-right">₹&nbsp;${formatIndian(totalTaxableSum, 2)}</td>
                 <td class="text-right">₹&nbsp;${formatIndian(totalItemsTaxSum, 2)}</td>
                 <td class="text-right">₹&nbsp;${formatIndian(totalPriceSum, 2)}</td>
@@ -1370,7 +1370,7 @@ async function generatePreview() {
             <tr class="totals-row">
                 <td colspan="3" class="text-left">TOTAL</td>
                 <td class="text-right">${totalQtySum}</td>
-                <td class="text-right">₹&nbsp;${formatIndian(totalUnitPriceSum, 2)}</td>
+                <td></td>
                 <td class="text-right">₹&nbsp;${formatIndian(totalPriceSum, 2)}</td>
             </tr>
         `;
