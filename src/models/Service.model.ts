@@ -74,7 +74,11 @@ export interface IService extends Document {
 
     service_no: string;
     service_id: string;
-    invoice_id: Types.ObjectId;
+    invoice_id?: Types.ObjectId;
+    customer_name?: string;
+    customer_phone?: string;
+    customer_address?: string;
+    project_name?: string;
 
     service_after_months?: number;
     service_date: Date;
@@ -209,9 +213,13 @@ const serviceSchema = new Schema<IService>(
         invoice_id: {
             type: Schema.Types.ObjectId,
             ref: "Invoice",
-            required: true,
             index: true,
         },
+
+        customer_name: { type: String, trim: true },
+        customer_phone: { type: String, trim: true },
+        customer_address: { type: String, trim: true },
+        project_name: { type: String, trim: true },
 
         service_after_months: {
             type: Number,

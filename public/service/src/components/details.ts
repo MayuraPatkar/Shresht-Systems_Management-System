@@ -385,8 +385,8 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
 
         // Sidebar associated metadata details
         if ($metaCustomerName) $metaCustomerName.textContent = invoice.customer_name || service.customer_name || '-';
-        if ($metaCustomerPhone) $metaCustomerPhone.textContent = invoice.customer_phone || '-';
-        if ($metaCustomerAddress) $metaCustomerAddress.textContent = invoice.customer_address || '-';
+        if ($metaCustomerPhone) $metaCustomerPhone.textContent = invoice.customer_phone || service.customer_phone || '-';
+        if ($metaCustomerAddress) $metaCustomerAddress.textContent = invoice.customer_address || service.customer_address || '-';
 
         // Financial summary details
         const subtotal = service.total_amount_no_tax || 0;

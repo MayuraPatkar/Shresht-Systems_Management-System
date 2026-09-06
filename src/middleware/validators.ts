@@ -109,7 +109,7 @@ const validators = {
     // Service validators
     createService: [
         body("service_id").trim().notEmpty().withMessage("Service ID is required"),
-        body("invoice_id").trim().notEmpty().withMessage("Invoice ID is required"),
+        body("invoice_id").optional().trim(),
         body("fee_amount").optional().isNumeric().withMessage("Fee amount must be a number"),
         validate,
     ],

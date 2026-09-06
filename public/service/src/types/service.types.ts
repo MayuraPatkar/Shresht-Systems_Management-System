@@ -29,8 +29,10 @@ interface ServicePayment {
 interface Service {
     _id?: string;
     service_id: string;
-    invoice_id: string;
+    invoice_id?: string;
     customer_name?: string;
+    customer_phone?: string;
+    customer_address?: string;
     project_name?: string;
     service_date: string;
     service_stage: number;

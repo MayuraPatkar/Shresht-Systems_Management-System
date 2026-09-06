@@ -133,6 +133,17 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
             const dateInput = document.getElementById('service-date') as HTMLInputElement;
             if (dateInput) dateInput.value = service.service_date?.split('T')[0] || '';
 
+            (document.getElementById('standalone-customer-name') as HTMLInputElement).value = service.customer_name || '';
+            (document.getElementById('standalone-customer-phone') as HTMLInputElement).value = service.customer_phone || '';
+            (document.getElementById('standalone-customer-address') as HTMLTextAreaElement).value = service.customer_address || '';
+            (document.getElementById('standalone-project-name') as HTMLInputElement).value = service.project_name || '';
+            const standaloneProject = document.getElementById('standalone-project') as HTMLInputElement;
+            if (standaloneProject) standaloneProject.checked = !service.invoice_id;
+            if (!service.invoice_id) {
+                document.getElementById('invoice-selection-wrapper')?.classList.add('hidden');
+                document.getElementById('standalone-customer-fields')?.classList.remove('hidden');
+            }
+
             // Show selected invoice info
             selectInvoice(service.invoice_id);
             const clearInvBtn = document.getElementById('clear-invoice-btn');
@@ -178,6 +189,13 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
         setValue('form-service-stage', '');
         setValue('form-is-editing', 'false');
         setValue('next-service-month', '');
+        setValue('standalone-customer-name', '');
+        setValue('standalone-customer-phone', '');
+        setValue('standalone-customer-address', '');
+        setValue('standalone-project-name', '');
+        document.getElementById('standalone-customer-fields')?.classList.add('hidden');
+        const standaloneProject = document.getElementById('standalone-project') as HTMLInputElement;
+        if (standaloneProject) standaloneProject.checked = false;
 
         const itemsContainer = document.getElementById('items-container');
         if (itemsContainer) itemsContainer.innerHTML = '';
@@ -738,10 +756,18 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
         const dateInput = document.getElementById('service-date') as HTMLInputElement;
         const stageInput = document.getElementById('form-service-stage') as HTMLInputElement;
         const nextMonthInput = document.getElementById('next-service-month') as HTMLInputElement;
+        const customerNameInput = document.getElementById('standalone-customer-name') as HTMLInputElement;
+        const customerPhoneInput = document.getElementById('standalone-customer-phone') as HTMLInputElement;
+        const customerAddressInput = document.getElementById('standalone-customer-address') as HTMLTextAreaElement;
+        const projectNameInput = document.getElementById('standalone-project-name') as HTMLInputElement;
 
         return {
             service_id: sIdInput?.value || '',
             invoice_id: invIdInput?.value || '',
+            customer_name: customerNameInput?.value.trim() || '',
+            customer_phone: customerPhoneInput?.value.trim() || '',
+            customer_address: customerAddressInput?.value.trim() || '',
+            project_name: projectNameInput?.value.trim() || '',
             service_date: dateInput?.value || '',
             service_stage: parseInt(stageInput?.value) || 1,
             next_service_month: parseInt(nextMonthInput?.value) || 0,
@@ -768,11 +794,30 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
             
             const invIdInput = document.getElementById('form-invoice-id') as HTMLInputElement;
             const invoiceSearch = document.getElementById('invoice-search') as HTMLInputElement;
-            if (!invIdInput?.value) {
+            const standaloneProject = document.getElementById('standalone-project') as HTMLInputElement;
+            if (!invIdInput?.value && !standaloneProject?.checked) {
                 if (invoiceSearch) {
-                    showInlineError(invoiceSearch, 'Please search and select an Invoice.');
+                    showInlineError(invoiceSearch, 'Select an invoice or choose independent project.');
                 }
                 isValid = false;
+            }
+
+            if (standaloneProject?.checked) {
+                const customerName = document.getElementById('standalone-customer-name') as HTMLInputElement;
+                const customerPhone = document.getElementById('standalone-customer-phone') as HTMLInputElement;
+                const projectName = document.getElementById('standalone-project-name') as HTMLInputElement;
+                if (!customerName?.value.trim()) {
+                    showInlineError(customerName, 'Required');
+                    isValid = false;
+                }
+                if (!projectName?.value.trim()) {
+                    showInlineError(projectName, 'Required');
+                    isValid = false;
+                }
+                if (customerPhone?.value.trim() && !/^\d{10}$/.test(customerPhone.value.trim())) {
+                    showInlineError(customerPhone, 'Please enter a valid 10-digit phone number');
+                    isValid = false;
+                }
             }
 
             const dateInput = document.getElementById('service-date') as HTMLInputElement;
@@ -932,8 +977,8 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
 
         const buyerInfo = (window as any).SectionRenderers.renderBuyerDetails({
             name: invoice.customer_name || serviceData.customer_name,
-            address: invoice.customer_address,
-            phone: invoice.customer_phone,
+            address: invoice.customer_address || serviceData.customer_address,
+            phone: invoice.customer_phone || serviceData.customer_phone,
             title: "Bill To:"
         });
 
@@ -1002,7 +1047,9 @@ declare function showToast(message: string, type?: 'success' | 'error'): void;
             // Update next service status
             const nextServiceSelect = document.getElementById('next-service-select') as HTMLSelectElement;
             const nextService = nextServiceSelect?.value || '';
-            await serviceApi.updateNextService(data.invoice_id, nextService);
+            if (data.invoice_id) {
+                await serviceApi.updateNextService(data.invoice_id, nextService);
+            }
 
             showToast('Service saved successfully!');
 

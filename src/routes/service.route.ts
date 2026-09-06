@@ -149,7 +149,9 @@ router.post("/save-payment", async (req: Request, res: Response) => {
             return res.status(400).json({ message: `Payment amount exceeds due amount (₹ ${(totalDue - currentPaid).toFixed(2)})` });
         }
 
-        const invoice = await InvoiceModel.findOne({ invoice_id: serviceRecord.invoice_id }).lean() as any;
+        const invoice = serviceRecord.invoice_id
+            ? await InvoiceModel.findOne({ invoice_id: serviceRecord.invoice_id }).lean() as any
+            : null;
         const party = {
             type: 'Customer' as const,
             id: invoice?.customer_snapshot?.name || invoice?.customer_name || '',
@@ -223,7 +225,9 @@ router.put("/update-payment", async (req: Request, res: Response) => {
                 await payment.save();
             }
         } else {
-            const invoice = await InvoiceModel.findOne({ invoice_id: serviceRecord.invoice_id }).lean() as any;
+            const invoice = serviceRecord.invoice_id
+                ? await InvoiceModel.findOne({ invoice_id: serviceRecord.invoice_id }).lean() as any
+                : null;
             const party = {
                 type: 'Customer' as const,
                 id: invoice?.customer_snapshot?.name || invoice?.customer_name || '',
@@ -301,6 +305,10 @@ router.post('/save-service', async (req: Request, res: Response) => {
     try {
         const {
             invoice_id,
+            customer_name,
+            customer_phone,
+            customer_address,
+            project_name,
             fee_amount,
             service_date,
             service_stage,
@@ -315,8 +323,10 @@ router.post('/save-service', async (req: Request, res: Response) => {
             terms_and_conditions
         } = req.body;
 
-        const invoice = await InvoiceModel.findOne({ invoice_id }) as any;
-        if (!invoice) {
+        const invoice = invoice_id
+            ? await InvoiceModel.findOne({ invoice_id }) as any
+            : null;
+        if (invoice_id && !invoice) {
             return res.status(404).json({ error: "Invoice not found" });
         }
 
@@ -324,7 +334,11 @@ router.post('/save-service', async (req: Request, res: Response) => {
 
         const savedService = await ServiceModel.create({
             service_id: newServiceId,
-            invoice_id: invoice._id,
+            ...(invoice ? { invoice_id: invoice._id } : {}),
+            customer_name: customer_name || undefined,
+            customer_phone: customer_phone || undefined,
+            customer_address: customer_address || undefined,
+            project_name: project_name || undefined,
             fee_amount,
             service_date,
             service_stage,
@@ -367,25 +381,29 @@ router.post('/save-service', async (req: Request, res: Response) => {
         }
 
         // Update service_stage in the invoice
-        if (typeof service_stage !== "undefined") {
+        if (invoice && typeof service_stage !== "undefined") {
             const existingStage = Number(invoice.service_stage || 0);
             const incomingStage = Number(service_stage || 0);
             invoice.service_stage = Math.max(existingStage, incomingStage);
         }
 
-        const serviceMonthToUse = (typeof next_service_month === 'number' && next_service_month >= 0)
+        const serviceMonthToUse = invoice && (typeof next_service_month === 'number' && next_service_month >= 0)
             ? next_service_month
-            : invoice.service_after_months;
+            : invoice?.service_after_months;
 
-        if (serviceMonthToUse > 0) {
+        if (invoice && serviceMonthToUse > 0) {
             const currentServiceDate = moment(service_date);
             invoice.next_service_date = currentServiceDate.add(serviceMonthToUse, 'months').toDate();
         }
 
-        await invoice.save();
+        if (invoice) {
+            await invoice.save();
+        }
 
         return res.json({
-            message: "Service saved and invoice service_stage updated successfully",
+            message: invoice
+                ? "Service saved and invoice service_stage updated successfully"
+                : "Standalone service saved successfully",
             service: savedService,
             service_id: newServiceId
         });
@@ -402,6 +420,10 @@ router.put('/update-service', async (req: Request, res: Response) => {
         const {
             service_id,
             invoice_id,
+            customer_name,
+            customer_phone,
+            customer_address,
+            project_name,
             fee_amount,
             service_date,
             service_stage,
@@ -482,6 +504,10 @@ router.put('/update-service', async (req: Request, res: Response) => {
         }
 
         existingService.invoice_id = dbInvoiceId;
+        existingService.customer_name = customer_name !== undefined ? customer_name : existingService.customer_name;
+        existingService.customer_phone = customer_phone !== undefined ? customer_phone : existingService.customer_phone;
+        existingService.customer_address = customer_address !== undefined ? customer_address : existingService.customer_address;
+        existingService.project_name = project_name !== undefined ? project_name : existingService.project_name;
         existingService.fee_amount = fee_amount !== undefined ? fee_amount : existingService.fee_amount;
         existingService.service_date = service_date || existingService.service_date;
         existingService.service_stage = service_stage !== undefined ? service_stage : existingService.service_stage;
@@ -496,7 +522,7 @@ router.put('/update-service', async (req: Request, res: Response) => {
 
         await existingService.save();
 
-        const invoice = await InvoiceModel.findOne({ invoice_id }) as any;
+        const invoice = invoice_id ? await InvoiceModel.findOne({ invoice_id }) as any : null;
         if (invoice) {
             const existingStage = Number(invoice.service_stage || 0);
             const incomingStage = Number(service_stage || 0);
@@ -579,10 +605,12 @@ router.get('/recent-services', async (req: Request, res: Response) => {
 
         const servicesWithInvoiceData = await Promise.all(
             recentServices.map(async (svc: any) => {
-                let invoice = await InvoiceModel.findOne({ invoice_id: svc.invoice_id })
-                    .select('customer_name customer_address customer_phone customer_gstin project_name')
-                    .lean() as any;
-                if (!invoice) {
+                let invoice = svc.invoice_id
+                    ? await InvoiceModel.findOne({ invoice_id: svc.invoice_id })
+                        .select('customer_name customer_address customer_phone customer_gstin project_name')
+                        .lean() as any
+                    : null;
+                if (!invoice && svc.invoice_id) {
                     try {
                         invoice = await InvoiceModel.findById(svc.invoice_id)
                             .select('customer_name customer_address customer_phone customer_gstin project_name')
@@ -591,11 +619,11 @@ router.get('/recent-services', async (req: Request, res: Response) => {
                 }
                 return {
                     ...svc,
-                    customer_name: invoice?.customer_name || 'N/A',
-                    customer_address: invoice?.customer_address || 'N/A',
-                    customer_phone: invoice?.customer_phone || 'N/A',
+                    customer_name: invoice?.customer_name || svc.customer_name || 'N/A',
+                    customer_address: invoice?.customer_address || svc.customer_address || 'N/A',
+                    customer_phone: invoice?.customer_phone || svc.customer_phone || 'N/A',
                     customer_gstin: invoice?.customer_gstin || 'N/A',
-                    project_name: invoice?.project_name || 'N/A'
+                    project_name: invoice?.project_name || svc.project_name || 'N/A'
                 };
             })
         );
@@ -622,8 +650,10 @@ router.get('/:serviceId', async (req: Request, res: Response) => {
         if (serviceRecord) {
             // Found by service_id — look up the linked invoice
             // invoice_id may be stored as a string or ObjectId depending on how it was saved
-            invoice = await InvoiceModel.findOne({ invoice_id: serviceRecord.invoice_id }).lean();
-            if (!invoice) {
+            invoice = serviceRecord.invoice_id
+                ? await InvoiceModel.findOne({ invoice_id: serviceRecord.invoice_id }).lean()
+                : null;
+            if (!invoice && serviceRecord.invoice_id) {
                 try {
                     invoice = await InvoiceModel.findById(serviceRecord.invoice_id).lean();
                 } catch { /* not a valid ObjectId, ignore */ }
@@ -741,11 +771,11 @@ router.get('/search-services/:query', async (req: Request, res: Response) => {
                 }
                 return {
                     ...svc,
-                    customer_name: invoice?.customer_name || 'N/A',
-                    customer_address: invoice?.customer_address || 'N/A',
-                    customer_phone: invoice?.customer_phone || 'N/A',
+                    customer_name: invoice?.customer_name || svc.customer_name || 'N/A',
+                    customer_address: invoice?.customer_address || svc.customer_address || 'N/A',
+                    customer_phone: invoice?.customer_phone || svc.customer_phone || 'N/A',
                     customer_gstin: invoice?.customer_gstin || 'N/A',
-                    project_name: invoice?.project_name || 'N/A'
+                    project_name: invoice?.project_name || svc.project_name || 'N/A'
                 };
             })
         );

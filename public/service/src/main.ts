@@ -918,6 +918,26 @@
             if (invSearch) invSearch.value = '';
         });
 
+        document.getElementById('standalone-project')?.addEventListener('change', (event) => {
+            const standalone = (event.target as HTMLInputElement).checked;
+            const invoiceWrapper = document.getElementById('invoice-selection-wrapper');
+            const selectedInvoice = document.getElementById('selected-invoice-info');
+            const customerFields = document.getElementById('standalone-customer-fields');
+            const invoiceId = document.getElementById('form-invoice-id') as HTMLInputElement;
+            const invoiceSearch = document.getElementById('invoice-search') as HTMLInputElement;
+
+            if (standalone) {
+                if (invoiceId) invoiceId.value = '';
+                if (invoiceSearch) invoiceSearch.value = '';
+                invoiceWrapper?.classList.add('hidden');
+                selectedInvoice?.classList.add('hidden');
+                customerFields?.classList.remove('hidden');
+            } else {
+                invoiceWrapper?.classList.remove('hidden');
+                customerFields?.classList.add('hidden');
+            }
+        });
+
         document.getElementById('add-item-btn')?.addEventListener('click', () => (window as any).addItemRow());
         document.getElementById('add-charge-btn')?.addEventListener('click', () => (window as any).addChargeRow());
 
