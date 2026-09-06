@@ -2,8 +2,20 @@
 
 A comprehensive desktop management system for Shresht Systems, built with Electron, Express, and MongoDB. This professional application streamlines business processes including quotations, invoices, purchase orders, waybills, service management, stock tracking, reports, analytics, and communications.
 
-**Version:** 4.0.0  
+**Version:** 4.4.0
 **Website:** https://shreshtsystems.com
+
+---
+
+## Release 4.4.0
+
+This release expands Service Management with support for independent projects that are not linked to an invoice.
+
+- Create standalone service documents without an invoice.
+- Capture customer name, project name, phone number, and address for standalone services.
+- Validate standalone customer phone numbers using the standard 10-digit format.
+- Show standalone customer details in service previews, service details, recent services, and edit forms.
+- Preserve invoice-linked service workflows, scheduling, stock deduction, and payment tracking.
 
 ---
 
@@ -29,7 +41,7 @@ A comprehensive desktop management system for Shresht Systems, built with Electr
 - **Invoice Management:** Generate, update, and track invoices with payment status and stock deduction. Includes smart payment calculation & tracking.
 - **Purchase Orders:** Manage supplier orders, track inventory, and link purchase documents seamlessly.
 - **Waybills:** Create and manage waybills for shipments and deliveries.
-- **Service Management:** Track services, maintenance with automatic stock deduction for parts used.
+- **Service Management:** Track invoice-linked and independent project services, with automatic stock deduction for parts used and customer information captured for standalone service documents.
 - **Stock Management:** Monitor inventory levels, stock movements, and low stock alerts.
 
 ### Reports Module
@@ -49,6 +61,7 @@ A comprehensive desktop management system for Shresht Systems, built with Electr
 - **Dynamic Data Migrations (NEW):** Batch migrations (V2) with smart dependency-resolving logic for status updates (e.g. converting quotation statuses, tracking purchase orders to received purchases, and compiling payment progress).
 - **Human-Readable ID Resolutions (NEW):** Automatic resolution of raw MongoDB ObjectIDs to their user-facing document numbers on payment records and logs.
 - **UI & Grid Alignment Enhancements (NEW):** Optimized layouts for customer, supplier, and payment registers (such as displaying primary street address line1 instead of city/state).
+- **Standalone Service Documents (NEW):** Create services for independent projects without an invoice, capture customer details, validate phone numbers, and include the information in previews and service details.
 - **Professional Logging:** Winston-based logging with daily rotation.
 - **Database Backups:** Automated MongoDB backups with timestamp.
 - **Input Validation:** Comprehensive validation using express-validator.
