@@ -383,19 +383,11 @@
                             </div>
                             <div class="bg-slate-50 p-5 rounded-lg border border-slate-200 space-y-4 text-xs font-semibold text-slate-700">
                                 <div class="flex justify-between pb-2 border-b border-slate-200">
-                                    <span>Basic Base Salary</span>
+                                    <span>Basic Salary</span>
                                     <span id="payroll-base">₹0.00</span>
                                 </div>
-                                <div class="flex justify-between pb-2 border-b border-slate-200 text-red-650">
-                                    <span>Provident Fund Contribution (12% Base)</span>
-                                    <span id="payroll-pf">-₹0.00</span>
-                                </div>
-                                <div class="flex justify-between pb-2 border-b border-slate-200 text-red-655">
-                                    <span>Professional Tax (PT)</span>
-                                    <span id="payroll-pt">-₹0.00</span>
-                                </div>
                                 <div class="flex justify-between pt-2 text-sm font-bold text-emerald-600">
-                                    <span>Net Monthly Take-Home</span>
+                                    <span>Total Monthly Salary</span>
                                     <span id="payroll-net">₹0.00</span>
                                 </div>
                             </div>
@@ -768,15 +760,8 @@
 
         function renderPayrollTab() {
             const base = Number(employeeObj.salary) || 0;
-            const pf = Math.round(base * 0.12);
-            const pt = base > 15000 ? 200 : 0;
-            const deductions = pf + pt;
-            const net = base - deductions;
-
             document.getElementById('payroll-base').textContent = `₹${base.toLocaleString('en-IN')}`;
-            document.getElementById('payroll-pf').textContent = `-₹${pf.toLocaleString('en-IN')}`;
-            document.getElementById('payroll-pt').textContent = `-₹${pt.toLocaleString('en-IN')}`;
-            document.getElementById('payroll-net').textContent = `₹${net.toLocaleString('en-IN')}`;
+            document.getElementById('payroll-net').textContent = `₹${base.toLocaleString('en-IN')}`;
         }
 
         function switchTab(tabId) {
@@ -835,10 +820,6 @@
             const address = formatAddress(employeeObj.address);
             const bank = employeeObj.bank_details || {};
             const base = Number(employeeObj.salary) || 0;
-            const pf = Math.round(base * 0.12);
-            const pt = base > 15000 ? 200 : 0;
-            const deductions = pf + pt;
-            const net = base - deductions;
 
             const pdfHTML = `
             <!DOCTYPE html>
@@ -933,32 +914,16 @@
                             <tr>
                                 <th>Earnings / Allowances</th>
                                 <th style="text-align: right;">Amount</th>
-                                <th>Deductions</th>
-                                <th style="text-align: right;">Amount</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td>Basic Base Salary</td>
+                                <td>Basic Salary</td>
                                 <td style="text-align: right;">₹${base.toLocaleString('en-IN')}</td>
-                                <td>Provident Fund (PF)</td>
-                                <td style="text-align: right; color: red;">₹${pf.toLocaleString('en-IN')}</td>
-                            </tr>
-                            <tr>
-                                <td></td>
-                                <td></td>
-                                <td>Professional Tax (PT)</td>
-                                <td style="text-align: right; color: red;">₹${pt.toLocaleString('en-IN')}</td>
-                            </tr>
-                            <tr class="total">
-                                <td>Total Earnings</td>
-                                <td style="text-align: right;">₹${base.toLocaleString('en-IN')}</td>
-                                <td>Total Deductions</td>
-                                <td style="text-align: right; color: red;">₹${deductions.toLocaleString('en-IN')}</td>
                             </tr>
                             <tr class="total" style="background-color: #e2e8f0; font-size: 14px;">
-                                <td colspan="2">Net Monthly Take-Home</td>
-                                <td colspan="2" style="text-align: right; color: green;">₹${net.toLocaleString('en-IN')}</td>
+                                <td>Total Monthly Salary</td>
+                                <td style="text-align: right; color: green;">₹${base.toLocaleString('en-IN')}</td>
                             </tr>
                         </tbody>
                     </table>
