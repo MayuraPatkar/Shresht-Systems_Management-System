@@ -1,99 +1,29 @@
 {
   "versions": [
     {
-      "version": "4.3.0",
-      "date": "2026-07-08",
-      "title": "Cloud Backup & Advanced Business Intelligence",
+      "version": "4.4.0",
+      "date": "2026-09-06",
+      "title": "Standalone Service Documents",
       "changes": [
         {
           "type": "feature",
-          "description": "Google Drive Cloud Backup: Added support for secure Google Drive cloud backups. Users can enter Google Client Credentials manually and perform manual, automated, or hybrid local/cloud database backups."
+          "description": "Independent Project Services: Added support for creating service documents without linking them to an invoice."
         },
         {
           "type": "feature",
-          "description": "Inventory Analytics Dashboard: Added a brand new inventory intelligence module with metrics for top products, trending brands, inventory valuation, reorder alerts, and monthly demand forecasting."
-        },
-        {
-          "type": "feature",
-          "description": "Finance Analytics Dashboard: Added professional financial analytics including EBITDA tracking, budget vs expense tracking, GST analysis, and accounts receivable/payable aging ledger heatmaps."
+          "description": "Standalone Customer Information: Added customer name, project name, phone number, and address fields for independent service projects."
         },
         {
           "type": "improvement",
-          "description": "Indian Currency Formatting: Enforced Indian English locale formatting (Lakhs/Crores grouping) for all financial numbers and metrics across all analytics dashboards."
+          "description": "Service Phone Validation: Added 10-digit phone number validation for standalone customer information."
+        },
+        {
+          "type": "improvement",
+          "description": "Service Document Details: Standalone customer information is now retained when editing and displayed in service previews, details, and recent service listings."
         },
         {
           "type": "bugfix",
-          "description": "Monthly Revenue Trend Fix: Resolved rendering conflict where the Monthly Revenue chart was loading with 'NaN' values due to mismatched chart parameter mappings."
-        },
-        {
-          "type": "bugfix",
-          "description": "Heatmap Grid Stability: Addressed hover vibration/shaking feedback loop on all analytics heatmaps by shifting cell hover visuals from geometric transformations to stroke outline styling."
-        }
-      ]
-    },
-    {
-      "version": "4.2.0",
-      "date": "2026-07-07",
-      "title": "Administration Enhancements & Critical Bug Fixes",
-      "changes": [
-        {
-          "type": "feature",
-          "description": "Company Information Management: Separated company profile and payout banking details into a dedicated 'Company Info' section under Administration before Settings for a cleaner layout."
-        },
-        {
-          "type": "improvement",
-          "description": "Invoice & Purchase Listings: Removed the 10-record limit constraint in public invoice and purchase lists, allowing them to load and display all records."
-        },
-        {
-          "type": "bugfix",
-          "description": "Quotation Index Conflict: Added database initialization logic to drop the legacy unique index on quotation_id to prevent E11000 duplicate key errors when saving new quotations."
-        }
-      ]
-    },
-    {
-      "version": "4.0.0",
-      "date": "2026-06-29",
-      "title": "TypeScript Rewrite & Next-Generation Foundation",
-      "changes": [
-        {
-          "type": "feature",
-          "description": "New Customer Module: Dedicated customer management built on the redesigned data model"
-        },
-        {
-          "type": "feature",
-          "description": "New Supplier Module: Improved supplier records with the new database architecture"
-        },
-        {
-          "type": "feature",
-          "description": "New Payments Module: Centralized payment tracking independent of invoices"
-        },
-        {
-          "type": "feature",
-          "description": "Automatic Data Migration: Existing v3.6 databases are migrated to the new v4 schema during upgrade"
-        },
-        {
-          "type": "improvement",
-          "description": "Complete TypeScript migration across Electron, backend, routes, utilities, middleware, and frontend scripts for improved reliability and maintainability"
-        },
-        {
-          "type": "improvement",
-          "description": "Database Architecture Redesign: Modernized MongoDB schemas for better scalability and future feature development"
-        },
-        {
-          "type": "improvement",
-          "description": "Service Layer Architecture: Business logic moved into dedicated services for cleaner, more maintainable code"
-        },
-        {
-          "type": "improvement",
-          "description": "Build System Modernization: New TypeScript build pipeline, improved development workflow, and optimized project structure"
-        },
-        {
-          "type": "improvement",
-          "description": "Developer Infrastructure: Added automated testing with Vitest and GitHub Actions CI/CD pipeline"
-        },
-        {
-          "type": "bugfix",
-          "description": "Improved overall application stability through stricter type checking and extensive internal refactoring"
+          "description": "Standalone Preview Contact Details: Fixed standalone customer phone numbers and addresses not appearing in service document previews and details."
         }
       ]
     }
