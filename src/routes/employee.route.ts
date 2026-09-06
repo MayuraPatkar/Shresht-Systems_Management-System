@@ -111,9 +111,102 @@ router.post('/markAttendance', async (req: Request, res: Response) => {
         });
 
         await attendance.save();
-        res.status(201).json({ message: 'Attendance recorded successfully' });
+        res.status(201).json({ message: 'Attendance recorded successfully', attendance });
     } catch (error: unknown) {
         logger.error('Error recording attendance:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Route to get attendance records by date or employee ID
+router.get('/getAttendance', async (req: Request, res: Response) => {
+    try {
+        if (!AttendenceBook) {
+            return res.status(501).json({ message: 'Attendance feature not yet implemented.' });
+        }
+
+        const { date, emp_id } = req.query;
+        const query: any = {};
+
+        if (emp_id !== undefined && emp_id !== '') {
+            query.emp_id = Number(emp_id);
+        }
+
+        if (date && typeof date === 'string') {
+            const inputDate = new Date(date);
+            const startDate = new Date(inputDate);
+            startDate.setHours(0, 0, 0, 0);
+            const endDate = new Date(inputDate);
+            endDate.setHours(23, 59, 59, 999);
+            query.date = { $gte: startDate, $lte: endDate };
+        }
+
+        const attendance = await AttendenceBook.find(query).sort({ date: -1, createdAt: -1 });
+        res.status(200).json({ attendance });
+    } catch (error: unknown) {
+        logger.error('Error fetching attendance:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Route to update/edit attendance
+router.post('/updateAttendance', async (req: Request, res: Response) => {
+    try {
+        if (!AttendenceBook) {
+            return res.status(501).json({ message: 'Attendance feature not yet implemented.' });
+        }
+
+        const { attendance_id, emp_id, present, start_time, end_time, date } = req.body;
+
+        if (emp_id === undefined && !attendance_id) {
+            return res.status(400).json({ message: 'Please provide employee ID or attendance ID.' });
+        }
+
+        if (present && (!start_time || !end_time)) {
+            return res.status(400).json({ message: 'Please provide start time and end time for present status.' });
+        }
+
+        let record: any = null;
+
+        if (attendance_id) {
+            record = await AttendenceBook.findById(attendance_id);
+        }
+
+        const inputDate = date ? new Date(date) : (record ? new Date(record.date) : new Date());
+
+        if (!record && emp_id !== undefined) {
+            const startDate = new Date(inputDate);
+            startDate.setHours(0, 0, 0, 0);
+            const endDate = new Date(inputDate);
+            endDate.setHours(23, 59, 59, 999);
+
+            record = await AttendenceBook.findOne({
+                emp_id: Number(emp_id),
+                date: { $gte: startDate, $lte: endDate }
+            });
+        }
+
+        if (!record) {
+            // If no existing record was found, upsert / create one
+            const newRecord = new AttendenceBook({
+                date: inputDate,
+                emp_id: Number(emp_id),
+                present: Boolean(present),
+                start_time: present ? parseTimeOnly(start_time, inputDate) : undefined,
+                end_time: present ? parseTimeOnly(end_time, inputDate) : undefined,
+            });
+            await newRecord.save();
+            return res.status(200).json({ message: 'Attendance recorded successfully', attendance: newRecord });
+        }
+
+        record.present = Boolean(present);
+        record.start_time = present ? parseTimeOnly(start_time, record.date || inputDate) : undefined;
+        record.end_time = present ? parseTimeOnly(end_time, record.date || inputDate) : undefined;
+
+        await record.save();
+        res.status(200).json({ message: 'Attendance updated successfully', attendance: record });
+    } catch (error: unknown) {
+        logger.error('Error updating attendance:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 });

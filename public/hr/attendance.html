@@ -89,33 +89,80 @@
 
     <script src="../dist/public/ts/shared/core/globalScript.js"></script>
     <script>
+        let allEmployees = [];
+        let attendanceMap = {}; // emp_id -> attendance record
+
         document.addEventListener('DOMContentLoaded', () => {
             const todayStr = new Date().toISOString().split('T')[0];
             document.getElementById('attendance-date').value = todayStr;
-            document.getElementById('current-date-label').textContent = new Date().toLocaleDateString('en-US', {
-                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-            });
+            updateDateLabel(new Date());
 
-            loadEmployees();
-            document.getElementById('refresh-btn').addEventListener('click', loadEmployees);
+            loadAttendanceData();
+            document.getElementById('refresh-btn').addEventListener('click', loadAttendanceData);
             document.getElementById('attendance-date').addEventListener('change', (e) => {
                 const selected = new Date(e.target.value);
-                document.getElementById('current-date-label').textContent = selected.toLocaleDateString('en-US', {
-                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-                });
+                updateDateLabel(selected);
+                loadAttendanceData();
             });
         });
 
-        async function loadEmployees() {
+        function updateDateLabel(dateObj) {
+            document.getElementById('current-date-label').textContent = dateObj.toLocaleDateString('en-US', {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            });
+        }
+
+        async function loadAttendanceData() {
+            const tbody = document.getElementById('attendance-tbody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="px-6 py-14 text-center text-slate-400">
+                        <i class="fas fa-spinner fa-spin text-3xl text-blue-500 mb-3 block"></i>
+                        Loading employee attendance roster...
+                    </td>
+                </tr>
+            `;
+
             try {
-                const res = await fetch('/employee/getEmployees');
-                const data = await res.json();
-                if (data && data.employees) {
-                    renderAttendanceRows(data.employees);
+                const date = document.getElementById('attendance-date').value;
+                const [empRes, attRes] = await Promise.all([
+                    fetch('/employee/getEmployees'),
+                    fetch(`/employee/getAttendance?date=${encodeURIComponent(date)}`)
+                ]);
+
+                const empData = await empRes.json();
+                const attData = await attRes.json();
+
+                allEmployees = (empData && empData.employees) ? empData.employees : [];
+                attendanceMap = {};
+
+                if (attData && attData.attendance) {
+                    attData.attendance.forEach(rec => {
+                        attendanceMap[rec.emp_id] = rec;
+                    });
                 }
+
+                renderAttendanceRows(allEmployees);
             } catch (err) {
-                console.error("Failed to load staff:", err);
+                console.error("Failed to load attendance data:", err);
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-6 py-14 text-center text-red-500">
+                            <i class="fas fa-exclamation-triangle text-3xl mb-3 block"></i>
+                            Failed to load attendance data. Please try again.
+                        </td>
+                    </tr>
+                `;
             }
+        }
+
+        function formatTimeForInput(dateVal) {
+            if (!dateVal) return '09:00';
+            const d = new Date(dateVal);
+            if (isNaN(d.getTime())) return '09:00';
+            const hours = String(d.getHours()).padStart(2, '0');
+            const minutes = String(d.getMinutes()).padStart(2, '0');
+            return `${hours}:${minutes}`;
         }
 
         function renderAttendanceRows(employees) {
@@ -131,32 +178,45 @@
                 return;
             }
 
-            tbody.innerHTML = employees.map(emp => `
-                <tr class="hover:bg-slate-50" id="row-${emp.emp_id}">
-                    <td class="px-6 py-4 font-semibold text-slate-600">EMP-${emp.emp_id}</td>
-                    <td class="px-6 py-4 font-bold text-slate-800">${emp.name}</td>
-                    <td class="px-6 py-4 text-center">
-                        <label class="inline-flex items-center gap-1.5 cursor-pointer">
-                            <input type="checkbox" checked id="status-${emp.emp_id}" class="sr-only peer status-checkbox" data-id="${emp.emp_id}">
-                            <div class="px-3 py-1 rounded-full border text-xs font-bold transition-all peer-checked:bg-green-50 peer-checked:text-green-700 peer-checked:border-green-200 bg-red-50 text-red-700 border-red-200">
-                                <span class="absent-label">Absent</span>
-                                <span class="present-label">Present</span>
-                            </div>
-                        </label>
-                    </td>
-                    <td class="px-6 py-4">
-                        <input type="time" id="start-${emp.emp_id}" value="09:00" class="px-2 py-1 border border-slate-200 rounded text-xs bg-slate-50 outline-none">
-                    </td>
-                    <td class="px-6 py-4">
-                        <input type="time" id="end-${emp.emp_id}" value="18:00" class="px-2 py-1 border border-slate-200 rounded text-xs bg-slate-50 outline-none">
-                    </td>
-                    <td class="px-6 py-4 text-right pr-8">
-                        <button class="btn-save-attendance bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold shadow-sm" data-id="${emp.emp_id}">
-                            Submit
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = employees.map(emp => {
+                const record = attendanceMap[emp.emp_id];
+                const isMarked = !!record;
+                const isPresent = record ? record.present : true;
+                const startTime = record && record.start_time ? formatTimeForInput(record.start_time) : '09:00';
+                const endTime = record && record.end_time ? formatTimeForInput(record.end_time) : '18:00';
+                const disabledAttr = !isPresent ? 'disabled' : '';
+
+                return `
+                    <tr class="hover:bg-slate-50 transition-colors ${isMarked ? 'bg-slate-50/50' : ''}" id="row-${emp.emp_id}">
+                        <td class="px-6 py-4 font-semibold text-slate-600">
+                            EMP-${emp.emp_id}
+                            ${isMarked ? '<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">Recorded</span>' : ''}
+                        </td>
+                        <td class="px-6 py-4 font-bold text-slate-800">${emp.name || (emp.first_name + ' ' + (emp.last_name || '')).trim()}</td>
+                        <td class="px-6 py-4 text-center">
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                <input type="checkbox" ${isPresent ? 'checked' : ''} id="status-${emp.emp_id}" class="sr-only peer status-checkbox" data-id="${emp.emp_id}">
+                                <div class="px-3 py-1 rounded-full border text-xs font-bold transition-all peer-checked:bg-green-50 peer-checked:text-green-700 peer-checked:border-green-200 bg-red-50 text-red-700 border-red-200">
+                                    <span class="absent-label">Absent</span>
+                                    <span class="present-label">Present</span>
+                                </div>
+                            </label>
+                        </td>
+                        <td class="px-6 py-4">
+                            <input type="time" id="start-${emp.emp_id}" value="${startTime}" ${disabledAttr} class="px-2 py-1 border border-slate-200 rounded text-xs bg-white outline-none focus:border-blue-500 disabled:opacity-40 disabled:bg-slate-100">
+                        </td>
+                        <td class="px-6 py-4">
+                            <input type="time" id="end-${emp.emp_id}" value="${endTime}" ${disabledAttr} class="px-2 py-1 border border-slate-200 rounded text-xs bg-white outline-none focus:border-blue-500 disabled:opacity-40 disabled:bg-slate-100">
+                        </td>
+                        <td class="px-6 py-4 text-right pr-8">
+                            <button class="btn-save-attendance ${isMarked ? 'bg-amber-600 hover:bg-amber-700' : 'bg-blue-600 hover:bg-blue-700'} text-white px-4 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 ml-auto" data-id="${emp.emp_id}">
+                                <i class="fas ${isMarked ? 'fa-pen-to-square' : 'fa-check'} text-[11px]"></i>
+                                <span>${isMarked ? 'Update' : 'Submit'}</span>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
 
             // Delegating change listener for checkboxes
             tbody.onchange = (e) => {
@@ -169,38 +229,63 @@
             tbody.onclick = (e) => {
                 const btn = e.target.closest('.btn-save-attendance');
                 if (btn) {
-                    saveAttendance(btn.getAttribute('data-id'));
+                    saveOrUpdateAttendance(btn.getAttribute('data-id'), btn);
                 }
             };
         }
 
         function toggleRowTime(empId) {
             const checked = document.getElementById(`status-${empId}`).checked;
-            document.getElementById(`start-${empId}`).disabled = !checked;
-            document.getElementById(`end-${empId}`).disabled = !checked;
+            const startInput = document.getElementById(`start-${empId}`);
+            const endInput = document.getElementById(`end-${empId}`);
+            startInput.disabled = !checked;
+            endInput.disabled = !checked;
         }
 
-        async function saveAttendance(empId) {
+        async function saveOrUpdateAttendance(empId, btnElement) {
             const present = document.getElementById(`status-${empId}`).checked;
             const start_time = document.getElementById(`start-${empId}`).value;
             const end_time = document.getElementById(`end-${empId}`).value;
             const date = document.getElementById('attendance-date').value;
+            const existingRecord = attendanceMap[empId];
+
+            const originalBtnHtml = btnElement.innerHTML;
+            btnElement.disabled = true;
+            btnElement.innerHTML = `<i class="fas fa-spinner fa-spin text-xs"></i> Saving...`;
 
             try {
-                const res = await fetch('/employee/markAttendance', {
+                // Use /employee/updateAttendance which supports upsert & edit
+                const res = await fetch('/employee/updateAttendance', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ emp_id: empId, present, start_time, end_time, date })
+                    body: JSON.stringify({
+                        emp_id: empId,
+                        attendance_id: existingRecord ? existingRecord._id : undefined,
+                        present,
+                        start_time,
+                        end_time,
+                        date
+                    })
                 });
 
+                const data = await res.json();
+
                 if (res.ok) {
-                    showNotification(`Attendance recorded for EMP-${empId}!`);
+                    showNotification(existingRecord ? `Attendance updated for EMP-${empId}!` : `Attendance recorded for EMP-${empId}!`);
+                    if (data && data.attendance) {
+                        attendanceMap[empId] = data.attendance;
+                    }
+                    renderAttendanceRows(allEmployees);
                 } else {
-                    const err = await res.json();
-                    showNotification(err.message || 'Submission failed');
+                    showNotification(data.message || 'Saving attendance failed');
+                    btnElement.disabled = false;
+                    btnElement.innerHTML = originalBtnHtml;
                 }
             } catch (err) {
+                console.error("Error saving attendance:", err);
                 showNotification('Connection error');
+                btnElement.disabled = false;
+                btnElement.innerHTML = originalBtnHtml;
             }
         }
 
