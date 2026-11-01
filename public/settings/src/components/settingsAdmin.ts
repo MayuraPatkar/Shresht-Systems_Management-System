@@ -216,6 +216,12 @@ class SettingsAdmin {
         document.getElementById("bank-edit-mode")?.classList.remove("hidden");
 
         document.getElementById("edit-company-info-button")?.classList.add("hidden");
+        const exportBtn = document.getElementById("export-company-info-button");
+        if (exportBtn) {
+            exportBtn.style.display = "none";
+            exportBtn.classList.add("hidden");
+            exportBtn.classList.remove("sm:flex");
+        }
         
         const actionsEl = document.getElementById("edit-company-actions");
         if (actionsEl) {
@@ -284,6 +290,11 @@ class SettingsAdmin {
         document.getElementById("bank-edit-mode")?.classList.add("hidden");
 
         document.getElementById("edit-company-info-button")?.classList.remove("hidden");
+        const exportBtn = document.getElementById("export-company-info-button");
+        if (exportBtn) {
+            exportBtn.style.display = "";
+            exportBtn.classList.add("hidden", "sm:flex");
+        }
         
         const actionsEl = document.getElementById("edit-company-actions");
         if (actionsEl) {
