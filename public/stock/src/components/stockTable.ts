@@ -263,10 +263,10 @@ function renderStockTablePage(data: StockItem[]): void {
 
         // ── Row HTML (all data cells except the last actions cell) ──
         row.innerHTML = `
-            <td class="p-3 max-w-[260px]">
-                <div>
+            <td class="p-3 min-w-0 overflow-hidden">
+                <div class="min-w-0 w-full overflow-hidden">
                     <div class="font-semibold text-slate-800 text-sm item-name-link leading-tight truncate" title="${escapeHtml(name)}">${escapeHtml(name)}</div>
-                    <div class="text-xs text-slate-400 mt-0.5 truncate">${escapeHtml(brand)}${brand && category ? ' <span class="mx-0.5">·</span> ' : ''}${escapeHtml(category)}</div>
+                    <div class="text-xs text-slate-400 mt-0.5 truncate" title="${escapeHtml(brand)}${brand && category ? ' · ' : ''}${escapeHtml(category)}">${escapeHtml(brand)}${brand && category ? ' <span class="mx-0.5">·</span> ' : ''}${escapeHtml(category)}</div>
                 </div>
             </td>
             <td class="p-3">

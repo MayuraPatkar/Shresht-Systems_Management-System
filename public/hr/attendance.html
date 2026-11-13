@@ -27,8 +27,8 @@
                     <p class="text-xs text-slate-500 font-medium">Record work days, check-in schedules, and overtime hours</p>
                 </div>
             </div>
-            <button id="refresh-btn" class="bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 w-10 h-10 rounded-lg shadow-sm flex items-center justify-center">
-                <i class="fas fa-sync-alt"></i>
+            <button id="refresh-btn" type="button" title="Refresh Attendance (Ctrl+R)" aria-label="Refresh Attendance" class="bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 w-10 h-10 rounded-lg shadow-sm flex items-center justify-center transition-all cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="fas fa-sync-alt transition-transform"></i>
             </button>
         </div>
     </header>
@@ -87,7 +87,7 @@
         </main>
     </div>
 
-    <script src="../dist/public/ts/shared/core/globalScript.js"></script>
+    <script src="../../dist/public/ts/shared/core/globalScript.js"></script>
     <script>
         let allEmployees = [];
         let attendanceMap = {}; // emp_id -> attendance record
@@ -98,7 +98,18 @@
             updateDateLabel(new Date());
 
             loadAttendanceData();
-            document.getElementById('refresh-btn').addEventListener('click', loadAttendanceData);
+            const refreshBtn = document.getElementById('refresh-btn');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', loadAttendanceData);
+            }
+
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && (e.key === 'r' || e.key === 'R')) {
+                    e.preventDefault();
+                    document.getElementById('refresh-btn')?.click();
+                }
+            });
+
             document.getElementById('attendance-date').addEventListener('change', (e) => {
                 const selected = new Date(e.target.value);
                 updateDateLabel(selected);
@@ -113,6 +124,11 @@
         }
 
         async function loadAttendanceData() {
+            const refreshBtn = document.getElementById('refresh-btn');
+            const icon = refreshBtn ? refreshBtn.querySelector('i') : null;
+            if (icon) icon.classList.add('fa-spin');
+            if (refreshBtn) refreshBtn.disabled = true;
+
             const tbody = document.getElementById('attendance-tbody');
             tbody.innerHTML = `
                 <tr>
@@ -126,8 +142,8 @@
             try {
                 const date = document.getElementById('attendance-date').value;
                 const [empRes, attRes] = await Promise.all([
-                    fetch('/employee/getEmployees'),
-                    fetch(`/employee/getAttendance?date=${encodeURIComponent(date)}`)
+                    fetch('/employee/getEmployees?t=' + Date.now(), { cache: 'no-store' }),
+                    fetch(`/employee/getAttendance?date=${encodeURIComponent(date)}&t=${Date.now()}`, { cache: 'no-store' })
                 ]);
 
                 const empData = await empRes.json();
@@ -153,6 +169,11 @@
                         </td>
                     </tr>
                 `;
+            } finally {
+                setTimeout(() => {
+                    if (icon) icon.classList.remove('fa-spin');
+                    if (refreshBtn) refreshBtn.disabled = false;
+                }, 500);
             }
         }
 
