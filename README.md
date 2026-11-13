@@ -7,6 +7,10 @@ A comprehensive desktop management system for Shresht Systems, built with Electr
 
 ---
 
+![Shresht Systems Management System](./public/assets/SSMS-screenshot.png)
+
+---
+
 ## Release 4.4.1
 
 This release brings user interface improvements, refresh animations, scope isolation, and overall stability fixes across multiple modules.
