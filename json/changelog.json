@@ -1,29 +1,37 @@
 {
   "versions": [
     {
-      "version": "4.4.0",
-      "date": "2026-09-06",
-      "title": "Standalone Service Documents",
+      "version": "4.4.1",
+      "date": "2026-11-13",
+      "title": "UI Responsiveness, Refresh Animations & Stability Improvements",
       "changes": [
         {
-          "type": "feature",
-          "description": "Independent Project Services: Added support for creating service documents without linking them to an invoice."
-        },
-        {
-          "type": "feature",
-          "description": "Standalone Customer Information: Added customer name, project name, phone number, and address fields for independent service projects."
+          "type": "improvement",
+          "description": "Refresh Button Animations: Added smooth spinning animations and loading feedback for refresh buttons across HR (Staff Management, Details, Attendance, Payroll) and Custom Documents modules."
         },
         {
           "type": "improvement",
-          "description": "Service Phone Validation: Added 10-digit phone number validation for standalone customer information."
+          "description": "Data Synchronization & Cache Busting: Added cache-busting requests and automated search field synchronization when refreshing lists to prevent stale cached data."
         },
         {
           "type": "improvement",
-          "description": "Service Document Details: Standalone customer information is now retained when editing and displayed in service previews, details, and recent service listings."
+          "description": "Keyboard Shortcuts: Added universal Ctrl+R shortcut support to refresh data across Staff Management, Employee Details, Attendance, Payroll, and Custom Document views."
         },
         {
           "type": "bugfix",
-          "description": "Standalone Preview Contact Details: Fixed standalone customer phone numbers and addresses not appearing in service document previews and details."
+          "description": "Document Module Refresh Animation: Resolved issue where custom documents refresh button failed to animate due to missing keyframe definitions and icon class bindings."
+        },
+        {
+          "type": "bugfix",
+          "description": "TypeScript Global Scope Isolation: Wrapped voucher frontend controller in an IIFE to eliminate global namespace collisions and duplicate function implementation compiler errors."
+        },
+        {
+          "type": "improvement",
+          "description": "Stock Table Layout: Enhanced stock overview layout with responsive table formatting, improved overflow scrolling, and better container spacing."
+        },
+        {
+          "type": "improvement",
+          "description": "Company Information Controls: Fixed company info export button visibility handling during edit mode."
         }
       ]
     }

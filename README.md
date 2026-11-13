@@ -2,20 +2,22 @@
 
 A comprehensive desktop management system for Shresht Systems, built with Electron, Express, and MongoDB. This professional application streamlines business processes including quotations, invoices, purchase orders, waybills, service management, stock tracking, reports, analytics, and communications.
 
-**Version:** 4.4.0
+**Version:** 4.4.1
 **Website:** https://shreshtsystems.com
 
 ---
 
-## Release 4.4.0
+## Release 4.4.1
 
-This release expands Service Management with support for independent projects that are not linked to an invoice.
+This release brings user interface improvements, refresh animations, scope isolation, and overall stability fixes across multiple modules.
 
-- Create standalone service documents without an invoice.
-- Capture customer name, project name, phone number, and address for standalone services.
-- Validate standalone customer phone numbers using the standard 10-digit format.
-- Show standalone customer details in service previews, service details, recent services, and edit forms.
-- Preserve invoice-linked service workflows, scheduling, stock deduction, and payment tracking.
+- **Refresh Button Animations**: Added smooth spinning animations and visual loading feedback across HR (Staff Management, Details, Attendance, Payroll) and Custom Documents modules.
+- **Cache-Busting & Search Reset**: Added cache-busting requests and automated search input reset during refresh to prevent stale or out-of-sync data.
+- **Keyboard Shortcuts**: Added universal `Ctrl+R` shortcut support to trigger data refreshes across HR and Custom Document views.
+- **Document Refresh Animation**: Fixed custom document refresh animation by establishing dedicated keyframe rules and icon class toggles.
+- **TypeScript Global Scope Isolation**: Wrapped voucher frontend controller in an IIFE to eliminate global namespace collisions and compiler errors (`TS2393`).
+- **Stock Management Layout**: Enhanced stock overview table layout with responsive formatting, overflow handling, and cleaner styling.
+- **Company Information Controls**: Corrected company info export button visibility handling in edit mode.
 
 ---
 
