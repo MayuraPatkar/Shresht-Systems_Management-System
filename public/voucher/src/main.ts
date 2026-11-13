@@ -1,3 +1,4 @@
+(() => {
 let activeVouchers: any[] = [];
 let companyInfo: any = null;
 let currentViewingVoucher: any = null;
@@ -1750,3 +1751,5 @@ function renderPartyProfileCard(party: any) {
     container.classList.remove('hidden');
     container.style.display = 'block';
 }
+})();
+
