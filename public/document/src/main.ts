@@ -7,10 +7,16 @@ let loadedDocuments: any[] = [];
 let isTrashMode = false;
 
 function triggerRefreshAnimation(btn: HTMLButtonElement) {
+    const icon = btn.querySelector('i');
     btn.classList.remove('spinning');
+    if (icon) icon.classList.remove('fa-spin', 'animate-spin');
     void btn.offsetWidth; // Force reflow to restart animation
     btn.classList.add('spinning');
-    setTimeout(() => btn.classList.remove('spinning'), 650);
+    if (icon) icon.classList.add('fa-spin');
+    setTimeout(() => {
+        btn.classList.remove('spinning');
+        if (icon) icon.classList.remove('fa-spin');
+    }, 650);
 }
 
 function formatDate(dateStr: string): string {
@@ -339,9 +345,19 @@ document.addEventListener("DOMContentLoaded", () => {
     if (refreshBtn) {
         refreshBtn.addEventListener("click", () => {
             triggerRefreshAnimation(refreshBtn);
+            const searchInput = document.getElementById("search-input") as HTMLInputElement;
+            if (searchInput) searchInput.value = "";
             loadDocuments();
         });
     }
+
+    document.addEventListener("keydown", (e: KeyboardEvent) => {
+        if ((e.ctrlKey || e.metaKey) && (e.key === "r" || e.key === "R")) {
+            e.preventDefault();
+            const rBtn = document.getElementById("refresh-btn") as HTMLButtonElement;
+            if (rBtn) rBtn.click();
+        }
+    });
 
     // Trash button handler
     const trashBtn = document.getElementById("showDeletedBtn");

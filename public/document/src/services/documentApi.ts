@@ -1,7 +1,7 @@
 // @ts-nocheck
 class DocumentApi {
     async fetchAllDocuments(includeDeleted = false): Promise<any> {
-        const response = await fetch(`/document/all?includeDeleted=${includeDeleted}`);
+        const response = await fetch(`/document/all?includeDeleted=${includeDeleted}&t=${Date.now()}`, { cache: 'no-store' });
         if (!response.ok) throw new Error('Failed to fetch documents');
         return response.json();
     }
