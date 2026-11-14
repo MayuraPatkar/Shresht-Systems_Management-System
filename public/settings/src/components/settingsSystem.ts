@@ -317,7 +317,12 @@ class SettingsSystem {
     }
 
     private installUpdate(): void {
-        this.updateStatus('Restarting to install update...', 'info');
+        const installButton = document.getElementById('install-update-button') as HTMLButtonElement | null;
+        if (installButton) {
+            installButton.disabled = true;
+            installButton.innerHTML = '<i class="fas fa-spinner fa-spin text-[10px]"></i> <span>Restarting...</span>';
+        }
+        this.updateStatus('Restarting application to apply update in background...', 'info');
         (window as any).electronAPI.installUpdate();
     }
 
@@ -329,9 +334,9 @@ class SettingsSystem {
         installButton?.addEventListener('click', () => this.installUpdate());
 
         (window as any).electronAPI.onUpdateAvailable((info: any) => {
-            this.updateStatus('A new version is ready for download', 'downloading');
+            this.updateStatus('New update found! Downloading in background...', 'downloading');
             this.showUpdateInfo(info);
-            this.toggleProgressBar(true, 0, 'Starting download...');
+            this.toggleProgressBar(true, 0, 'Starting download in background...');
 
             if (checkButton) {
                 (checkButton as HTMLButtonElement).disabled = false;
@@ -362,15 +367,16 @@ class SettingsSystem {
             const total = (progress.total / 1024 / 1024).toFixed(1);
 
             this.toggleProgressBar(true, percent, `Downloading: ${percent}% (${downloaded}MB / ${total}MB)`);
-            this.updateStatus(`Downloading: ${percent}%`, 'downloading');
+            this.updateStatus(`Downloading in background: ${percent}%`, 'downloading');
         });
 
         (window as any).electronAPI.onUpdateDownloaded((info: any) => {
-            this.updateStatus('Update downloaded successfully!', 'success');
+            this.updateStatus('Update ready! Click Restart to apply.', 'success');
             this.toggleProgressBar(false);
 
             if (installButton) {
                 installButton.classList.remove('hidden');
+                installButton.innerHTML = '<i class="fas fa-arrows-rotate text-[10px]"></i> <span>Restart to Update</span>';
             }
 
             const latestVerEl = document.getElementById("update-latest-version");
@@ -381,7 +387,7 @@ class SettingsSystem {
             // Health overview update
             const healthUpdateStatus = document.getElementById("health-update-status");
             if (healthUpdateStatus) {
-                healthUpdateStatus.textContent = "Ready to Install";
+                healthUpdateStatus.textContent = "Ready to Restart";
                 healthUpdateStatus.className = "text-xs font-semibold text-emerald-600 font-bold";
             }
 

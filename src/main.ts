@@ -471,10 +471,12 @@ function setupIPCHandlers(): void {
         }
     });
 
-    // Handle install update request
+    // Handle install update request (silent background install, auto-relaunch)
     ipcMain.handle('install-update', (): void => {
-        logger.info('Install update requested');
-        setImmediate(() => autoUpdater.quitAndInstall());
+        logger.info('Install update requested (silent background install, auto-relaunch)');
+        // isSilent = true: Runs the Windows installer with /S in silent mode (no wizard shown)
+        // isForceRunAfter = true: Automatically relaunches the application after background installation completes
+        setImmediate(() => autoUpdater.quitAndInstall(true, true));
     });
 
     // Handle get-app-config request from renderer
