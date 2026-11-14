@@ -1,37 +1,25 @@
 {
   "versions": [
     {
-      "version": "4.4.1",
-      "date": "2026-11-13",
-      "title": "UI Responsiveness, Refresh Animations & Stability Improvements",
+      "version": "4.4.2",
+      "date": "2026-11-14",
+      "title": "Silent Background Updates & One-Click Installer",
       "changes": [
         {
-          "type": "improvement",
-          "description": "Refresh Button Animations: Added smooth spinning animations and loading feedback for refresh buttons across HR (Staff Management, Details, Attendance, Payroll) and Custom Documents modules."
+          "type": "feature",
+          "description": "Silent Background Updates: Updates now download and install silently in the background without launching the interactive setup wizard."
+        },
+        {
+          "type": "feature",
+          "description": "Seamless Restart to Update: Added a dedicated 'Restart to Update' button in Settings to automatically restart the application and apply updates seamlessly."
         },
         {
           "type": "improvement",
-          "description": "Data Synchronization & Cache Busting: Added cache-busting requests and automated search field synchronization when refreshing lists to prevent stale cached data."
+          "description": "One-Click NSIS Installer: Configured application packaging for streamlined one-click installation and background update execution."
         },
         {
           "type": "improvement",
-          "description": "Keyboard Shortcuts: Added universal Ctrl+R shortcut support to refresh data across Staff Management, Employee Details, Attendance, Payroll, and Custom Document views."
-        },
-        {
-          "type": "bugfix",
-          "description": "Document Module Refresh Animation: Resolved issue where custom documents refresh button failed to animate due to missing keyframe definitions and icon class bindings."
-        },
-        {
-          "type": "bugfix",
-          "description": "TypeScript Global Scope Isolation: Wrapped voucher frontend controller in an IIFE to eliminate global namespace collisions and duplicate function implementation compiler errors."
-        },
-        {
-          "type": "improvement",
-          "description": "Stock Table Layout: Enhanced stock overview layout with responsive table formatting, improved overflow scrolling, and better container spacing."
-        },
-        {
-          "type": "improvement",
-          "description": "Company Information Controls: Fixed company info export button visibility handling during edit mode."
+          "description": "Enhanced Download Progress & Status: Improved real-time feedback and status messaging during background update downloads."
         }
       ]
     }

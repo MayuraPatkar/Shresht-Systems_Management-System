@@ -2,7 +2,7 @@
 
 A comprehensive desktop management system for Shresht Systems, built with Electron, Express, and MongoDB. This professional application streamlines business processes including quotations, invoices, purchase orders, waybills, service management, stock tracking, reports, analytics, and communications.
 
-**Version:** 4.4.1
+**Version:** 4.4.2
 **Website:** https://shreshtsystems.com
 
 ---
@@ -11,17 +11,14 @@ A comprehensive desktop management system for Shresht Systems, built with Electr
 
 ---
 
-## Release 4.4.1
+## Release 4.4.2
 
-This release brings user interface improvements, refresh animations, scope isolation, and overall stability fixes across multiple modules.
+This release introduces seamless silent background updates and one-click installation.
 
-- **Refresh Button Animations**: Added smooth spinning animations and visual loading feedback across HR (Staff Management, Details, Attendance, Payroll) and Custom Documents modules.
-- **Cache-Busting & Search Reset**: Added cache-busting requests and automated search input reset during refresh to prevent stale or out-of-sync data.
-- **Keyboard Shortcuts**: Added universal `Ctrl+R` shortcut support to trigger data refreshes across HR and Custom Document views.
-- **Document Refresh Animation**: Fixed custom document refresh animation by establishing dedicated keyframe rules and icon class toggles.
-- **TypeScript Global Scope Isolation**: Wrapped voucher frontend controller in an IIFE to eliminate global namespace collisions and compiler errors (`TS2393`).
-- **Stock Management Layout**: Enhanced stock overview table layout with responsive formatting, overflow handling, and cleaner styling.
-- **Company Information Controls**: Corrected company info export button visibility handling in edit mode.
+- **Silent Background Updates**: Updates now download and install silently in the background without launching the NSIS installation wizard.
+- **Restart to Update**: Added a dedicated "Restart to Update" button that smoothly restarts the application and applies the new update in the background.
+- **One-Click NSIS Installer**: Reconfigured installer packaging for one-click installation, eliminating manual setup steps.
+- **Real-Time Download Feedback**: Improved progress indicators and status messages while updates download in the background.
 
 ---
 
