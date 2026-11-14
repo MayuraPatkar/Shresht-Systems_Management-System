@@ -106,8 +106,10 @@
       }
     ],
     "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "oneClick": true,
+      "perMachine": false,
+      "allowElevation": true,
+      "deleteAppDataOnUninstall": false
     },
     "win": {
       "icon": "./public/assets/icon.ico",
