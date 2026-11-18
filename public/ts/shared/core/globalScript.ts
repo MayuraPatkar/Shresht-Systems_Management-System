@@ -1017,6 +1017,8 @@ function addItem(insertAtIndex) {
   // Exit early if required elements don't exist (e.g., on service page which has its own addItemRow function)
   if (!tableBody) return;
 
+  const isQuotation = window.location.pathname.toLowerCase().includes('/quotation');
+
   // Calculate item number based on total count (will be corrected by updateItemNumbers if inserting)
   const itemNumber = tableBody.children.length + 1;
 
@@ -1039,7 +1041,7 @@ function addItem(insertAtIndex) {
     </div>
     
     <div class="item-field hsn">
-      <input type="text" placeholder="Code" required>
+      <input type="text" placeholder="Code"${isQuotation ? '' : ' required'}>
     </div>
     
     <div class="item-field qty">
@@ -1078,7 +1080,7 @@ function addItem(insertAtIndex) {
       <input type="text" placeholder="Item Description" class="item_name" required>
       <ul class="suggestions"></ul>
     </td>
-    <td><input type="text" placeholder="HSN/SAC" required></td>
+    <td><input type="text" placeholder="HSN/SAC"${isQuotation ? '' : ' required'}></td>
     <td><input type="text" placeholder="Qty" inputmode="decimal" pattern="[0-9]*[.]?[0-9]*" required class="qty-input"></td>
     <td><input type="number" placeholder="Unit Price" required></td>
     <td><input type="number" placeholder="Rate" min="0.01" step="0.01" required></td>

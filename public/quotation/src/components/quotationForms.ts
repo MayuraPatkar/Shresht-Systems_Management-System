@@ -506,7 +506,7 @@ async function openQuotation(idToOpen) {
         row.innerHTML = `
                 <td><div class="item-number">${index + 1}</div></td>
                 <td><input type="text" placeholder="Item Description" value="${item.description || ''}" required></td>
-                <td><input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" required></td>
+                <td><input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}"></td>
                 <td><input type="number" value="${item.quantity || ''}" min="0.000001" step="any" required></td>
                 <td><input type="number" value="${item.unit_price || ''}" required></td>
                 <td><input type="number" value="${item.rate || item.Rate || item.gst_rate || ''}" min="0.01" step="0.01" required></td>
@@ -531,7 +531,7 @@ async function openQuotation(idToOpen) {
                         </div>
                     </div>
                     <div class="item-field hsn">
-                        <input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" required>
+                        <input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}">
                     </div>
                     <div class="item-field qty">
                         <input type="number" min="0.000001" step="any" value="${item.quantity || ''}" required>
@@ -886,7 +886,7 @@ async function cloneQuotation(sourceQuotationId) {
             row.innerHTML = `
                 <td><div class="item-number">${index + 1}</div></td>
                 <td><input type="text" placeholder="Item Description" value="${item.description || ''}" required></td>
-                <td><input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" required></td>
+                <td><input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}"></td>
                 <td><input type="number" value="${item.quantity || ''}" min="0.000001" step="any" required></td>
                 <td><input type="number" value="${item.unit_price || ''}" required></td>
                 <td><input type="number" value="${item.rate || item.Rate || item.gst_rate || item.gstRate || item.GST || ''}" min="0.01" step="0.01" required></td>
@@ -910,7 +910,7 @@ async function cloneQuotation(sourceQuotationId) {
                         </div>
                     </div>
                     <div class="item-field hsn">
-                        <input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}" required>
+                        <input type="text" value="${item.HSN_SAC || item.hsn_sac || ''}">
                     </div>
                     <div class="item-field qty">
                         <input type="number" min="0.000001" step="any" value="${item.quantity || ''}" required>
@@ -2210,24 +2210,25 @@ window.validateCurrentStep = async function () {
             }
 
             if (hsn) {
-                if (!hsn.value.trim()) {
-                    setFieldValidation(hsn, false, `Required.`);
-                } else if (!/^\d+$/.test(hsn.value.trim())) {
+                const hsnVal = hsn.value.trim();
+                if (!hsnVal) {
+                    setFieldValidation(hsn, true);
+                } else if (!/^\d+$/.test(hsnVal)) {
                     setFieldValidation(hsn, false, `HSN/SAC must contain numbers only.`);
                 } else {
-                    const hsnVal = hsn.value.trim().toUpperCase();
+                    const hsnUpper = hsnVal.toUpperCase();
                     const descVal = desc?.value.trim().toLowerCase() || '';
-                    if (hsnMap[hsnVal] !== undefined) {
-                        const firstIdx = hsnMap[hsnVal];
+                    if (hsnMap[hsnUpper] !== undefined) {
+                        const firstIdx = hsnMap[hsnUpper];
                         const firstCard = itemCards[firstIdx] as Element;
                         const firstDesc = (firstCard.querySelector('.item_name') as HTMLInputElement)?.value.trim().toLowerCase() || '';
                         if (firstDesc !== descVal) {
-                            setFieldValidation(hsn, false, `HSN "${hsnVal}" is used by Item #${firstIdx + 1}.`);
+                            setFieldValidation(hsn, false, `HSN "${hsnUpper}" is used by Item #${firstIdx + 1}.`);
                         } else {
                             setFieldValidation(hsn, true);
                         }
                     } else {
-                        hsnMap[hsnVal] = index;
+                        hsnMap[hsnUpper] = index;
                         setFieldValidation(hsn, true);
                     }
                 }
